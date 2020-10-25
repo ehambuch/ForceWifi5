@@ -27,7 +27,8 @@
 	<string name="summary_activation">Activate or de-activate the functionality to switch automatically the frequency of your Wifi</string>
 	<string name="summary_2ghz5ghz">Choose your preferred frequency - either 2.4 GHz or 5 GHz if supported</string>
 	<string name="summary_signallevel">Define the minimum signal level to switch over to another frequency. This avoids switchting to a weaker network.</string>
-	<string-array name="entries25ghz">
+    <string name="title_settings">Settings</string>
+    <string-array name="entries25ghz">
 		<item>2.4 GHz</item>
 		<item>5 GHz</item>
 	</string-array>

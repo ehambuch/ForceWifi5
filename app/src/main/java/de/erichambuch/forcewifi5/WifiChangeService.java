@@ -42,7 +42,7 @@ public class WifiChangeService extends Service {
 				locationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
 				PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, locationIntent, 0);
 				NotificationCompat.Builder builder = new NotificationCompat.Builder(this, MainActivity.CHANNEL_ID)
-						.setSmallIcon(R.drawable.ic_launcher_background)
+						.setSmallIcon(R.mipmap.ic_launcher)
 						.setContentTitle(getString(R.string.app_name))
 						.setContentText(getString(R.string.error_no_location_enabled))
 						.setPriority(NotificationCompat.PRIORITY_DEFAULT)

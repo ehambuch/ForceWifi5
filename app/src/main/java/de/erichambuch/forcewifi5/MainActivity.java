@@ -26,8 +26,8 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -61,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
 		NetworkEntry(String name) {
 			this.name = name;
 		}
+		@NonNull
 		public String toString() {
 			StringBuilder text = new StringBuilder();
 			text.append("<b>");
@@ -123,8 +124,6 @@ public class MainActivity extends AppCompatActivity {
 		super.onCreate(savedInstanceState);
 		
 		setContentView(R.layout.activity_main);
-		Toolbar toolbar = findViewById(R.id.toolbar);
-		setSupportActionBar(toolbar);
 
 		// register a listener to network changes
 		ConnectivityManager connManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -228,7 +227,7 @@ public class MainActivity extends AppCompatActivity {
 		WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
 		List<ScanResult> scanResults = wifiManager.getScanResults();
 		// build up list with all SSID supporting 2.4 and 5 GHz
-		List<NetworkEntry> listNetworks = new ArrayList<NetworkEntry>();
+		List<NetworkEntry> listNetworks = new ArrayList<>();
 		Map<String, NetworkEntry> map245Ghz = new HashMap<>();
 		for(ScanResult result : scanResults) {
 			if (result.SSID != null && result.SSID.length() > 0 ) {
@@ -247,7 +246,7 @@ public class MainActivity extends AppCompatActivity {
 			if(entry.is24ghz && entry.is5ghz)
 				listNetworks.add(entry);
 		}
-		view.setAdapter(new ArrayAdapter<NetworkEntry>(this, R.layout.list_view_entry, listNetworks));
+		view.setAdapter(new ArrayAdapter<>(this, R.layout.list_view_entry, listNetworks));
 	}
 	
 
