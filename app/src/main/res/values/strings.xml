@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Force Wifi 5 GHz</string>
+    <string name="author">erichambuch@googlemail.com</string>
+    <string name="action_info">Info</string>
+	<string name="error_wifi_not_enabled">Wifi is not enabled!</string>
+	<string name="error_no_5ghz_found">No networks with both frequencies and same SSID found!</string>
+	<string name="error_no_location_enabled">Location services need to be enabled!</string>
+	<string name="info_switch_wifi_5ghz">Trying to switch frequency &#8230;</string>
+	<string name="info_5ghz_active">Wifi already connected with preferred frequency</string>
+	<string name="text_listnetworks">Available networks with both 2.4/5 GHz:</string>
+	<string name="title_activation">Force Wifi frequency activated</string>
+	<string name="error_5ghz_not_configured">Please try to configure 5 GHz network with current SSID…</string>
+	<string name="error_scan_failed">Wifi scan failed</string>
+	<string name="app_description">Forces Wifi to switch to 5 GHz channels</string>
+	<string name="title_2ghz5ghz">Choose preferred frequency</string>
+	<string name="action_settings">Settings</string>
+	<string name="app_url">https://sites.google.com/site/erichambuch</string>
+    <string name="app_mailto">mailto:erichambuch@googlemail.com</string>
+	<string name="title_5ghz">5 GHz</string>
+	<string name="title_2ghz">2.4 GHz</string>
+	<string name="prefs_activation">prefs_activation</string>
+	<string name="prefs_2ghz5ghz">prefs_ghz25switch</string>
+	<string name="title_minimumlevel">Minimum signal level to switch over</string>
+	<string name="prefs_signallevel">prefs_signallevel</string>
+	<string name="summary_activation">Activate or de-activate the functionality to switch automatically the frequency of your Wifi</string>
+	<string name="summary_2ghz5ghz">Choose your preferred frequency - either 2.4 GHz or 5 GHz if supported</string>
+	<string name="summary_signallevel">Define the minimum signal level to switch over to another frequency. This avoids switchting to a weaker network.</string>
+	<string-array name="entries25ghz">
+		<item>2.4 GHz</item>
+		<item>5 GHz</item>
+	</string-array>
+	<string-array name="values25ghz">
+		<item>0</item>
+		<item>1</item>
+	</string-array>
+</resources>

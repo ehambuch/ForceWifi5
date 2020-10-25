@@ -1,0 +1,45 @@
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    >
+
+    <SwitchPreferenceCompat
+        app:key="@string/prefs_activation"
+        app:defaultValue="true"
+        app:title="@string/title_activation"
+        app:summary="@string/summary_activation"/>
+
+    <ListPreference
+        app:key="@string/prefs_2ghz5ghz"
+        app:defaultValue="1"
+        android:entries="@array/entries25ghz"
+        android:entryValues="@array/values25ghz"
+        app:title="@string/title_2ghz5ghz"
+        app:summary="@string/summary_2ghz5ghz"
+        />
+
+    <SeekBarPreference
+        app:key="@string/prefs_signallevel"
+        app:defaultValue="30"
+        app:showSeekBarValue="true"
+        app:min="0"
+        android:max="100"
+        app:title="@string/title_minimumlevel"
+        app:summary="@string/summary_signallevel"
+        />
+    <Preference
+        app:title="Data privacy &amp; FAQ"
+        app:summary="Read data privacy and FAQ">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="@string/app_url" />
+    </Preference>
+
+    <Preference
+        app:title="Send feedback"
+        app:summary="Report technical issues or suggest new features">
+        <intent
+            android:action="android.intent.action.SENDTO"
+            android:data="@string/app_mailto" />
+        </Preference>
+
+</PreferenceScreen>
