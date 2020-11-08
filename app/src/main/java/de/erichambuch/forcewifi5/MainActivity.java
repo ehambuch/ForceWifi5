@@ -20,6 +20,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.text.Html;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
@@ -27,6 +28,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresPermission;
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.ArrayList;
@@ -34,6 +36,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static android.Manifest.permission.ACCESS_FINE_LOCATION;
+import static android.Manifest.permission.ACCESS_WIFI_STATE;
+import static android.Manifest.permission.CHANGE_NETWORK_STATE;
+import static android.Manifest.permission.CHANGE_WIFI_STATE;
 import static android.text.Html.FROM_HTML_MODE_LEGACY;
 
 /**
@@ -48,16 +54,16 @@ public class MainActivity extends AppCompatActivity {
 	private class NetworkCallback extends ConnectivityManager.NetworkCallback {
 	    @Override
 	    public void onAvailable(Network network) {
-	        startService(new Intent(MainActivity.this, WifiChangeService.class));
+	        startWifiService(MainActivity.this);
 	    }
 	}
-	
+
 	public static class NetworkEntry {
 		String name;
 		boolean is24ghz;
 		boolean is5ghz;
 		List<AccessPointEntry> accessPoints = new ArrayList<>(2);
-		
+
 		NetworkEntry(String name) {
 			this.name = name;
 		}
@@ -93,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
 			this.frequency = freq;
 			this.signalLevel = level;
 		}
-		public String toString() { return this.bssid; }
+		public @NonNull String toString() { return this.bssid; }
 	}
 
 	/**
@@ -110,8 +116,13 @@ public class MainActivity extends AppCompatActivity {
 				boolean success = intent.getBooleanExtra(WifiManager.EXTRA_RESULTS_UPDATED, false);
 				if (!success)
 					Toast.makeText(context, R.string.error_scan_failed, Toast.LENGTH_LONG).show();
-				context.startService(new Intent(context.getApplicationContext(), WifiChangeService.class));
-				MainActivity.this.listNetworks();
+				startWifiService(context);
+				try {
+					MainActivity.this.listNetworks();
+				}
+				catch (SecurityException e) {
+					Log.e(AppInfo.APP_NAME, "Error listing networks", e);
+				}
 			}
 		}
 	}
@@ -138,8 +149,9 @@ public class MainActivity extends AppCompatActivity {
 	protected void onStart() {
 		super.onStart();
 
-		if ((checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) &&
-				(checkSelfPermission(android.Manifest.permission.CHANGE_NETWORK_STATE) == PackageManager.PERMISSION_GRANTED)) {
+		if ((checkSelfPermission(ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) &&
+				(checkSelfPermission(ACCESS_WIFI_STATE) == PackageManager.PERMISSION_GRANTED) &&
+				(checkSelfPermission(CHANGE_NETWORK_STATE) == PackageManager.PERMISSION_GRANTED)) {
 			// starting with Android 6, Location services has to be enabled to list all wifis
 			if (isLocationServicesEnabled(this)) {
 				doStart();
@@ -150,17 +162,20 @@ public class MainActivity extends AppCompatActivity {
 			}
 		} else {
 			requestPermissions(new String[]{
-					android.Manifest.permission.ACCESS_FINE_LOCATION,
-					android.Manifest.permission.CHANGE_WIFI_STATE
+					ACCESS_FINE_LOCATION,
+					ACCESS_WIFI_STATE,
+					CHANGE_WIFI_STATE
 			}, REQUEST_CODE_PERMISSIONS);
 		}
 	}
+
+	@RequiresPermission(allOf = {ACCESS_WIFI_STATE, ACCESS_FINE_LOCATION})
 	private void doStart() {
 		if(!isLocationServicesEnabled(this))
 			showError(R.string.error_no_location_enabled);
 		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) { // as startScan() is deprecated from API 28
 			listNetworks();
-			startService(new Intent(getApplicationContext(), WifiChangeService.class));
+			startWifiService(this);
 		} else {
 			registerReceiver(scanFinishedListener, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
 			WifiManager wifiManager = getSystemService(WifiManager.class);
@@ -180,13 +195,19 @@ public class MainActivity extends AppCompatActivity {
 	}
 
 	@Override
-	public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+	public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
 		if (requestCode == REQUEST_CODE_PERMISSIONS && permissions.length >= 1) {
 			for(int grant : grantResults) {
 				if ( grant != PackageManager.PERMISSION_GRANTED)
 					return;
 			}
-			doStart();
+			try {
+				doStart();
+			}
+			catch(SecurityException e) {
+				Log.e(AppInfo.APP_NAME, "Error starting scan", e);
+				showError(R.string.error_no_location_enabled);
+			}
 		}
 	}
 
@@ -213,9 +234,16 @@ public class MainActivity extends AppCompatActivity {
 	}
 
 	public void onActivityResult(int requestCode, int resultCode, Intent resultIntent) {
-		if (requestCode == REQUEST_CODE_LOCATION_SERVICES)
-			if (isLocationServicesEnabled(this))  // avoid endless loop if not acticated
-				listNetworks();
+		if (requestCode == REQUEST_CODE_LOCATION_SERVICES) {
+			if (isLocationServicesEnabled(this)) {  // avoid endless loop if not acticated
+				try {
+					listNetworks();
+				} catch (SecurityException e) {
+					Log.e(AppInfo.APP_NAME, "Error starting scan", e);
+					showError(R.string.error_no_location_enabled);
+				}
+			}
+		}
 		else
 			super.onActivityResult(requestCode, resultCode, resultIntent);
 	}
@@ -223,6 +251,7 @@ public class MainActivity extends AppCompatActivity {
 	/**
 	 * Show a list of all detected network with provide both: 2.4 and 5 GHz.
 	 */
+	@RequiresPermission(allOf = {ACCESS_WIFI_STATE, ACCESS_FINE_LOCATION})
 	private void listNetworks() {
 		WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
 		List<ScanResult> scanResults = wifiManager.getScanResults();
@@ -248,8 +277,8 @@ public class MainActivity extends AppCompatActivity {
 		}
 		view.setAdapter(new ArrayAdapter<>(this, R.layout.list_view_entry, listNetworks));
 	}
-	
 
+	@SuppressWarnings("deprecation")
 	public static boolean isLocationServicesEnabled(Context context) {
 		// TODO use androidx.appcompat:appcompat:1.2.0
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -257,8 +286,7 @@ public class MainActivity extends AppCompatActivity {
             LocationManager lm = (LocationManager) context.getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
             return lm != null && lm.isLocationEnabled();
         } else {
-        // This is Deprecated in API 28
-            @SuppressWarnings("deprecation")
+        	// This is Deprecated in API 28
 			int mode = Settings.Secure.getInt(context.getApplicationContext().getContentResolver(), Settings.Secure.LOCATION_MODE,
                     Settings.Secure.LOCATION_MODE_OFF);
             return  (mode != Settings.Secure.LOCATION_MODE_OFF);
@@ -278,6 +306,17 @@ public class MainActivity extends AppCompatActivity {
 			channel.setDescription(description);
 			NotificationManager notificationManager = getSystemService(NotificationManager.class);
 			notificationManager.createNotificationChannel(channel);
+		}
+	}
+
+	/**
+	 * Runs the {@link WifiChangeService} as a foreground task starting with Android 9.
+	 */
+	public static void startWifiService(Context context) {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+			context.startForegroundService(new Intent(context.getApplicationContext(), WifiChangeService.class));
+		} else {
+			context.startService(new Intent(context.getApplicationContext(), WifiChangeService.class)); // on Android 8 and below
 		}
 	}
 }

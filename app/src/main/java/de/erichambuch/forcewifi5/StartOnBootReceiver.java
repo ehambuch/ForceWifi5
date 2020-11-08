@@ -23,7 +23,7 @@ public class StartOnBootReceiver extends android.content.BroadcastReceiver {
 					new ConnectivityManager.NetworkCallback() {
 					    @Override
 					    public void onAvailable(Network network) {
-					        context.startService(new Intent(context, WifiChangeService.class));
+					        MainActivity.startWifiService(context);
 					    }
 					});
 		}

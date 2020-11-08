@@ -1,7 +1,7 @@
 <PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android"
     >
-
+    <PreferenceCategory android:title="General settings">
     <SwitchPreferenceCompat
         app:key="@string/prefs_activation"
         app:defaultValue="true"
@@ -26,6 +26,24 @@
         app:title="@string/title_minimumlevel"
         app:summary="@string/summary_signallevel"
         />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="Permissions">
+    <Preference
+        app:title="Permission settings"
+        app:summary="Open permission settings of app">
+        <intent
+            android:action="android.settings.APPLICATION_DETAILS_SETTINGS"
+            android:data="package:de.erichambuch.forcewifi5" />
+    </Preference>
+    <Preference
+        app:title="Location settings"
+        app:summary="Open location services settings">
+        <intent
+            android:action="android.settings.LOCATION_SOURCE_SETTINGS"
+             />
+    </Preference>
+    </PreferenceCategory>
+    <PreferenceCategory android:title="Information">
     <Preference
         app:title="Data privacy &amp; FAQ"
         app:summary="Read data privacy and FAQ">
@@ -41,5 +59,5 @@
             android:action="android.intent.action.SENDTO"
             android:data="@string/app_mailto" />
         </Preference>
-
+    </PreferenceCategory>
 </PreferenceScreen>

@@ -7,7 +7,8 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" android:maxSdkVersion="28" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
 
     <uses-feature android:name="android.hardware.wifi" />
 
@@ -27,7 +28,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".SettingsActivity" android:label="@string/action_settings"/>
-        <service android:name=".WifiChangeService" />
+        <service android:name=".WifiChangeService" android:foregroundServiceType="location"/>
         <receiver android:name=".StartOnBootReceiver" >
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
