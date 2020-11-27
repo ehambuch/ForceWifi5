@@ -15,6 +15,7 @@ import android.net.NetworkCapabilities;
 import android.net.NetworkRequest;
 import android.net.Uri;
 import android.net.wifi.ScanResult;
+import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -25,6 +26,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -60,12 +62,14 @@ public class MainActivity extends AppCompatActivity {
 
 	public static class NetworkEntry {
 		String name;
+		boolean connected;
 		boolean is24ghz;
 		boolean is5ghz;
 		List<AccessPointEntry> accessPoints = new ArrayList<>(2);
 
-		NetworkEntry(String name) {
+		NetworkEntry(String name, boolean connected) {
 			this.name = name;
+			this.connected = connected;
 		}
 		@NonNull
 		public String toString() {
@@ -135,6 +139,7 @@ public class MainActivity extends AppCompatActivity {
 		super.onCreate(savedInstanceState);
 		
 		setContentView(R.layout.activity_main);
+		findViewById(R.id.floatingActionButton).setOnClickListener(v -> startActivity(new Intent(getApplicationContext(), SettingsActivity.class)));
 
 		// register a listener to network changes
 		ConnectivityManager connManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -255,14 +260,16 @@ public class MainActivity extends AppCompatActivity {
 	private void listNetworks() {
 		WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
 		List<ScanResult> scanResults = wifiManager.getScanResults();
+		WifiInfo activeNetwork = wifiManager.getConnectionInfo();
 		// build up list with all SSID supporting 2.4 and 5 GHz
 		List<NetworkEntry> listNetworks = new ArrayList<>();
 		Map<String, NetworkEntry> map245Ghz = new HashMap<>();
 		for(ScanResult result : scanResults) {
 			if (result.SSID != null && result.SSID.length() > 0 ) {
+				boolean connected = activeNetwork != null && result.SSID.equals(activeNetwork.getSSID());
 				NetworkEntry isThere = map245Ghz.get(result.SSID);
 				if ( isThere == null ) 
-					map245Ghz.put(result.SSID, isThere = new NetworkEntry(result.SSID));
+					map245Ghz.put(result.SSID, isThere = new NetworkEntry(result.SSID, connected));
 				if ( result.frequency >= 2000 && result.frequency <= 2999 )
 					isThere.is24ghz = true;
 				if ( result.frequency >= 5000 && result.frequency <= 5999 )
@@ -275,7 +282,15 @@ public class MainActivity extends AppCompatActivity {
 			if(entry.is24ghz && entry.is5ghz)
 				listNetworks.add(entry);
 		}
-		view.setAdapter(new ArrayAdapter<>(this, R.layout.list_view_entry, listNetworks));
+		if (listNetworks.size() > 0) {
+			view.setAdapter(new ArrayAdapter<>(this, R.layout.list_view_entry, listNetworks));
+			findViewById(R.id.nowificardview).setBackgroundColor(getResources().getColor(android.R.color.holo_green_dark, getTheme()));
+			((TextView)findViewById(R.id.nowifitextview)).setText(R.string.text_wififound);
+		} else {
+			view.setAdapter(new ArrayAdapter<>(this, R.layout.list_view_entry, new ArrayList<>(map245Ghz.values())));
+			findViewById(R.id.nowificardview).setBackgroundColor(getResources().getColor(R.color.colorPrimaryDark, getTheme()));
+			((TextView)findViewById(R.id.nowifitextview)).setText(R.string.text_nowififound);
+		}
 	}
 
 	@SuppressWarnings("deprecation")

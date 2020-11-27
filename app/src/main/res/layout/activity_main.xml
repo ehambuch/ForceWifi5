@@ -3,35 +3,67 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:textAlignment="center"
     tools:context=".MainActivity">
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/mainFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:layout_margin="5dp"
         tools:context=".MainActivity">
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/nowificardview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:padding="5dp"
+            android:visibility="visible"
+            app:cardBackgroundColor="@color/colorPrimaryDark"
+            app:cardCornerRadius="8dp"
+            >
+
+                <TextView
+                    android:id="@+id/nowifitextview"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+
+                    android:text="@string/text_nowififound"
+                    android:textColor="@android:color/white"
+                    android:layout_margin="8dp"
+                    />
+
+        </com.google.android.material.card.MaterialCardView>
+
+
 
         <ListView
             android:id="@+id/listview"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_margin="5dp"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
             android:dividerHeight="2dp"
             android:orientation="vertical"
             android:scrollbars="vertical"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-        <com.google.android.material.button.MaterialButton
-            app:layout_constraintTop_toBottomOf="@id/listview"
-            app:layout_constraintBottom_toBottomOf="parent"
-            android:visibility="gone"
+            app:layout_constraintTop_toBottomOf="@id/nowificardview">
+        </ListView>
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/floatingActionButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:layout_constraintStart_toStartOf="parent"
+            android:clickable="true"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:text="@string/title_settings"/>
+            android:layout_gravity="end|bottom"
+            android:layout_margin="@dimen/fab_margin"
+            app:srcCompat="@android:drawable/ic_menu_preferences"
+            android:focusable="true"
+            android:contentDescription="@string/action_settings" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
