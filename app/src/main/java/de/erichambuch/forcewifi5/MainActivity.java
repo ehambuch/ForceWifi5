@@ -316,7 +316,7 @@ public class MainActivity extends AppCompatActivity {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 			CharSequence name = getString(R.string.app_name);
 			String description = getString(R.string.app_description);
-			int importance = NotificationManager.IMPORTANCE_DEFAULT;
+			int importance = NotificationManager.IMPORTANCE_LOW;
 			NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
 			channel.setDescription(description);
 			NotificationManager notificationManager = getSystemService(NotificationManager.class);
@@ -326,12 +326,24 @@ public class MainActivity extends AppCompatActivity {
 
 	/**
 	 * Runs the {@link WifiChangeService} as a foreground task starting with Android 9.
+	 *
+	 * @param  context
 	 */
 	public static void startWifiService(Context context) {
+		final Intent intent = new Intent(context.getApplicationContext(), WifiChangeService.class);
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-			context.startForegroundService(new Intent(context.getApplicationContext(), WifiChangeService.class));
+			try {
+				context.getApplicationContext().bindService(intent, new WifiChangeService.WifiServiceConnection(context.getApplicationContext()),
+						Context.BIND_AUTO_CREATE);
+				context.getApplicationContext().startForegroundService(intent);
+				// Due to necessary workaround: Replacement for
+				// context.startForegroundService(new Intent(context.getApplicationContext(), WifiChangeService.class));
+			} catch(RuntimeException e) {
+				// If call comes from a BroadcastReceiver (see Javadoc of Bindservice). try again without bind()
+				context.getApplicationContext().startForegroundService(intent);
+			}
 		} else {
-			context.startService(new Intent(context.getApplicationContext(), WifiChangeService.class)); // on Android 8 and below
+			context.startService(intent); // on Android 8 and below
 		}
 	}
 }

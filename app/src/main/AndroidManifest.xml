@@ -29,7 +29,7 @@
         </activity>
         <activity android:name=".SettingsActivity" android:label="@string/action_settings"/>
         <service android:name=".WifiChangeService" android:foregroundServiceType="location"/>
-        <receiver android:name=".StartOnBootReceiver" >
+        <receiver android:name=".StartOnBootReceiver" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
             </intent-filter>

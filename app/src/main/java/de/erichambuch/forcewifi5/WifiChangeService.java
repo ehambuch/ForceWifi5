@@ -3,6 +3,8 @@ package de.erichambuch.forcewifi5;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.MacAddress;
@@ -12,12 +14,14 @@ import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiNetworkSuggestion;
+import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
 import android.provider.Settings;
 import android.util.Log;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresPermission;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
@@ -30,39 +34,114 @@ import java.util.List;
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.Manifest.permission.ACCESS_WIFI_STATE;
 import static android.Manifest.permission.CHANGE_WIFI_STATE;
+import static android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION;
 
 /**
  * Service that executes the logic in the background.<p>
  * Starting with Android O, foreground services will be used.</p>
  */
 public class WifiChangeService extends Service {
+	/**
+	 * Service connection for workaround of <pre>Context.startForegroundService() did not then call Service.startForeground()</pre> problem,
+	 * were service.startForeground() is not started within 5 seconds due to Android scheduling.
+	 * @see {https://stackoverflow.com/questions/44425584/context-startforegroundservice-did-not-then-call-service-startforeground}
+	 */
+	public static class WifiServiceConnection implements android.content.ServiceConnection {
+
+		private final Context context;
+
+		public WifiServiceConnection(Context context) {
+			this.context = context;
+		}
+
+		@Override
+		public void onServiceConnected(ComponentName name, IBinder service)
+		{
+			LocalBinder binder = (LocalBinder) service;
+			WifiChangeService myService = binder.getService();
+
+			if ( Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ) {
+				PendingIntent pendingIntent =
+						PendingIntent.getActivity(context, 0, new Intent(context, WifiChangeService.class), 0);
+
+				Notification notification =
+						new Notification.Builder(context, MainActivity.CHANNEL_ID)
+								.setContentTitle(context.getText(R.string.app_name))
+								.setContentText(context.getText(R.string.title_activation))
+								.setSmallIcon(R.mipmap.ic_launcher)
+								.setContentIntent(pendingIntent)
+								.setTicker(context.getText(R.string.title_activation))
+								.build();
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+					myService.startForeground(ONGOING_NOTIFICATION_ID, notification, FOREGROUND_SERVICE_TYPE_LOCATION);
+				} else {
+					myService.startForeground(ONGOING_NOTIFICATION_ID, notification);
+				}
+				try {
+					// Release the connection to prevent leaks. => may be skipped
+					context.unbindService(this);
+				} catch(Exception e) {
+					Log.i(AppInfo.APP_NAME, "unBind failed.", e);
+				}
+			}
+		}
+
+		@Override
+		public void onBindingDied(ComponentName name)
+		{
+			Log.w(AppInfo.APP_NAME, "Binding has dead.");
+		}
+
+		@Override
+		public void onNullBinding(ComponentName name)
+		{
+			Log.w(AppInfo.APP_NAME, "Bind was null.");
+		}
+
+		@Override
+		public void onServiceDisconnected(ComponentName name)
+		{
+			Log.w(AppInfo.APP_NAME, "Service is disconnected..");
+		}
+	}
 
 	public static final int ONGOING_NOTIFICATION_ID = 123;
 
 	private List<WifiNetworkSuggestion> oldSuggestions;
 
+	public class LocalBinder extends Binder
+	{
+		public WifiChangeService getService()
+		{
+			return WifiChangeService.this;
+		}
+	}
+
+	private final LocalBinder binder = new LocalBinder();
+
+	/**
+	 * Solution for ANR problem according to {@see https://stackoverflow.com/questions/44425584/context-startforegroundservice-did-not-then-call-service-startforeground}
+	 * @param intent
+	 * @return the service instance
+	 */
+	@Nullable
+	@Override
+	public IBinder onBind(Intent intent)
+	{
+		return binder;
+	}
+
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
+		Log.d(AppInfo.APP_NAME, "Starting WifiChangeService");
 		if (isActivated()) {
 			if(ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
 				&& ActivityCompat.checkSelfPermission(this, CHANGE_WIFI_STATE) == PackageManager.PERMISSION_GRANTED
 				&& ActivityCompat.checkSelfPermission(this, ACCESS_WIFI_STATE) == PackageManager.PERMISSION_GRANTED) {
 				try {
 					// Android 9 and above forces handling of foreground services, esp. if using location services
-					if ( Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ) {
-						PendingIntent pendingIntent =
-								PendingIntent.getActivity(this, 0, new Intent(this, WifiChangeService.class), 0);
-
-						Notification notification =
-								new Notification.Builder(this, MainActivity.CHANNEL_ID)
-										.setContentTitle(getText(R.string.app_name))
-										.setContentText(getText(R.string.title_activation))
-										.setSmallIcon(R.mipmap.ic_launcher)
-										.setContentIntent(pendingIntent)
-										.setTicker(getText(R.string.title_activation))
-										.build();
-						startForeground(ONGOING_NOTIFICATION_ID, notification);
-					}
+					// we create the foreground service during ServiceConnection creating due to scheduling bugs in Android
+					// Workaround from Stackoverflow https://stackoverflow.com/questions/44425584/context-startforegroundservice-did-not-then-call-service-startforegrounds
 					updateNetworks();
 				} catch(Exception e) {
 					Log.e(AppInfo.APP_NAME, "updateNetworks", e);
@@ -96,21 +175,25 @@ public class WifiChangeService extends Service {
 
 				boolean reconnected = false;
 				List<ScanResult> scanResults = wifiManager.getScanResults();
+				int minimumSignalLevel = -1;
 				for (ScanResult result : scanResults) {
+					final int signalLevel = WifiManager.calculateSignalLevel(result.level,100);
 					if (isWantedFrequency(result.frequency)
 							&& result.SSID.equals(activeWifi.getSSID())
-							&& WifiManager.calculateSignalLevel(result.level,100) >= getMinimumLevel()) {
+							&&  signalLevel >= getMinimumLevel()
+							&&  signalLevel > minimumSignalLevel ) {
 						// found Wifi -> try to connect to it
 						if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q ) {
-							// TODO: bei Repeatern: Access point mit stärkstem Signal suchen
 							WifiNetworkSuggestion suggestion = new WifiNetworkSuggestion.Builder().setSsid(result.SSID)
 									.setBssid(MacAddress.fromString(result.BSSID)).build();
 							// remove previous ones
 							if (oldSuggestions != null)
 								wifiManager.removeNetworkSuggestions(oldSuggestions);
 							wifiManager.addNetworkSuggestions(oldSuggestions = Collections.singletonList(suggestion));
+							minimumSignalLevel = signalLevel;
 							reconnected = true;
-							break;
+							// for Repeaters with different access points - we try to find a stronger signal, so don't break
+							continue;
 						} else {
 							// geht nur < Android 10
 							List<WifiConfiguration> configs = wifiManager.getConfiguredNetworks();
@@ -119,6 +202,7 @@ public class WifiChangeService extends Service {
 									// assume: thats the 5GHz point
 									wifiManager.enableNetwork(config.networkId, true);
 									reconnected = true;
+									minimumSignalLevel = signalLevel;
 									break;
 								}
 							}
@@ -126,10 +210,10 @@ public class WifiChangeService extends Service {
 							if(!reconnected)
 								showError(R.string.error_5ghz_not_configured);
 						}
-						if (reconnected)
-							showError(R.string.info_switch_wifi_5ghz);
 					}
 				}
+				if (reconnected)
+					showError(R.string.info_switch_wifi_5ghz);
 			} else
 				showError(R.string.info_5ghz_active);
 		} else
@@ -139,11 +223,6 @@ public class WifiChangeService extends Service {
 
 	private void showError(int stringId) {
 		Toast.makeText(getApplicationContext(), stringId, Toast.LENGTH_LONG).show();
-	}
-
-	@Override
-	public IBinder onBind(Intent arg0) {
-		return null;
 	}
 
 	/**
