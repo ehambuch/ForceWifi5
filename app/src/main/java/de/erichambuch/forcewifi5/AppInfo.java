@@ -12,7 +12,7 @@ package de.erichambuch.forcewifi5;
  *     <li>V1.2 (5.11.2020) - Improved (foreground)service handling for Android O and above</li>
  *     <li>V1.3 (25.11.2020) - added notification if no 2/5 network is available</li>
  *     <li>V1.4 (16.01.2021) - Workaround for Android problems with Stackoverflow recommandations</li>
- *     <li>V1.5 (21.03.2021) - Handling multiple access points, Update Android libs</li>
+ *     <li>V1.5.1 (21.03.2021) - Handling multiple access points, Update Android libs, Warning for pre-Android 10 versions (does not work reliably)</li>
  * </ul>
  * <ul>
  *     <li>TODO: ACCESS_BACKGROUND_LOCATION for Android 11?</li>

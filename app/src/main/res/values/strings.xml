@@ -31,7 +31,8 @@
 	<string name="text_wififound">Found the following Wifi access points with same SSID and 2.4/5 GHz - trying to switch to preferred one.</string>
 	<string name="text_nowififound">You don\'t have any Wifi access points with both 2.4 and 5 GHz band on same SSID nearby. Please find another Wifi access point
 	with multiple frequencies on the same SSID to make use of this app.</string>
-    <string-array name="entries25ghz">
+	<string name="error_not_android10">Please note: This app does not work reliably with pre-Android 10 devices. To make use of this app you need to configure access points with different names (SSID) and frequencies.</string>
+	<string-array name="entries25ghz">
 		<item>2.4 GHz</item>
 		<item>5 GHz</item>
 	</string-array>

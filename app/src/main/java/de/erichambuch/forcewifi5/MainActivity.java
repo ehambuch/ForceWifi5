@@ -33,6 +33,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresPermission;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -61,11 +63,11 @@ public class MainActivity extends AppCompatActivity {
 	}
 
 	public static class NetworkEntry {
-		String name;
-		boolean connected;
+		final String name;
+		final boolean connected;
 		boolean is24ghz;
 		boolean is5ghz;
-		List<AccessPointEntry> accessPoints = new ArrayList<>(2);
+		final List<AccessPointEntry> accessPoints = new ArrayList<>(2);
 
 		NetworkEntry(String name, boolean connected) {
 			this.name = name;
@@ -78,6 +80,8 @@ public class MainActivity extends AppCompatActivity {
 			text.append(name);
 			text.append("</b><small><br/>");
 			for(AccessPointEntry entry : accessPoints) {
+				if ( entry.connected )
+					text.append("->");
 				text.append(entry.bssid);
 				text.append(" - ");
 				text.append(entry.frequency);
@@ -94,14 +98,16 @@ public class MainActivity extends AppCompatActivity {
 	}
 
 	public static class AccessPointEntry {
-		String bssid;
-		int frequency;
-		int signalLevel;
+		final String bssid;
+		final int frequency;
+		final int signalLevel;
+		final boolean connected;
 
-		AccessPointEntry(String bssid, int freq, int level) {
+		AccessPointEntry(String bssid, int freq, int level, boolean connected) {
 			this.bssid = bssid;
 			this.frequency = freq;
 			this.signalLevel = level;
+			this.connected = connected;
 		}
 		public @NonNull String toString() { return this.bssid; }
 	}
@@ -130,7 +136,7 @@ public class MainActivity extends AppCompatActivity {
 			}
 		}
 	}
-	
+
 	private final NetworkCallback myNetworkCallback = new NetworkCallback();
 	private final ScanFinishedListener scanFinishedListener = new ScanFinishedListener();
 	
@@ -157,6 +163,7 @@ public class MainActivity extends AppCompatActivity {
 		if ((checkSelfPermission(ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) &&
 				(checkSelfPermission(ACCESS_WIFI_STATE) == PackageManager.PERMISSION_GRANTED) &&
 				(checkSelfPermission(CHANGE_NETWORK_STATE) == PackageManager.PERMISSION_GRANTED)) {
+
 			// starting with Android 6, Location services has to be enabled to list all wifis
 			if (isLocationServicesEnabled(this)) {
 				doStart();
@@ -178,6 +185,15 @@ public class MainActivity extends AppCompatActivity {
 	private void doStart() {
 		if(!isLocationServicesEnabled(this))
 			showError(R.string.error_no_location_enabled);
+
+		// show a message for pre-Android 10
+		if(Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+			new MaterialAlertDialogBuilder(this)
+					.setMessage(R.string.error_not_android10)
+					.setPositiveButton("Ok", null)
+					.show();
+		}
+
 		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) { // as startScan() is deprecated from API 28
 			listNetworks();
 			startWifiService(this);
@@ -265,8 +281,8 @@ public class MainActivity extends AppCompatActivity {
 		List<NetworkEntry> listNetworks = new ArrayList<>();
 		Map<String, NetworkEntry> map245Ghz = new HashMap<>();
 		for(ScanResult result : scanResults) {
-			if (result.SSID != null && result.SSID.length() > 0 ) {
-				boolean connected = activeNetwork != null && result.SSID.equals(activeNetwork.getSSID());
+			if (result.SSID != null && result.SSID.length() > 0 && result.BSSID != null) {
+				boolean connected = activeNetwork != null && normalizeSSID(result.SSID).equals(normalizeSSID(activeNetwork.getSSID()));
 				NetworkEntry isThere = map245Ghz.get(result.SSID);
 				if ( isThere == null ) 
 					map245Ghz.put(result.SSID, isThere = new NetworkEntry(result.SSID, connected));
@@ -274,7 +290,8 @@ public class MainActivity extends AppCompatActivity {
 					isThere.is24ghz = true;
 				if ( result.frequency >= 5000 && result.frequency <= 5999 )
 					isThere.is5ghz = true;
-				isThere.addAccessPoint(new AccessPointEntry(result.BSSID, result.frequency, result.level));
+				isThere.addAccessPoint(new AccessPointEntry(result.BSSID, result.frequency, result.level,
+						connected && result.BSSID.equals(activeNetwork.getBSSID())));
 			}
 		}
 		ListView view = (ListView) findViewById(R.id.listview);
@@ -293,19 +310,18 @@ public class MainActivity extends AppCompatActivity {
 		}
 	}
 
-	@SuppressWarnings("deprecation")
 	public static boolean isLocationServicesEnabled(Context context) {
 		// TODO use androidx.appcompat:appcompat:1.2.0
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-        	// This is new method provided in API 28
-            LocationManager lm = (LocationManager) context.getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
-            return lm != null && lm.isLocationEnabled();
-        } else {
-        	// This is Deprecated in API 28
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+			// This is new method provided in API 28
+			LocationManager lm = (LocationManager) context.getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
+			return lm != null && lm.isLocationEnabled();
+		} else {
+			// This is Deprecated in API 28
 			int mode = Settings.Secure.getInt(context.getApplicationContext().getContentResolver(), Settings.Secure.LOCATION_MODE,
-                    Settings.Secure.LOCATION_MODE_OFF);
-            return  (mode != Settings.Secure.LOCATION_MODE_OFF);
-        }
+					Settings.Secure.LOCATION_MODE_OFF);
+			return  (mode != Settings.Secure.LOCATION_MODE_OFF);
+		}
 	}
 	
 	private void showError(int stringId) {
@@ -345,5 +361,21 @@ public class MainActivity extends AppCompatActivity {
 		} else {
 			context.startService(intent); // on Android 8 and below
 		}
+	}
+
+	/**
+	 * Normalizes the SSID (remote quotation marks)
+	 *
+	 * @param ssid SSID
+	 * @return normaoized SSID
+	 * @see WifiInfo#getSSID()
+	 */
+	private static String normalizeSSID(String ssid) {
+		if (ssid == null )
+			return "";
+		if (ssid.startsWith("\"") && ssid.endsWith("\"")){
+			return ssid.substring(1, ssid.length()-1);
+		} else
+			return ssid;
 	}
 }

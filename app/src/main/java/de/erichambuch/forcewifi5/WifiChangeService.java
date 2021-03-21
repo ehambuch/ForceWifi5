@@ -170,22 +170,24 @@ public class WifiChangeService extends Service {
 			if (activeWifi != null && isWrongFrequency(activeWifi.getFrequency())) {
 				// at latest here we need enabled location services to get proper results of Wifi data.
 				// otherwise getScanResults() and WifiInfo would not contain the sufficient information
-				if(!checkLocationServices())
+				if (!checkLocationServices())
 					return;
 
 				boolean reconnected = false;
 				List<ScanResult> scanResults = wifiManager.getScanResults();
 				int minimumSignalLevel = -1;
 				for (ScanResult result : scanResults) {
-					final int signalLevel = WifiManager.calculateSignalLevel(result.level,100);
+					final int signalLevel = WifiManager.calculateSignalLevel(result.level, 100);
 					if (isWantedFrequency(result.frequency)
-							&& result.SSID.equals(activeWifi.getSSID())
-							&&  signalLevel >= getMinimumLevel()
-							&&  signalLevel > minimumSignalLevel ) {
+							&& result.SSID.equals(normalizeSSID(activeWifi.getSSID()))
+							&& signalLevel >= getMinimumLevel()
+							&& signalLevel > minimumSignalLevel) {
 						// found Wifi -> try to connect to it
-						if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q ) {
-							WifiNetworkSuggestion suggestion = new WifiNetworkSuggestion.Builder().setSsid(result.SSID)
-									.setBssid(MacAddress.fromString(result.BSSID)).build();
+						if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+							final WifiNetworkSuggestion.Builder suggestionBuilder = new WifiNetworkSuggestion.Builder().setSsid(result.SSID);
+							if ( result.BSSID != null )
+								suggestionBuilder.setBssid(MacAddress.fromString(result.BSSID));
+							final WifiNetworkSuggestion suggestion = suggestionBuilder.build();
 							// remove previous ones
 							if (oldSuggestions != null)
 								wifiManager.removeNetworkSuggestions(oldSuggestions);
@@ -195,30 +197,29 @@ public class WifiChangeService extends Service {
 							// for Repeaters with different access points - we try to find a stronger signal, so don't break
 							continue;
 						} else {
-							// geht nur < Android 10
+							// geht nur < Android 10: Vorsicht: die BSSID kann NULL sein und wir bekommen in der Liste der Netzwerke
+							// nur die SSIDs, nicht zwigend die verschiedenen BSSIDs, so dass wir diese unterscheiden können.
 							List<WifiConfiguration> configs = wifiManager.getConfiguredNetworks();
-							for(WifiConfiguration config: configs) {
-								if ( config.SSID.equals(result.SSID) && config.BSSID.equals(result.BSSID)) {
-									// assume: thats the 5GHz point
+							for (WifiConfiguration config : configs) {
+								if (normalizeSSID(config.SSID).equals(result.SSID) && (config.BSSID == null || config.BSSID.equals(result.BSSID))) {
+									// assume: thats the 5GHz point - we cannot be sure, but give a try
 									wifiManager.enableNetwork(config.networkId, true);
 									reconnected = true;
 									minimumSignalLevel = signalLevel;
 									break;
 								}
 							}
-							// probably other wifi config not saved yet...
-							if(!reconnected)
-								showError(R.string.error_5ghz_not_configured);
 						}
 					}
 				}
 				if (reconnected)
 					showError(R.string.info_switch_wifi_5ghz);
-			} else
+				else
+					showError(R.string.error_5ghz_not_configured);
+			} else {
 				showError(R.string.info_5ghz_active);
-		} else
-			showError(R.string.error_wifi_not_enabled);
-
+			}
+		}
 	}
 
 	private void showError(int stringId) {
@@ -296,5 +297,21 @@ public class WifiChangeService extends Service {
 	 */
 	private int getMinimumLevel() {
 		return PreferenceManager.getDefaultSharedPreferences(this).getInt(getString(R.string.prefs_signallevel), 30);
+	}
+
+	/**
+	 * Normalizes the SSID (remote quotation marks)
+	 *
+	 * @param ssid SSID
+	 * @return normalized SSID
+	 * @see WifiInfo#getSSID()
+	 */
+	private static String normalizeSSID(String ssid) {
+		if (ssid == null )
+			return "";
+		if (ssid.startsWith("\"") && ssid.endsWith("\"")){
+			return ssid.substring(1, ssid.length()-1);
+		} else
+			return ssid;
 	}
 }
