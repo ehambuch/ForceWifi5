@@ -8,8 +8,8 @@ android {
         applicationId "de.erichambuch.forcewifi5"
         minSdkVersion 24
         targetSdkVersion 30
-        versionCode 7
-        versionName '1.5.1'
+        versionCode 8
+        versionName '1.6.0'
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

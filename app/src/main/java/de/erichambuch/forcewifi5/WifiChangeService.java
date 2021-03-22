@@ -28,6 +28,7 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.preference.PreferenceManager;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -107,8 +108,6 @@ public class WifiChangeService extends Service {
 
 	public static final int ONGOING_NOTIFICATION_ID = 123;
 
-	private List<WifiNetworkSuggestion> oldSuggestions;
-
 	public class LocalBinder extends Binder
 	{
 		public WifiChangeService getService()
@@ -159,7 +158,7 @@ public class WifiChangeService extends Service {
 
 	/**
 	 * Switch Wifi network: if connected to 2.4 and another with same SSID is available
-	 * on 5 Ghz, then try to re-connect.
+	 * on 5 Ghz, then try to re-connect. Another option is to switch completely as long as
 	 * @throws SecurityException on errors
 	 */
 	@RequiresPermission(allOf = {ACCESS_FINE_LOCATION, CHANGE_WIFI_STATE, ACCESS_WIFI_STATE })
@@ -176,10 +175,14 @@ public class WifiChangeService extends Service {
 				boolean reconnected = false;
 				List<ScanResult> scanResults = wifiManager.getScanResults();
 				int minimumSignalLevel = -1;
+				int priority = 1;
+				int networkId = -1;
+				final boolean switchToOtherSSID = isSwitchToOtherSSID();
+				final List<WifiNetworkSuggestion> suggestions = new ArrayList<>(5);
 				for (ScanResult result : scanResults) {
 					final int signalLevel = WifiManager.calculateSignalLevel(result.level, 100);
 					if (isWantedFrequency(result.frequency)
-							&& result.SSID.equals(normalizeSSID(activeWifi.getSSID()))
+							&& (switchToOtherSSID || result.SSID.equals(normalizeSSID(activeWifi.getSSID())))
 							&& signalLevel >= getMinimumLevel()
 							&& signalLevel > minimumSignalLevel) {
 						// found Wifi -> try to connect to it
@@ -187,11 +190,8 @@ public class WifiChangeService extends Service {
 							final WifiNetworkSuggestion.Builder suggestionBuilder = new WifiNetworkSuggestion.Builder().setSsid(result.SSID);
 							if ( result.BSSID != null )
 								suggestionBuilder.setBssid(MacAddress.fromString(result.BSSID));
-							final WifiNetworkSuggestion suggestion = suggestionBuilder.build();
-							// remove previous ones
-							if (oldSuggestions != null)
-								wifiManager.removeNetworkSuggestions(oldSuggestions);
-							wifiManager.addNetworkSuggestions(oldSuggestions = Collections.singletonList(suggestion));
+							suggestionBuilder.setPriority(priority++);
+							suggestions.add(suggestionBuilder.build());
 							minimumSignalLevel = signalLevel;
 							reconnected = true;
 							// for Repeaters with different access points - we try to find a stronger signal, so don't break
@@ -203,17 +203,30 @@ public class WifiChangeService extends Service {
 							for (WifiConfiguration config : configs) {
 								if (normalizeSSID(config.SSID).equals(result.SSID) && (config.BSSID == null || config.BSSID.equals(result.BSSID))) {
 									// assume: thats the 5GHz point - we cannot be sure, but give a try
-									wifiManager.enableNetwork(config.networkId, true);
 									reconnected = true;
 									minimumSignalLevel = signalLevel;
-									break;
+									continue;
 								}
 							}
 						}
 					}
 				}
-				if (reconnected)
-					showError(R.string.info_switch_wifi_5ghz);
+				if (reconnected) {
+					if ( android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && suggestions.size() > 0 ) {
+						// disconnect geht nicht mehr: https://issuetracker.google.com/issues/128554616
+						wifiManager.disconnect();
+						wifiManager.removeNetworkSuggestions(Collections.emptyList());
+						wifiManager.addNetworkSuggestions(suggestions);
+						Log.i(AppInfo.APP_NAME, "Switch to Wifis: "+suggestions);
+						showError(R.string.info_switch_wifi_5ghz_android10);
+					} else if ( networkId != -1 ){
+						wifiManager.disconnect(); // kein disable, sonst geht evtl. gar nichts mehr
+						wifiManager.enableNetwork(networkId, true);
+						Log.i(AppInfo.APP_NAME, "Switch to Wifi: "+networkId);
+						showError(R.string.info_switch_wifi_5ghz);
+					}
+
+				}
 				else
 					showError(R.string.error_5ghz_not_configured);
 			} else {
@@ -297,6 +310,10 @@ public class WifiChangeService extends Service {
 	 */
 	private int getMinimumLevel() {
 		return PreferenceManager.getDefaultSharedPreferences(this).getInt(getString(R.string.prefs_signallevel), 30);
+	}
+
+	private boolean isSwitchToOtherSSID() {
+		return PreferenceManager.getDefaultSharedPreferences(this).getBoolean(getString(R.string.prefs_switchnetwork), false);
 	}
 
 	/**

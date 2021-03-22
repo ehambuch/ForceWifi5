@@ -13,9 +13,11 @@ package de.erichambuch.forcewifi5;
  *     <li>V1.3 (25.11.2020) - added notification if no 2/5 network is available</li>
  *     <li>V1.4 (16.01.2021) - Workaround for Android problems with Stackoverflow recommandations</li>
  *     <li>V1.5.1 (21.03.2021) - Handling multiple access points, Update Android libs, Warning for pre-Android 10 versions (does not work reliably)</li>
+ *     <li>V1.6 (22.03.2021) - Support for switching to other SSID</li>
  * </ul>
  * <ul>
  *     <li>TODO: ACCESS_BACKGROUND_LOCATION for Android 11?</li>
+ *     <li>TODO: disconnect geht nicht mehr: https://issuetracker.google.com/issues/128554616</li>
  * </ul>
  */
 public class AppInfo {

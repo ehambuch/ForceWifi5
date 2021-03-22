@@ -26,6 +26,13 @@
         app:title="@string/title_minimumlevel"
         app:summary="@string/summary_signallevel"
         />
+
+        <SwitchPreferenceCompat
+            app:key="@string/prefs_switchnetwork"
+            app:defaultValue="false"
+            app:title="@string/title_switchnetwork"
+            app:summary="@string/summary_switchnetwork"/>
+
     </PreferenceCategory>
     <PreferenceCategory android:title="Permissions">
     <Preference

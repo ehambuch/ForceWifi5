@@ -33,8 +33,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresPermission;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -186,14 +184,6 @@ public class MainActivity extends AppCompatActivity {
 		if(!isLocationServicesEnabled(this))
 			showError(R.string.error_no_location_enabled);
 
-		// show a message for pre-Android 10
-		if(Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-			new MaterialAlertDialogBuilder(this)
-					.setMessage(R.string.error_not_android10)
-					.setPositiveButton("Ok", null)
-					.show();
-		}
-
 		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) { // as startScan() is deprecated from API 28
 			listNetworks();
 			startWifiService(this);
@@ -302,7 +292,11 @@ public class MainActivity extends AppCompatActivity {
 		if (listNetworks.size() > 0) {
 			view.setAdapter(new ArrayAdapter<>(this, R.layout.list_view_entry, listNetworks));
 			findViewById(R.id.nowificardview).setBackgroundColor(getResources().getColor(android.R.color.holo_green_dark, getTheme()));
-			((TextView)findViewById(R.id.nowifitextview)).setText(R.string.text_wififound);
+			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+				((TextView)findViewById(R.id.nowifitextview)).setText(R.string.error_not_android10);
+			} else {
+				((TextView) findViewById(R.id.nowifitextview)).setText(R.string.text_wififound);
+			}
 		} else {
 			view.setAdapter(new ArrayAdapter<>(this, R.layout.list_view_entry, new ArrayList<>(map245Ghz.values())));
 			findViewById(R.id.nowificardview).setBackgroundColor(getResources().getColor(R.color.colorPrimaryDark, getTheme()));
