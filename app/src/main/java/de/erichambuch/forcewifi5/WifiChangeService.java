@@ -205,6 +205,7 @@ public class WifiChangeService extends Service {
 									// assume: thats the 5GHz point - we cannot be sure, but give a try
 									reconnected = true;
 									minimumSignalLevel = signalLevel;
+									networkId = config.networkId;
 									continue;
 								}
 							}
@@ -214,7 +215,6 @@ public class WifiChangeService extends Service {
 				if (reconnected) {
 					if ( android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && suggestions.size() > 0 ) {
 						// disconnect geht nicht mehr: https://issuetracker.google.com/issues/128554616
-						wifiManager.disconnect();
 						wifiManager.removeNetworkSuggestions(Collections.emptyList());
 						wifiManager.addNetworkSuggestions(suggestions);
 						Log.i(AppInfo.APP_NAME, "Switch to Wifis: "+suggestions);
@@ -225,7 +225,6 @@ public class WifiChangeService extends Service {
 						Log.i(AppInfo.APP_NAME, "Switch to Wifi: "+networkId);
 						showError(R.string.info_switch_wifi_5ghz);
 					}
-
 				}
 				else
 					showError(R.string.error_5ghz_not_configured);

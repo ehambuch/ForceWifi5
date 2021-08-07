@@ -32,6 +32,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresPermission;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.preference.PreferenceManager;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -337,23 +338,25 @@ public class MainActivity extends AppCompatActivity {
 	/**
 	 * Runs the {@link WifiChangeService} as a foreground task starting with Android 9.
 	 *
-	 * @param  context
+	 * @param  context the context
 	 */
 	public static void startWifiService(Context context) {
-		final Intent intent = new Intent(context.getApplicationContext(), WifiChangeService.class);
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-			try {
-				context.getApplicationContext().bindService(intent, new WifiChangeService.WifiServiceConnection(context.getApplicationContext()),
-						Context.BIND_AUTO_CREATE);
-				context.getApplicationContext().startForegroundService(intent);
-				// Due to necessary workaround: Replacement for
-				// context.startForegroundService(new Intent(context.getApplicationContext(), WifiChangeService.class));
-			} catch(RuntimeException e) {
-				// If call comes from a BroadcastReceiver (see Javadoc of Bindservice). try again without bind()
-				context.getApplicationContext().startForegroundService(intent);
+		if(PreferenceManager.getDefaultSharedPreferences(context).getBoolean(context.getString(R.string.prefs_activation), true)) {
+			final Intent intent = new Intent(context.getApplicationContext(), WifiChangeService.class);
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+				try {
+					context.getApplicationContext().bindService(intent, new WifiChangeService.WifiServiceConnection(context.getApplicationContext()),
+							Context.BIND_AUTO_CREATE);
+					context.getApplicationContext().startForegroundService(intent);
+					// Due to necessary workaround: Replacement for
+					// context.startForegroundService(new Intent(context.getApplicationContext(), WifiChangeService.class));
+				} catch (RuntimeException e) {
+					// If call comes from a BroadcastReceiver (see Javadoc of Bindservice). try again without bind()
+					context.getApplicationContext().startForegroundService(intent);
+				}
+			} else {
+				context.startService(intent); // on Android 8 and below
 			}
-		} else {
-			context.startService(intent); // on Android 8 and below
 		}
 	}
 
