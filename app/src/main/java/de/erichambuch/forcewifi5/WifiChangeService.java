@@ -202,13 +202,15 @@ public class WifiChangeService extends Service {
 							List<WifiConfiguration> configs = wifiManager.getConfiguredNetworks();
 							for (WifiConfiguration config : configs) {
 								if (normalizeSSID(config.SSID).equals(result.SSID) && (config.BSSID == null || config.BSSID.equals(result.BSSID))) {
-									// assume: thats the 5GHz point - we cannot be sure, but give a try
+									// assume: thats the 5GHz point - we cannot be sure, but give a try; some Android versions keep the same Network 2/5 GhZ
+									// under the same networkId, so we don't have a chance to distinguish them
 									reconnected = true;
 									minimumSignalLevel = signalLevel;
 									networkId = config.networkId;
-									continue;
+									break;
 								}
 							}
+
 						}
 					}
 				}
@@ -219,9 +221,11 @@ public class WifiChangeService extends Service {
 						wifiManager.addNetworkSuggestions(suggestions);
 						Log.i(AppInfo.APP_NAME, "Switch to Wifis: "+suggestions);
 						showError(R.string.info_switch_wifi_5ghz_android10);
-					} else if ( networkId != -1 ){
+					} else if ( networkId >= 0 ) {
+						// Check auf networkId != activeWifi.getNetworkId() bringt nichts, weil Android unter derselben networkId
+						// ein und dasselbe Netzwerk mit 2/5 GHz führt
 						wifiManager.disconnect(); // kein disable, sonst geht evtl. gar nichts mehr
-						wifiManager.enableNetwork(networkId, true);
+						wifiManager.enableNetwork(networkId, true); // TODO: lt. Javadoc geht das mit TargetAPI = 29 nicht mehr
 						Log.i(AppInfo.APP_NAME, "Switch to Wifi: "+networkId);
 						showError(R.string.info_switch_wifi_5ghz);
 					}

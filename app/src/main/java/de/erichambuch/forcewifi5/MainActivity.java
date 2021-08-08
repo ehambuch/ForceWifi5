@@ -5,6 +5,7 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
@@ -21,6 +22,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.text.Html;
+import android.text.method.LinkMovementMethod;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -31,8 +33,12 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresPermission;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.PreferenceManager;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -55,10 +61,10 @@ public class MainActivity extends AppCompatActivity {
 	private static final int REQUEST_CODE_PERMISSIONS = 5678;
 
 	private class NetworkCallback extends ConnectivityManager.NetworkCallback {
-	    @Override
-	    public void onAvailable(Network network) {
-	        startWifiService(MainActivity.this);
-	    }
+		@Override
+		public void onAvailable(Network network) {
+			startWifiService(MainActivity.this);
+		}
 	}
 
 	public static class NetworkEntry {
@@ -72,14 +78,15 @@ public class MainActivity extends AppCompatActivity {
 			this.name = name;
 			this.connected = connected;
 		}
+
 		@NonNull
 		public String toString() {
 			StringBuilder text = new StringBuilder();
 			text.append("<b>");
 			text.append(name);
 			text.append("</b><small><br/>");
-			for(AccessPointEntry entry : accessPoints) {
-				if ( entry.connected )
+			for (AccessPointEntry entry : accessPoints) {
+				if (entry.connected)
 					text.append("->");
 				text.append(entry.bssid);
 				text.append(" - ");
@@ -88,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
 				text.append("<br/>");
 			}
 			// letztes br löschen
-			return Html.fromHtml(text.substring(0,text.length()-5), FROM_HTML_MODE_LEGACY).toString();
+			return Html.fromHtml(text.substring(0, text.length() - 5), FROM_HTML_MODE_LEGACY).toString();
 		}
 
 		void addAccessPoint(AccessPointEntry entry) {
@@ -108,7 +115,11 @@ public class MainActivity extends AppCompatActivity {
 			this.signalLevel = level;
 			this.connected = connected;
 		}
-		public @NonNull String toString() { return this.bssid; }
+
+		public @NonNull
+		String toString() {
+			return this.bssid;
+		}
 	}
 
 	/**
@@ -128,8 +139,7 @@ public class MainActivity extends AppCompatActivity {
 				startWifiService(context);
 				try {
 					MainActivity.this.listNetworks();
-				}
-				catch (SecurityException e) {
+				} catch (SecurityException e) {
 					Log.e(AppInfo.APP_NAME, "Error listing networks", e);
 				}
 			}
@@ -138,13 +148,24 @@ public class MainActivity extends AppCompatActivity {
 
 	private final NetworkCallback myNetworkCallback = new NetworkCallback();
 	private final ScanFinishedListener scanFinishedListener = new ScanFinishedListener();
-	
+
+	@SuppressLint("MissingPermission")
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
+
 		setContentView(R.layout.activity_main);
 		findViewById(R.id.floatingActionButton).setOnClickListener(v -> startActivity(new Intent(getApplicationContext(), SettingsActivity.class)));
+		final SwipeRefreshLayout swipeRefreshLayout = ((SwipeRefreshLayout) findViewById(R.id.swiperefresh));
+		swipeRefreshLayout.setOnRefreshListener(
+				() -> {
+					WifiManager wifiManager = getSystemService(WifiManager.class);
+					if(wifiManager != null )
+						wifiManager.startScan();
+					listNetworks();
+					swipeRefreshLayout.setRefreshing(false);
+				}
+		);
 
 		// register a listener to network changes
 		ConnectivityManager connManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -153,6 +174,8 @@ public class MainActivity extends AppCompatActivity {
 				myNetworkCallback);
 
 		createNotificationChannel();
+
+		showInfoDialog();
 	}
 
 	@SuppressLint("ObsoleteSdkInt")
@@ -162,7 +185,6 @@ public class MainActivity extends AppCompatActivity {
 		if ((checkSelfPermission(ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) &&
 				(checkSelfPermission(ACCESS_WIFI_STATE) == PackageManager.PERMISSION_GRANTED) &&
 				(checkSelfPermission(CHANGE_NETWORK_STATE) == PackageManager.PERMISSION_GRANTED)) {
-
 			// starting with Android 6, Location services has to be enabled to list all wifis
 			if (isLocationServicesEnabled(this)) {
 				doStart();
@@ -178,6 +200,22 @@ public class MainActivity extends AppCompatActivity {
 					CHANGE_WIFI_STATE
 			}, REQUEST_CODE_PERMISSIONS);
 		}
+	}
+
+	private void showInfoDialog() {
+		AlertDialog dialog = new MaterialAlertDialogBuilder(this)
+				.setTitle(getString(R.string.app_name))
+				.setPositiveButton("Continue", new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						dialog.cancel();
+					}
+				})
+				.setMessage(Html.fromHtml(getString(R.string.message_welcome), Html.FROM_HTML_MODE_COMPACT))
+				.show();
+		TextView view = (TextView) dialog.findViewById(android.R.id.message);
+		if (view != null)
+			view.setMovementMethod(LinkMovementMethod.getInstance()); // make links clickable
 	}
 
 	@RequiresPermission(allOf = {ACCESS_WIFI_STATE, ACCESS_FINE_LOCATION})
@@ -208,15 +246,15 @@ public class MainActivity extends AppCompatActivity {
 
 	@Override
 	public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 		if (requestCode == REQUEST_CODE_PERMISSIONS && permissions.length >= 1) {
-			for(int grant : grantResults) {
-				if ( grant != PackageManager.PERMISSION_GRANTED)
+			for (int grant : grantResults) {
+				if (grant != PackageManager.PERMISSION_GRANTED)
 					return;
 			}
 			try {
 				doStart();
-			}
-			catch(SecurityException e) {
+			} catch (SecurityException e) {
 				Log.e(AppInfo.APP_NAME, "Error starting scan", e);
 				showError(R.string.error_no_location_enabled);
 			}

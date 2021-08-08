@@ -36,6 +36,7 @@
 	<string name="title_switchnetwork">Switch to other network</string>
 	<string name="summary_switchnetwork">Choose another network (SSID) with the desired frequency instead of staying with the same SSID</string>
 	<string name="info_switch_wifi_5ghz_android10">Please re-connect to your Wifi manually to change frequency</string>
+	<string name="message_welcome"><![CDATA[<p>I wrote this app to force my devices to the less used 5 GHz channels of my Wifi network.</p><p>Trying with several devices, Android versions and a lot of research, I found out that Google does not provide a stable API to switch Wifi networks by an app (due to security reasons).</p><br/><p>Therefore this app <em>MAY or MAY NOT</em> work on your device. So, please give a try. If it\'s not working, don\'t complain, just de-install it.</p><br/><p>Any feedback is welcome at: <a href="mailto:erichambuch@googlemail.com">erichambuch@googlemail.com</a>.</p>]]></string>
 	<string-array name="entries25ghz">
 		<item>2.4 GHz</item>
 		<item>5 GHz</item>

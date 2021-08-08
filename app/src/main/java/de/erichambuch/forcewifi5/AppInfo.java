@@ -16,6 +16,7 @@ package de.erichambuch.forcewifi5;
  *     <li>V1.6 (22.03.2021) - Support for switching to other SSID</li>
  *     <li>V1.6.1 (23.03.2021) - Bugfix Activation</li>
  *     <li>V1.7.0 (07.07.2021) - Update Google Libs</li>
+ *     <li>V1.7.1 (08.08.2021) - Fehlerkorrektur bei Android kl. 8 (Endlosschleife beim Wechsel), Swipe-to-refresh in ListView, Infofenster</li>
  * </ul>
  * <ul>
  *     <li>TODO: ACCESS_BACKGROUND_LOCATION for Android 11?</li>
