@@ -1,5 +1,10 @@
 package de.erichambuch.forcewifi5;
 
+import static android.Manifest.permission.ACCESS_FINE_LOCATION;
+import static android.Manifest.permission.ACCESS_WIFI_STATE;
+import static android.Manifest.permission.CHANGE_WIFI_STATE;
+import static android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION;
+
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -31,11 +36,6 @@ import androidx.preference.PreferenceManager;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import static android.Manifest.permission.ACCESS_FINE_LOCATION;
-import static android.Manifest.permission.ACCESS_WIFI_STATE;
-import static android.Manifest.permission.CHANGE_WIFI_STATE;
-import static android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION;
 
 /**
  * Service that executes the logic in the background.<p>
@@ -163,7 +163,7 @@ public class WifiChangeService extends Service {
 	 */
 	@RequiresPermission(allOf = {ACCESS_FINE_LOCATION, CHANGE_WIFI_STATE, ACCESS_WIFI_STATE })
 	private void updateNetworks() throws SecurityException {
-		WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
+		final WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
 		if (isActivated() && wifiManager.isWifiEnabled()) {
 			WifiInfo activeWifi = wifiManager.getConnectionInfo();
 			if (activeWifi != null && isWrongFrequency(activeWifi.getFrequency())) {
@@ -218,9 +218,20 @@ public class WifiChangeService extends Service {
 					if ( android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && suggestions.size() > 0 ) {
 						// disconnect geht nicht mehr: https://issuetracker.google.com/issues/128554616
 						wifiManager.removeNetworkSuggestions(Collections.emptyList());
-						wifiManager.addNetworkSuggestions(suggestions);
-						Log.i(AppInfo.APP_NAME, "Switch to Wifis: "+suggestions);
-						showError(R.string.info_switch_wifi_5ghz_android10);
+						final int returnCode = wifiManager.addNetworkSuggestions(suggestions);
+						Log.i(AppInfo.APP_NAME, "Switch to Wifis: "+suggestions+" rc="+returnCode);
+						switch(returnCode) {
+							case WifiManager.STATUS_NETWORK_SUGGESTIONS_ERROR_ADD_DUPLICATE:
+							case WifiManager.STATUS_NETWORK_SUGGESTIONS_SUCCESS:
+								showError(R.string.info_switch_wifi_5ghz_android10);
+								break;
+							case WifiManager.STATUS_NETWORK_SUGGESTIONS_ERROR_APP_DISALLOWED:
+								showError(R.string.error_permission_missing);
+								break;
+							default:
+								showError(getString(R.string.error_switch_wifi_android10)+returnCode+")");
+								break;
+						}
 					} else if ( networkId >= 0 ) {
 						// Check auf networkId != activeWifi.getNetworkId() bringt nichts, weil Android unter derselben networkId
 						// ein und dasselbe Netzwerk mit 2/5 GHz führt
@@ -240,6 +251,9 @@ public class WifiChangeService extends Service {
 
 	private void showError(int stringId) {
 		Toast.makeText(getApplicationContext(), stringId, Toast.LENGTH_LONG).show();
+	}
+	private void showError(CharSequence string) {
+		Toast.makeText(getApplicationContext(), string, Toast.LENGTH_LONG).show();
 	}
 
 	/**

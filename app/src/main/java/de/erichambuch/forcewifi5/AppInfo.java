@@ -17,6 +17,7 @@ package de.erichambuch.forcewifi5;
  *     <li>V1.6.1 (23.03.2021) - Bugfix Activation</li>
  *     <li>V1.7.0 (07.07.2021) - Update Google Libs</li>
  *     <li>V1.7.1 (08.08.2021) - Fehlerkorrektur bei Android kl. 8 (Endlosschleife beim Wechsel), Swipe-to-refresh in ListView, Infofenster</li>
+ *     <li>V1.7.2 (05.10.2021) - Update Google Libs, Starttext angepasst, Fehlermeldungen überarbeitet</li>
  * </ul>
  * <ul>
  *     <li>TODO: ACCESS_BACKGROUND_LOCATION for Android 11?</li>
