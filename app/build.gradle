@@ -9,15 +9,15 @@ android {
         minSdkVersion 24
         maxSdkVersion 30
         targetSdkVersion 30
-        versionCode 12
-        versionName '1.7.2'
+        versionCode 13
+        versionName '1.7.3'
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
         release {
-            minifyEnabled true
+            minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }

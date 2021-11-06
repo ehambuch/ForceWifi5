@@ -16,6 +16,7 @@ public class StartOnBootReceiver extends android.content.BroadcastReceiver {
 	@Override
 	public void onReceive(final Context context, Intent intent) {
 		if(intent.getAction().equals(Intent.ACTION_BOOT_COMPLETED)) {
+			MainActivity.createNotificationChannel(context);
 			// register a listener to network changes
 			ConnectivityManager connManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
 			connManager.registerNetworkCallback(

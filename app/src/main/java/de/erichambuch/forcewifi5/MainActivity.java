@@ -1,5 +1,11 @@
 package de.erichambuch.forcewifi5;
 
+import static android.Manifest.permission.ACCESS_FINE_LOCATION;
+import static android.Manifest.permission.ACCESS_WIFI_STATE;
+import static android.Manifest.permission.CHANGE_NETWORK_STATE;
+import static android.Manifest.permission.CHANGE_WIFI_STATE;
+import static android.text.Html.FROM_HTML_MODE_LEGACY;
+
 import android.annotation.SuppressLint;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -44,12 +50,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static android.Manifest.permission.ACCESS_FINE_LOCATION;
-import static android.Manifest.permission.ACCESS_WIFI_STATE;
-import static android.Manifest.permission.CHANGE_NETWORK_STATE;
-import static android.Manifest.permission.CHANGE_WIFI_STATE;
-import static android.text.Html.FROM_HTML_MODE_LEGACY;
 
 /**
  * Main activity für die App.
@@ -167,13 +167,13 @@ public class MainActivity extends AppCompatActivity {
 				}
 		);
 
+		createNotificationChannel(this);
+
 		// register a listener to network changes
 		ConnectivityManager connManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
 		connManager.registerNetworkCallback(
 				new NetworkRequest.Builder().addTransportType(NetworkCapabilities.TRANSPORT_WIFI).build(),
 				myNetworkCallback);
-
-		createNotificationChannel();
 
 		showInfoDialog();
 	}
@@ -361,14 +361,14 @@ public class MainActivity extends AppCompatActivity {
 		Toast.makeText(this, stringId, Toast.LENGTH_LONG).show();
 	}
 
-	private void createNotificationChannel() {
+	static void createNotificationChannel(Context context) {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-			CharSequence name = getString(R.string.app_name);
-			String description = getString(R.string.app_description);
+			CharSequence name = context.getString(R.string.app_name);
+			String description = context.getString(R.string.app_description);
 			int importance = NotificationManager.IMPORTANCE_LOW;
 			NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
 			channel.setDescription(description);
-			NotificationManager notificationManager = getSystemService(NotificationManager.class);
+			NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
 			notificationManager.createNotificationChannel(channel);
 		}
 	}
@@ -378,7 +378,7 @@ public class MainActivity extends AppCompatActivity {
 	 *
 	 * @param  context the context
 	 */
-	public static void startWifiService(Context context) {
+	static void startWifiService(Context context) {
 		if(PreferenceManager.getDefaultSharedPreferences(context).getBoolean(context.getString(R.string.prefs_activation), true)) {
 			final Intent intent = new Intent(context.getApplicationContext(), WifiChangeService.class);
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
