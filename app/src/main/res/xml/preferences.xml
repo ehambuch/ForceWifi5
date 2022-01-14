@@ -58,7 +58,12 @@
             android:action="android.intent.action.VIEW"
             android:data="@string/app_url" />
     </Preference>
-
+        <Preference
+            app:title="Licenses"
+            app:summary="Open Source Licenses">
+            <intent android:targetPackage="de.erichambuch.forcewifi5"
+                android:targetClass="com.google.android.gms.oss.licenses.OssLicensesMenuActivity" />
+        </Preference>
     <Preference
         app:title="Send feedback"
         app:summary="Report technical issues or suggest new features">

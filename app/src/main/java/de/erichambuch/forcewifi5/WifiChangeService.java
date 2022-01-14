@@ -63,7 +63,7 @@ public class WifiChangeService extends Service {
 
 			if ( Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ) {
 				PendingIntent pendingIntent =
-						PendingIntent.getActivity(context, 0, new Intent(context, WifiChangeService.class), 0);
+						PendingIntent.getActivity(context, 0, new Intent(context, WifiChangeService.class), PendingIntent.FLAG_IMMUTABLE);
 
 				Notification notification =
 						new Notification.Builder(context, MainActivity.CHANNEL_ID)
@@ -220,7 +220,7 @@ public class WifiChangeService extends Service {
 						wifiManager.removeNetworkSuggestions(Collections.emptyList());
 						final int returnCode = wifiManager.addNetworkSuggestions(suggestions);
 						Log.i(AppInfo.APP_NAME, "Switch to Wifis: "+suggestions+" rc="+returnCode);
-						switch(returnCode) {
+						switch (returnCode) {
 							case WifiManager.STATUS_NETWORK_SUGGESTIONS_ERROR_ADD_DUPLICATE:
 							case WifiManager.STATUS_NETWORK_SUGGESTIONS_SUCCESS:
 								showError(R.string.info_switch_wifi_5ghz_android10);
@@ -228,8 +228,13 @@ public class WifiChangeService extends Service {
 							case WifiManager.STATUS_NETWORK_SUGGESTIONS_ERROR_APP_DISALLOWED:
 								showError(R.string.error_permission_missing);
 								break;
+							case WifiManager.STATUS_NETWORK_SUGGESTIONS_ERROR_ADD_EXCEEDS_MAX_PER_APP:
+							case WifiManager.STATUS_NETWORK_SUGGESTIONS_ERROR_ADD_INVALID:
+							case WifiManager.STATUS_NETWORK_SUGGESTIONS_ERROR_ADD_NOT_ALLOWED:
+							case WifiManager.STATUS_NETWORK_SUGGESTIONS_ERROR_INTERNAL:
+							case WifiManager.STATUS_NETWORK_SUGGESTIONS_ERROR_REMOVE_INVALID:
 							default:
-								showError(getString(R.string.error_switch_wifi_android10)+returnCode+")");
+								showError(getString(R.string.error_switch_wifi_android10) + returnCode + ")");
 								break;
 						}
 					} else if ( networkId >= 0 ) {
@@ -265,7 +270,7 @@ public class WifiChangeService extends Service {
 			// show notification that location services must be enabled to get list of scanned wifis
 			Intent locationIntent = new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
 			locationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-			PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, locationIntent, 0);
+			PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, locationIntent, PendingIntent.FLAG_IMMUTABLE);
 			NotificationCompat.Builder builder = new NotificationCompat.Builder(this, MainActivity.CHANNEL_ID)
 					.setSmallIcon(R.mipmap.ic_launcher)
 					.setContentTitle(getString(R.string.app_name))
@@ -286,7 +291,7 @@ public class WifiChangeService extends Service {
 		Intent locationIntent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
 		locationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
 		locationIntent.setData(Uri.fromParts("package", getPackageName(), null));
-		PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, locationIntent, 0);
+		PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, locationIntent, PendingIntent.FLAG_IMMUTABLE);
 		NotificationCompat.Builder builder = new NotificationCompat.Builder(this, MainActivity.CHANNEL_ID)
 				.setSmallIcon(R.mipmap.ic_launcher)
 				.setContentTitle(getString(R.string.app_name))
@@ -305,18 +310,19 @@ public class WifiChangeService extends Service {
 		return ("1".equals(PreferenceManager.getDefaultSharedPreferences(this).getString(getString(R.string.prefs_2ghz5ghz), "1")));
 	}
 
+	private boolean is6GHzPreferred() {
+		return ("2".equals(PreferenceManager.getDefaultSharedPreferences(this).getString(getString(R.string.prefs_2ghz5ghz), "1")));
+	}
+
 	private boolean isWrongFrequency(int freq) {
-		final boolean preferred5Ghz = is5GHzPreferred();
-		if (preferred5Ghz)
-			return (freq < 3000);
-		else
-			return (freq >= 5000);
+		return !isWantedFrequency(freq);
 	}
 
 	private boolean isWantedFrequency(int freq) {
-		final boolean preferred5Ghz = is5GHzPreferred();
-		if (preferred5Ghz)
-			return (freq >= 5000);
+		if (is6GHzPreferred()) {
+			return (freq >= 6000);
+		} else if (is5GHzPreferred())
+			return (freq >= 5000 && freq <= 5998);
 		else
 			return (freq < 3000);
 	}

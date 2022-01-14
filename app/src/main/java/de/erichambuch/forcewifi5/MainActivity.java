@@ -1,5 +1,6 @@
 package de.erichambuch.forcewifi5;
 
+import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.Manifest.permission.ACCESS_WIFI_STATE;
 import static android.Manifest.permission.CHANGE_NETWORK_STATE;
@@ -72,6 +73,7 @@ public class MainActivity extends AppCompatActivity {
 		final boolean connected;
 		boolean is24ghz;
 		boolean is5ghz;
+		boolean is6ghz;
 		final List<AccessPointEntry> accessPoints = new ArrayList<>(2);
 
 		NetworkEntry(String name, boolean connected) {
@@ -196,6 +198,7 @@ public class MainActivity extends AppCompatActivity {
 		} else {
 			requestPermissions(new String[]{
 					ACCESS_FINE_LOCATION,
+					ACCESS_COARSE_LOCATION,
 					ACCESS_WIFI_STATE,
 					CHANGE_WIFI_STATE
 			}, REQUEST_CODE_PERMISSIONS);
@@ -209,6 +212,12 @@ public class MainActivity extends AppCompatActivity {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
 						dialog.cancel();
+						// here we catch the flow that Location settings are not enabled (which blocks the check in onStart())
+						if(!isLocationServicesEnabled(MainActivity.this)) {
+							showError(R.string.error_no_location_enabled);
+							Intent settingsIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+							startActivity(settingsIntent);
+						}
 					}
 				})
 				.setMessage(Html.fromHtml(getString(R.string.message_welcome), Html.FROM_HTML_MODE_COMPACT))
@@ -319,13 +328,15 @@ public class MainActivity extends AppCompatActivity {
 					isThere.is24ghz = true;
 				if ( result.frequency >= 5000 && result.frequency <= 5999 )
 					isThere.is5ghz = true;
+				if ( result.frequency >= 6000 && result.frequency <= 6999 )
+					isThere.is6ghz = true;
 				isThere.addAccessPoint(new AccessPointEntry(result.BSSID, result.frequency, result.level,
 						connected && result.BSSID.equals(activeNetwork.getBSSID())));
 			}
 		}
 		ListView view = (ListView) findViewById(R.id.listview);
 		for(NetworkEntry entry : map245Ghz.values()) {
-			if(entry.is24ghz && entry.is5ghz)
+			if(entry.is24ghz && (entry.is5ghz || entry.is6ghz))
 				listNetworks.add(entry);
 		}
 		if (listNetworks.size() > 0) {
