@@ -3,7 +3,7 @@ package de.erichambuch.forcewifi5;
 /**
  * ForceWifi5.
  * <p>Author: Eric Hambuch (erichambuch@googlemail.com)
- * Licence: Apache 2.0
+ * Licence: Apache 2.0 (https://www.apache.org/licenses/LICENSE-2.0)
  * Uses: Material Design
  * </p>
  * <ul>
@@ -21,9 +21,10 @@ package de.erichambuch.forcewifi5;
  *     <li>V1.7.3 (06.11.2021) - Fix problem at boot</li>
  *     <li>V1.8.0 (04.12.2021) - Update Libs, Android 12</li>
  *     <li>V1.9.0 (14.01.2022) - OSS Licenses, UI Updates, Dark Mode</li>
+ *     <li>V1.9.1 (24.01.2022) - Anpassungen für Android 11
+ *     <li>V1.9.2 (25.01.2022) - Bugfix for Android 12 (Battery Optimizations)
  * </ul>
  * <ul>
- *     <li>TODO: ACCESS_BACKGROUND_LOCATION for Android 11?</li>
  *     <li>TODO: disconnect geht nicht mehr: https://issuetracker.google.com/issues/128554616</li>
  * </ul>
  */

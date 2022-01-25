@@ -27,6 +27,7 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.provider.Settings;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
@@ -157,6 +158,7 @@ public class MainActivity extends AppCompatActivity {
 		super.onCreate(savedInstanceState);
 
 		setContentView(R.layout.activity_main);
+
 		findViewById(R.id.floatingActionButton).setOnClickListener(v -> startActivity(new Intent(getApplicationContext(), SettingsActivity.class)));
 		final SwipeRefreshLayout swipeRefreshLayout = ((SwipeRefreshLayout) findViewById(R.id.swiperefresh));
 		swipeRefreshLayout.setOnRefreshListener(
@@ -217,6 +219,11 @@ public class MainActivity extends AppCompatActivity {
 							showError(R.string.error_no_location_enabled);
 							Intent settingsIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
 							startActivity(settingsIntent);
+						}
+						// for Android 12: we have to go for an exception from the "don't start foreground service from background"
+						// so we ask the user to exempt the app from battery optimizations
+						else if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)) {
+							checkBatteryOptimizationsDisabled();
 						}
 					}
 				})
@@ -367,7 +374,33 @@ public class MainActivity extends AppCompatActivity {
 			return  (mode != Settings.Secure.LOCATION_MODE_OFF);
 		}
 	}
-	
+
+	public void checkBatteryOptimizationsDisabled() {
+		PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
+		final String packageName = getPackageName();
+		if(!pm.isIgnoringBatteryOptimizations(getPackageName())) {
+			new MaterialAlertDialogBuilder(this)
+					.setTitle(getString(R.string.app_name))
+					.setNegativeButton(R.string.action_ignore, new DialogInterface.OnClickListener() {
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							dialog.cancel();}
+						}
+						)
+					.setPositiveButton(R.string.action_settings, new DialogInterface.OnClickListener() {
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							dialog.cancel();
+							Intent intent = new Intent();
+							intent.setAction(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS); // kein REQUEST... nutzen, weil lt. Google Policy verboten
+							startActivity(intent);
+						}
+					})
+					.setMessage(Html.fromHtml(getString(R.string.message_batteryoptimizations), Html.FROM_HTML_MODE_COMPACT))
+					.show();
+		}
+	}
+
 	private void showError(int stringId) {
 		Toast.makeText(this, stringId, Toast.LENGTH_LONG).show();
 	}

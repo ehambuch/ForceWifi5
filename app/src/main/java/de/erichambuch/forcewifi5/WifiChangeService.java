@@ -58,8 +58,8 @@ public class WifiChangeService extends Service {
 		@Override
 		public void onServiceConnected(ComponentName name, IBinder service)
 		{
-			LocalBinder binder = (LocalBinder) service;
-			WifiChangeService myService = binder.getService();
+			final LocalBinder binder = (LocalBinder) service;
+			final WifiChangeService myService = binder.getService();
 
 			if ( Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ) {
 				PendingIntent pendingIntent =

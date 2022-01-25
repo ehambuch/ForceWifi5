@@ -49,6 +49,13 @@
             android:action="android.settings.LOCATION_SOURCE_SETTINGS"
              />
     </Preference>
+        <Preference
+            app:title="Battery optimization settings"
+            app:summary="Open battery optimization settings to disable all optimizations for this app. This is required for Android 12 and above.">
+            <intent
+                android:action="android.settings.IGNORE_BATTERY_OPTIMIZATION_SETTINGS"
+                />
+        </Preference>
     </PreferenceCategory>
     <PreferenceCategory android:title="Information">
     <Preference
