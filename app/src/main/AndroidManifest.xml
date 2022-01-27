@@ -12,6 +12,12 @@
 
     <uses-feature android:name="android.hardware.wifi" android:required="true" />
 
+    <queries>
+        <intent>
+            <action android:name="android.settings.IGNORE_BATTERY_OPTIMIZATION_SETTINGS"/>
+        </intent>
+    </queries>
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"

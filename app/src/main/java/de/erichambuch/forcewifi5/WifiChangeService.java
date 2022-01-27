@@ -6,6 +6,7 @@ import static android.Manifest.permission.CHANGE_WIFI_STATE;
 import static android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION;
 
 import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.ComponentName;
@@ -50,6 +51,7 @@ public class WifiChangeService extends Service {
 	public static class WifiServiceConnection implements android.content.ServiceConnection {
 
 		private final Context context;
+		private Notification notification;
 
 		public WifiServiceConnection(Context context) {
 			this.context = context;
@@ -62,15 +64,12 @@ public class WifiChangeService extends Service {
 			final WifiChangeService myService = binder.getService();
 
 			if ( Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ) {
-				PendingIntent pendingIntent =
-						PendingIntent.getActivity(context, 0, new Intent(context, WifiChangeService.class), PendingIntent.FLAG_IMMUTABLE);
-
-				Notification notification =
+				notification =
 						new Notification.Builder(context, MainActivity.CHANNEL_ID)
 								.setContentTitle(context.getText(R.string.app_name))
 								.setContentText(context.getText(R.string.title_activation))
 								.setSmallIcon(R.mipmap.ic_launcher)
-								.setContentIntent(pendingIntent)
+								.setAutoCancel(false)
 								.setTicker(context.getText(R.string.title_activation))
 								.build();
 				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -147,9 +146,10 @@ public class WifiChangeService extends Service {
 					showPermissionError();
 				} finally {
 					if ( Build.VERSION.SDK_INT >= Build.VERSION_CODES.O )
-						stopForeground(true);
+						stopForeground(true);  // Notification and Service ended
 				}
 			} else {
+				Log.e(AppInfo.APP_NAME, "Permissions missing");
 				showPermissionError();
 			}
 		}
@@ -187,9 +187,11 @@ public class WifiChangeService extends Service {
 							&& signalLevel > minimumSignalLevel) {
 						// found Wifi -> try to connect to it
 						if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-							final WifiNetworkSuggestion.Builder suggestionBuilder = new WifiNetworkSuggestion.Builder().setSsid(result.SSID);
+							final WifiNetworkSuggestion.Builder suggestionBuilder = new WifiNetworkSuggestion.Builder();
+							suggestionBuilder.setSsid(normalizeSSID(result.SSID));
 							if ( result.BSSID != null )
 								suggestionBuilder.setBssid(MacAddress.fromString(result.BSSID));
+
 							suggestionBuilder.setPriority(priority++);
 							suggestions.add(suggestionBuilder.build());
 							minimumSignalLevel = signalLevel;
@@ -216,12 +218,35 @@ public class WifiChangeService extends Service {
 				}
 				if (reconnected) {
 					if ( android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && suggestions.size() > 0 ) {
+						// show suggestion in Notification
+						final Notification notification =
+									new Notification.Builder(this, MainActivity.CHANNEL_ID)
+											.setContentTitle(this.getText(R.string.app_name))
+											.setContentText(this.getText(R.string.title_activation))
+											.setSmallIcon(R.mipmap.ic_launcher)
+											.setAutoCancel(true)
+											.setTicker(this.getText(R.string.info_switch_wifi_5ghz) + " "+suggestionToString(suggestions.get(0)))
+											.build();
+						NotificationManager notificationManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
+						notificationManager.notify(ONGOING_NOTIFICATION_ID, notification);
+
 						// disconnect geht nicht mehr: https://issuetracker.google.com/issues/128554616
-						wifiManager.removeNetworkSuggestions(Collections.emptyList());
+						final List<WifiNetworkSuggestion> actualSuggestions = getActualSuggestions(wifiManager);
+						if ( actualSuggestions.equals(suggestions)) {
+							Log.i(AppInfo.APP_NAME, "Suggestions given: "+actualSuggestions);
+							showError(R.string.error_suggestion_not_taken);
+							// suggestions have already been set - no change to change anything
+							wifiManager.removeNetworkSuggestions(Collections.emptyList()); // do the hard way - again and again
+						} else {
+							int returnCode = wifiManager.removeNetworkSuggestions(actualSuggestions);
+							Log.i(AppInfo.APP_NAME, "removeNetworks, RC="+returnCode);
+						}
 						final int returnCode = wifiManager.addNetworkSuggestions(suggestions);
 						Log.i(AppInfo.APP_NAME, "Switch to Wifis: "+suggestions+" rc="+returnCode);
 						switch (returnCode) {
 							case WifiManager.STATUS_NETWORK_SUGGESTIONS_ERROR_ADD_DUPLICATE:
+								showError(R.string.error_permission_duplicate);
+								break;
 							case WifiManager.STATUS_NETWORK_SUGGESTIONS_SUCCESS:
 								showError(R.string.info_switch_wifi_5ghz_android10);
 								break;
@@ -251,6 +276,32 @@ public class WifiChangeService extends Service {
 			} else {
 				showError(R.string.info_5ghz_active);
 			}
+		}
+	}
+
+	@RequiresPermission(ACCESS_WIFI_STATE)
+	private List<WifiNetworkSuggestion> getActualSuggestions(WifiManager wifiManager) {
+		return (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) ?
+				wifiManager.getNetworkSuggestions() : Collections.emptyList();
+	}
+
+	private String suggestionToString(WifiNetworkSuggestion suggestion) {
+		StringBuilder builder = new StringBuilder(32);
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+			builder.append(suggestion.getSsid()).append(" [").append(suggestion.getBssid()).append("]");
+		}
+		return builder.toString();
+	}
+
+	/**
+	 * Removes all network suggestions from app. This may be called during switch-off or deinstallation (will be done by Android).
+	 */
+	@RequiresPermission(value = "android.permission.CHANGE_WIFI_STATE")
+	public static void removeSuggestions(Context context) {
+		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+			WifiManager wifiManager = (WifiManager) context.getSystemService(WIFI_SERVICE);
+			int rc = wifiManager.removeNetworkSuggestions(Collections.emptyList());
+			Log.i(AppInfo.APP_NAME, "Removing all network suggestings from app: "+rc);
 		}
 	}
 

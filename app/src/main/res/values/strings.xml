@@ -41,6 +41,13 @@
 	<string name="error_switch_wifi_android10">Error while setting suggestion for wifi (</string>
 	<string name="error_permission_missing">Permission to access Wifis state has been revoked!</string>
 	<string name="message_batteryoptimizations"><![CDATA[<p>Under Android 12+ you will have to disable the <em>Battery Optimizations</em> for this app.</p><br/>Please open the Settings and grant an exception to this app by selecting the app and choosing <em>Don\'t optimize</em>.]]></string>
+	<string name="error_permission_duplicate">Error while setting duplication suggestion for Wifi - try to start app again.</string>
+	<string name="error_suggestion_not_taken">Android did not follow suggestion for Wifi - try to dis-connect and reconnect manually</string>
+	<string name="error_no_permissions_provived">This app lacks of the required permissions for Location Services and Wifi access. Please open the Settings and grant the necessary permissions.</string>
+	<string name="summay_permission_settings">Open permission settings of app. This app needs permissions for Wifi and Location in order to work.</string>
+	<string name="summary_location_settings">Open location services settings. This app needs location services enabled in order to work.</string>
+	<string name="title_permission_settings">Permission settings</string>
+	<string name="title_location_settings">Location settings</string>
 	<string-array name="entries25ghz">
 		<item>2.4 GHz</item>
 		<item>5 GHz</item>

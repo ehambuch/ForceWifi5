@@ -36,15 +36,15 @@
     </PreferenceCategory>
     <PreferenceCategory android:title="Permissions">
     <Preference
-        app:title="Permission settings"
-        app:summary="Open permission settings of app">
+        app:title="@string/title_permission_settings"
+        app:summary="@string/summay_permission_settings">
         <intent
             android:action="android.settings.APPLICATION_DETAILS_SETTINGS"
             android:data="package:de.erichambuch.forcewifi5" />
     </Preference>
     <Preference
-        app:title="Location settings"
-        app:summary="Open location services settings">
+        app:title="@string/title_location_settings"
+        app:summary="@string/summary_location_settings">
         <intent
             android:action="android.settings.LOCATION_SOURCE_SETTINGS"
              />
@@ -73,7 +73,7 @@
         </Preference>
     <Preference
         app:title="Send feedback"
-        app:summary="Report technical issues or suggest new features">
+        app:summary="Report a bug or suggest new features">
         <intent
             android:action="android.intent.action.SENDTO"
             android:data="@string/app_mailto" />

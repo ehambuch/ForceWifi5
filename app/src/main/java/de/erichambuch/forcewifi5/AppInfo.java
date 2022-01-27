@@ -21,11 +21,12 @@ package de.erichambuch.forcewifi5;
  *     <li>V1.7.3 (06.11.2021) - Fix problem at boot</li>
  *     <li>V1.8.0 (04.12.2021) - Update Libs, Android 12</li>
  *     <li>V1.9.0 (14.01.2022) - OSS Licenses, UI Updates, Dark Mode</li>
- *     <li>V1.9.1 (24.01.2022) - Anpassungen für Android 11
- *     <li>V1.9.2 (25.01.2022) - Bugfix for Android 12 (Battery Optimizations)
+ *     <li>V1.9.1 (24.01.2022) - Anpassungen für Android 11</li>
+ *     <li>V1.9.2 (25.01.2022) - Bugfix for Android 12 (Battery Optimizations), Korrekturen Wifi-Suggestion-Logik</li>
  * </ul>
  * <ul>
  *     <li>TODO: disconnect geht nicht mehr: https://issuetracker.google.com/issues/128554616</li>
+ *     <li>TODO: make a guided setup process for all the settings</li>
  * </ul>
  */
 public class AppInfo {

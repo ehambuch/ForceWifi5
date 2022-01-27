@@ -1,6 +1,5 @@
 package de.erichambuch.forcewifi5;
 
-import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.Manifest.permission.ACCESS_WIFI_STATE;
 import static android.Manifest.permission.CHANGE_NETWORK_STATE;
@@ -61,6 +60,8 @@ public class MainActivity extends AppCompatActivity {
 	public static final String CHANNEL_ID = "ForceWifi5";
 	private static final int REQUEST_CODE_LOCATION_SERVICES = 4567;
 	private static final int REQUEST_CODE_PERMISSIONS = 5678;
+
+	private boolean infoDialogShown = false;
 
 	private class NetworkCallback extends ConnectivityManager.NetworkCallback {
 		@Override
@@ -179,10 +180,20 @@ public class MainActivity extends AppCompatActivity {
 				new NetworkRequest.Builder().addTransportType(NetworkCapabilities.TRANSPORT_WIFI).build(),
 				myNetworkCallback);
 
-		showInfoDialog();
+		// Get Permissions right away from the start
+		if ((checkSelfPermission(ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) &&
+				(checkSelfPermission(ACCESS_WIFI_STATE) == PackageManager.PERMISSION_GRANTED) &&
+				(checkSelfPermission(CHANGE_NETWORK_STATE) == PackageManager.PERMISSION_GRANTED)) {
+			showInfoDialog();
+		} else {
+			requestPermissions(new String[]{
+					ACCESS_FINE_LOCATION,
+					ACCESS_WIFI_STATE,
+					CHANGE_WIFI_STATE
+			}, REQUEST_CODE_PERMISSIONS);
+		}
 	}
 
-	@SuppressLint("ObsoleteSdkInt")
 	protected void onStart() {
 		super.onStart();
 
@@ -198,9 +209,9 @@ public class MainActivity extends AppCompatActivity {
 				startActivity(settingsIntent);
 			}
 		} else {
+			showPermissionsError();
 			requestPermissions(new String[]{
 					ACCESS_FINE_LOCATION,
-					ACCESS_COARSE_LOCATION,
 					ACCESS_WIFI_STATE,
 					CHANGE_WIFI_STATE
 			}, REQUEST_CODE_PERMISSIONS);
@@ -229,6 +240,7 @@ public class MainActivity extends AppCompatActivity {
 				})
 				.setMessage(Html.fromHtml(getString(R.string.message_welcome), Html.FROM_HTML_MODE_COMPACT))
 				.show();
+		infoDialogShown = true;
 		TextView view = (TextView) dialog.findViewById(android.R.id.message);
 		if (view != null)
 			view.setMovementMethod(LinkMovementMethod.getInstance()); // make links clickable
@@ -269,6 +281,9 @@ public class MainActivity extends AppCompatActivity {
 					return;
 			}
 			try {
+				// ensure that in all the permission flows etc. the dialog is shown
+				if(!infoDialogShown)
+					showInfoDialog();
 				doStart();
 			} catch (SecurityException e) {
 				Log.e(AppInfo.APP_NAME, "Error starting scan", e);
@@ -355,9 +370,15 @@ public class MainActivity extends AppCompatActivity {
 				((TextView) findViewById(R.id.nowifitextview)).setText(R.string.text_wififound);
 			}
 		} else {
-			view.setAdapter(new ArrayAdapter<>(this, R.layout.list_view_entry, new ArrayList<>(map245Ghz.values())));
-			findViewById(R.id.nowificardview).setBackgroundColor(getResources().getColor(R.color.colorPrimaryDark, getTheme()));
-			((TextView)findViewById(R.id.nowifitextview)).setText(R.string.text_nowififound);
+			// we did not get a result: probably permission missing?
+			if(checkSelfPermission(ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+				showPermissionsError();
+			}
+			else { // otherwise: we found networks, but not the appropriate (2.4/5)
+				view.setAdapter(new ArrayAdapter<>(this, R.layout.list_view_entry, new ArrayList<>(map245Ghz.values())));
+				findViewById(R.id.nowificardview).setBackgroundColor(getResources().getColor(R.color.colorPrimaryDark, getTheme()));
+				((TextView) findViewById(R.id.nowifitextview)).setText(R.string.text_nowififound);
+			}
 		}
 	}
 
@@ -373,6 +394,14 @@ public class MainActivity extends AppCompatActivity {
 					Settings.Secure.LOCATION_MODE_OFF);
 			return  (mode != Settings.Secure.LOCATION_MODE_OFF);
 		}
+	}
+
+	/**
+	 * Show the permission error in the card on top of the main screen.
+	 */
+	private void showPermissionsError() {
+		findViewById(R.id.nowificardview).setBackgroundColor(getResources().getColor(android.R.color.holo_red_dark, getTheme()));
+		((TextView)findViewById(R.id.nowifitextview)).setText(R.string.error_no_permissions_provived);
 	}
 
 	public void checkBatteryOptimizationsDisabled() {
@@ -423,6 +452,7 @@ public class MainActivity extends AppCompatActivity {
 	 * @param  context the context
 	 */
 	static void startWifiService(Context context) {
+		Log.i(AppInfo.APP_NAME, "startWifiService");
 		if(PreferenceManager.getDefaultSharedPreferences(context).getBoolean(context.getString(R.string.prefs_activation), true)) {
 			final Intent intent = new Intent(context.getApplicationContext(), WifiChangeService.class);
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -439,6 +469,14 @@ public class MainActivity extends AppCompatActivity {
 			} else {
 				context.startService(intent); // on Android 8 and below
 			}
+		}
+	}
+
+	static void stopWifiService(Context context) {
+		Log.i(AppInfo.APP_NAME, "stopWifiService");
+		if(!PreferenceManager.getDefaultSharedPreferences(context).getBoolean(context.getString(R.string.prefs_activation), true)) {
+			final Intent intent = new Intent(context.getApplicationContext(), WifiChangeService.class);
+			context.getApplicationContext().stopService(intent);
 		}
 	}
 
