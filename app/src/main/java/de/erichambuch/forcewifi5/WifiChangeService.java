@@ -43,6 +43,7 @@ import java.util.List;
  * Starting with Android O, foreground services will be used.</p>
  */
 public class WifiChangeService extends Service {
+
 	/**
 	 * Service connection for workaround of <pre>Context.startForegroundService() did not then call Service.startForeground()</pre> problem,
 	 * were service.startForeground() is not started within 5 seconds due to Android scheduling.
@@ -194,10 +195,14 @@ public class WifiChangeService extends Service {
 
 							suggestionBuilder.setPriority(priority++);
 							suggestions.add(suggestionBuilder.build());
+							// special case: wir haben ein Netzwerk mit normalisierter SSID, versuchen wir dazuzufügen
+							if ( hasNormalizedSSID(result.SSID) ) {
+								suggestionBuilder.setSsid(result.SSID); // mit ""
+								suggestions.add(suggestionBuilder.build()); // und zweite Suggestion
+							}
 							minimumSignalLevel = signalLevel;
 							reconnected = true;
-							// for Repeaters with different access points - we try to find a stronger signal, so don't break
-							continue;
+							// for Repeaters with different access points - we try to find a stronger signal, so don't break: continue;
 						} else {
 							// geht nur < Android 10: Vorsicht: die BSSID kann NULL sein und wir bekommen in der Liste der Netzwerke
 							// nur die SSIDs, nicht zwigend die verschiedenen BSSIDs, so dass wir diese unterscheiden können.
@@ -264,7 +269,7 @@ public class WifiChangeService extends Service {
 						}
 					} else if ( networkId >= 0 ) {
 						// Check auf networkId != activeWifi.getNetworkId() bringt nichts, weil Android unter derselben networkId
-						// ein und dasselbe Netzwerk mit 2/5 GHz führt
+						// ein und dasselbe Netzwerk mit 2/5 GHz führt, dass kann zu nervigen Endlosschleifen führen
 						wifiManager.disconnect(); // kein disable, sonst geht evtl. gar nichts mehr
 						wifiManager.enableNetwork(networkId, true); // TODO: lt. Javadoc geht das mit TargetAPI = 29 nicht mehr
 						Log.i(AppInfo.APP_NAME, "Switch to Wifi: "+networkId);
@@ -404,5 +409,9 @@ public class WifiChangeService extends Service {
 			return ssid.substring(1, ssid.length()-1);
 		} else
 			return ssid;
+	}
+
+	private static boolean hasNormalizedSSID(String ssid) {
+		return (ssid != null && ssid.startsWith("\"") && ssid.endsWith("\""));
 	}
 }

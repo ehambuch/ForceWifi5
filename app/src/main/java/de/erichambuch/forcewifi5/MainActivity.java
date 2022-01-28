@@ -63,10 +63,25 @@ public class MainActivity extends AppCompatActivity {
 
 	private boolean infoDialogShown = false;
 
+
+	/**
+	 * Network callback: We use this on enabling of a network to initiate a change of the network if required.
+	 */
 	private class NetworkCallback extends ConnectivityManager.NetworkCallback {
+		private volatile long lastNetworkCallback = 0;
+		private volatile String lastNetwork = "unknownNetxyz";
+
 		@Override
 		public void onAvailable(Network network) {
-			startWifiService(MainActivity.this);
+			// small circuit breaker: if we are called twice within 60 seconds  - then ignore the call
+			// so we break up an endless loop of connection failures
+			final long lastTimestamp = System.currentTimeMillis();
+			if ( lastTimestamp > lastNetworkCallback+ (60*1000) ) {
+				lastNetworkCallback = lastTimestamp;
+				lastNetwork = network.toString();
+				startWifiService(MainActivity.this);
+			} else
+				Log.d(AppInfo.APP_NAME, "Skipped NetworkCallBack");
 		}
 	}
 
@@ -127,25 +142,24 @@ public class MainActivity extends AppCompatActivity {
 	}
 
 	/**
-	 * Listener sobald Wifi Scan abgeschlossen. Dann wird die Liste aller Wifis angezeigt und
-	 * versucht das Wifi ggf. zu wechseln.
-	 * @deprecated nur für API &lt; 28
+	 * Listener sobald Wifi Scan abgeschlossen. Dann wird die Liste aller Wifis angezeigt.
 	 */
-	@Deprecated
 	public class ScanFinishedListener extends BroadcastReceiver {
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			if (intent.getAction().equals(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)) {
+			if (WifiManager.SCAN_RESULTS_AVAILABLE_ACTION.equals(intent.getAction())) {
 				boolean success = intent.getBooleanExtra(WifiManager.EXTRA_RESULTS_UPDATED, false);
-				if (!success)
+				if (success) {
+					// We could start the WifiSevice here again, but it's already started when a network is available (NetworkCallback)
+					// therefore we do not call startWifiService(context); anymore
+					try {
+						MainActivity.this.listNetworks();
+					} catch (SecurityException e) {
+						Log.e(AppInfo.APP_NAME, "Error listing networks", e);
+					}
+				} else
 					Toast.makeText(context, R.string.error_scan_failed, Toast.LENGTH_LONG).show();
-				startWifiService(context);
-				try {
-					MainActivity.this.listNetworks();
-				} catch (SecurityException e) {
-					Log.e(AppInfo.APP_NAME, "Error listing networks", e);
-				}
 			}
 		}
 	}
@@ -251,19 +265,24 @@ public class MainActivity extends AppCompatActivity {
 		if(!isLocationServicesEnabled(this))
 			showError(R.string.error_no_location_enabled);
 
-		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) { // as startScan() is deprecated from API 28
-			listNetworks();
-			startWifiService(this);
-		} else {
-			registerReceiver(scanFinishedListener, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
-			WifiManager wifiManager = getSystemService(WifiManager.class);
-			wifiManager.startScan();
-			// initial call and update will be trigged by finishing of scan in ScanFinishedListener
+		registerReceiver(scanFinishedListener, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
+		WifiManager wifiManager = getSystemService(WifiManager.class);
+		try {
+			wifiManager.startScan(); // startScan() will be deprecated (from API 28)?
+		} catch(SecurityException e) {
+			Log.w(AppInfo.APP_NAME, "startScan failed", e);
 		}
+		listNetworks();
+		// and start service for the first time
+		startWifiService(this);
 	}
 
 	public void onStop() {
-		//unregisterReceiver(scanFinishedListener); // may fail
+		try {
+			unregisterReceiver(scanFinishedListener); // may fail
+		} catch(Exception e) {
+			Log.w(AppInfo.APP_NAME, e);
+		}
 		super.onStop();
 	}
 	
@@ -463,7 +482,7 @@ public class MainActivity extends AppCompatActivity {
 					// Due to necessary workaround: Replacement for
 					// context.startForegroundService(new Intent(context.getApplicationContext(), WifiChangeService.class));
 				} catch (RuntimeException e) {
-					// If call comes from a BroadcastReceiver (see Javadoc of Bindservice). try again without bind()
+					// If call comes from a BroadcastReceiver (see Javadoc of Bindservice), e.g StartOnBootReiver: try again without bind()
 					context.getApplicationContext().startForegroundService(intent);
 				}
 			} else {

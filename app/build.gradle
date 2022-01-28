@@ -10,8 +10,8 @@ android {
         minSdkVersion 24
         maxSdkVersion 31
         targetSdkVersion 31
-        versionCode 19
-        versionName '1.9.3'
+        versionCode 21
+        versionName '1.9.4'
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

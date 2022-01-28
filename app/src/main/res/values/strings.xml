@@ -29,7 +29,7 @@
 	<string name="summary_2ghz5ghz">Choose your preferred frequency - either 2.4 GHz or 5 GHz if supported</string>
 	<string name="summary_signallevel">Define the minimum signal level to switch over to another frequency. This avoids switching to a weaker network.</string>
     <string name="title_settings">Settings</string>
-	<string name="text_wififound">Found the following Wifi access points with same SSID and 2.4/5 GHz - trying to switch to preferred one.</string>
+	<string name="text_wififound">Found the following Wifi access points with same SSID and 2.4/5 GHz - trying to switch to preferred one. This may take some time or multiple network switches.</string>
 	<string name="text_nowififound">You don\'t have any Wifi access points with both 2.4 and 5 GHz band on same SSID nearby. Please find another Wifi access point
 	with multiple frequencies on the same SSID to make use of this app.</string>
 	<string name="error_not_android10">Found the following Wifi access points with same SSID and 2.4/5 GHz - trying to switch to preferred one. Please note: Starting with Android 10 you probably need to re-connect your Wifi manually!</string>
