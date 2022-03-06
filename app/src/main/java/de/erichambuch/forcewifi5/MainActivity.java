@@ -7,6 +7,7 @@ import static android.Manifest.permission.CHANGE_WIFI_STATE;
 import static android.text.Html.FROM_HTML_MODE_LEGACY;
 
 import android.annotation.SuppressLint;
+import android.app.ActivityManager;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
@@ -39,11 +40,18 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.annotation.RequiresPermission;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.PreferenceManager;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import androidx.work.Constraints;
+import androidx.work.NetworkType;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.OutOfQuotaPolicy;
+import androidx.work.WorkManager;
+import androidx.work.WorkRequest;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
@@ -262,6 +270,7 @@ public class MainActivity extends AppCompatActivity {
 
 	@RequiresPermission(allOf = {ACCESS_WIFI_STATE, ACCESS_FINE_LOCATION})
 	private void doStart() {
+		// check prerequisites on every start and inform the user
 		if(!isLocationServicesEnabled(this))
 			showError(R.string.error_no_location_enabled);
 
@@ -423,10 +432,13 @@ public class MainActivity extends AppCompatActivity {
 		((TextView)findViewById(R.id.nowifitextview)).setText(R.string.error_no_permissions_provived);
 	}
 
+	@RequiresApi(api = Build.VERSION_CODES.P)
 	public void checkBatteryOptimizationsDisabled() {
 		PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
-		final String packageName = getPackageName();
-		if(!pm.isIgnoringBatteryOptimizations(getPackageName())) {
+		ActivityManager am = (ActivityManager)getSystemService(ACTIVITY_SERVICE);
+		final boolean batteryOptimizationIgnored = pm.isIgnoringBatteryOptimizations(getPackageName());
+		final boolean backgroundRestricted = am.isBackgroundRestricted();
+		if(!batteryOptimizationIgnored || backgroundRestricted) {
 			new MaterialAlertDialogBuilder(this)
 					.setTitle(getString(R.string.app_name))
 					.setNegativeButton(R.string.action_ignore, new DialogInterface.OnClickListener() {
@@ -440,7 +452,13 @@ public class MainActivity extends AppCompatActivity {
 						public void onClick(DialogInterface dialog, int which) {
 							dialog.cancel();
 							Intent intent = new Intent();
-							intent.setAction(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS); // kein REQUEST... nutzen, weil lt. Google Policy verboten
+							if(!batteryOptimizationIgnored) {
+								// kein REQUEST... nutzen, weil lt. Google Policy verboten
+								intent.setAction(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
+							} else { // Background Restriction -> Open App settings
+								intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+								intent.setPackage(MainActivity.this.getPackageName());
+							}
 							startActivity(intent);
 						}
 					})
@@ -474,7 +492,21 @@ public class MainActivity extends AppCompatActivity {
 		Log.i(AppInfo.APP_NAME, "startWifiService");
 		if(PreferenceManager.getDefaultSharedPreferences(context).getBoolean(context.getString(R.string.prefs_activation), true)) {
 			final Intent intent = new Intent(context.getApplicationContext(), WifiChangeService.class);
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+				// With Android 12 we cannot start a Foreground service anymore, so we have to use a WorkManager
+				Constraints constraints = new Constraints.Builder()
+						.setRequiredNetworkType(NetworkType.UNMETERED).build();
+				WorkRequest wifiWorkRequest =
+						new OneTimeWorkRequest.Builder(WifiChangeWorker.class).
+								setConstraints(constraints).
+								setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST).
+								addTag(AppInfo.APP_NAME).
+								build();
+				WorkManager.getInstance(context).enqueue(wifiWorkRequest);
+				Log.i(AppInfo.APP_NAME, "Scheduled WorkManager for Android 12+");
+			}
+			else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+				Log.i(AppInfo.APP_NAME, "Start Service for Android 9+");
 				try {
 					context.getApplicationContext().bindService(intent, new WifiChangeService.WifiServiceConnection(context.getApplicationContext()),
 							Context.BIND_AUTO_CREATE);
@@ -496,6 +528,7 @@ public class MainActivity extends AppCompatActivity {
 		if(!PreferenceManager.getDefaultSharedPreferences(context).getBoolean(context.getString(R.string.prefs_activation), true)) {
 			final Intent intent = new Intent(context.getApplicationContext(), WifiChangeService.class);
 			context.getApplicationContext().stopService(intent);
+			WorkManager.getInstance(context).cancelAllWorkByTag(AppInfo.APP_NAME);
 		}
 	}
 

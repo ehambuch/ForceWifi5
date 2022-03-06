@@ -1,10 +1,19 @@
 package de.erichambuch.forcewifi5;
 
+import static android.Manifest.permission.ACCESS_FINE_LOCATION;
+import static android.Manifest.permission.ACCESS_WIFI_STATE;
+import static android.Manifest.permission.CHANGE_WIFI_STATE;
+
+import android.app.ActivityManager;
+import android.content.pm.PackageManager;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.PowerManager;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.preference.ListPreference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
@@ -38,13 +47,16 @@ public class SettingsActivity extends AppCompatActivity {
 	protected void onStart() {
 		super.onStart();
 		enableValidGhz();
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+			setWarningIcons();
+		}
 	}
 
 	private void enableValidGhz() {
 		final WifiManager wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
-		final boolean is24Ghz = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) ? wifiManager.is24GHzBandSupported() : true;
+		final boolean is24Ghz = Build.VERSION.SDK_INT < Build.VERSION_CODES.S || wifiManager.is24GHzBandSupported();
 		final boolean is50Ghz = wifiManager.is5GHzBandSupported();
-		final boolean is60Ghz = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) ? wifiManager.is60GHzBandSupported() : false;
+		final boolean is60Ghz = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && wifiManager.is60GHzBandSupported();
 
 		final ListPreference listPreference = settingsFragment.findPreference(getString(R.string.prefs_2ghz5ghz));
 		final List<String> entries = new ArrayList<>();
@@ -65,6 +77,27 @@ public class SettingsActivity extends AppCompatActivity {
 		}
 		listPreference.setEntries(entries.toArray(new String[0]));
 		listPreference.setEntryValues(entryValues.toArray(new String[0]));
+	}
+
+	/**
+	 * Set warning icons next to preference settings if necessary.
+	 */
+	@RequiresApi(api = Build.VERSION_CODES.P)
+	private void setWarningIcons() {
+		final PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
+		final ActivityManager am = (ActivityManager)getSystemService(ACTIVITY_SERVICE);
+		final int iconAlert = android.R.drawable.ic_dialog_alert;
+		if(am.isBackgroundRestricted())
+			settingsFragment.findPreference(getString(R.string.prefs_app_settings)).setIcon(iconAlert);
+		if(!MainActivity.isLocationServicesEnabled(this))
+			settingsFragment.findPreference(getString(R.string.prefs_location_settings)).setIcon(iconAlert);
+		if(!pm.isIgnoringBatteryOptimizations(getPackageName()))
+			settingsFragment.findPreference(getString(R.string.prefs_battery_settings)).setIcon(iconAlert);
+
+		if(ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+				|| ActivityCompat.checkSelfPermission(this, CHANGE_WIFI_STATE) != PackageManager.PERMISSION_GRANTED
+				|| ActivityCompat.checkSelfPermission(this, ACCESS_WIFI_STATE) != PackageManager.PERMISSION_GRANTED)
+			settingsFragment.findPreference(getString(R.string.prefs_permission_settings)).setIcon(iconAlert);
 	}
 
     @Override

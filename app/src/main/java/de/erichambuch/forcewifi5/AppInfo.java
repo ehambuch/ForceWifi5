@@ -21,11 +21,13 @@ package de.erichambuch.forcewifi5;
  *     <li>V1.7.3 (06.11.2021) - Fix problem at boot</li>
  *     <li>V1.8.0 (04.12.2021) - Update Libs, Android 12</li>
  *     <li>V1.9.0 (14.01.2022) - OSS Licenses, UI Updates, Dark Mode</li>
- *     <li>V1.9.1 (24.01.2022) - Anpassungen für Android 11</li>
- *     <li>V1.9.2 (25.01.2022) - Bugfix for Android 12 (Battery Optimizations), Korrekturen Wifi-Suggestion-Logik</li>
+ *     <li>V1.9.1 (24.01.2022) - Adjustments für Android 11</li>
+ *     <li>V1.9.2 (25.01.2022) - Bugfix for Android 12 (Battery Optimizations), Fixes Wifi-Suggestion logic</li>
+ *     <li>V1.10.0 (02.02.2022) - Improved Settings, Tried fixes for Foreground-Service-problem in Android 12</li>
+ *     <li>V1.11.0 (16.02.2022) - Now uses WorkManager for Android 12, Fix Exception in WifiChangeService.onDestroy()</li>
  * </ul>
  * <ul>
- *     <li>TODO: disconnect geht nicht mehr: https://issuetracker.google.com/issues/128554616</li>
+ *     <li>TODO: disconnect does not work anymore: https://issuetracker.google.com/issues/128554616</li>
  *     <li>TODO: make a guided setup process for all the settings</li>
  * </ul>
  */

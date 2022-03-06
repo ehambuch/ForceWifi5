@@ -40,14 +40,20 @@
 	<string name="message_welcome"><![CDATA[<p>I wrote this app to force my devices to the less used 5 GHz channels of my Wifi network.</p><br/><p>Unfortunately starting with Android 10, apps cannot <em>force</em> the system to change the Wifi channel, but only give a <em>recommendation</em> to do so.</p><br/><p>Therefore this app <em>MAY or MAY NOT</em> work on your device. Please give a try. In certain cases you will have to disable and enable your Wifi manually once or even reboot your device in order to get an effect.</p><p>If it\'s not working, just de-install it.</p><br/><p>Any feedback is welcome at: <a href="mailto:erichambuch@googlemail.com?subject=Feedback-on-ForceWifi5">erichambuch@googlemail.com</a>.</p>]]></string>
 	<string name="error_switch_wifi_android10">Error while setting suggestion for wifi (</string>
 	<string name="error_permission_missing">Permission to access Wifis state has been revoked!</string>
-	<string name="message_batteryoptimizations"><![CDATA[<p>Under Android 12+ you will have to disable the <em>Battery Optimizations</em> for this app.</p><br/>Please open the Settings and grant an exception to this app by selecting the app and choosing <em>Don\'t optimize</em>.]]></string>
+	<string name="message_batteryoptimizations"><![CDATA[<p>Under Android 12+ you will have to disable the <em>Battery Optimizations</em> for this app.</p><br/>Please open the Settings and grant an exception to this app by selecting the app and choosing <em>Don\'t optimize</em> as well as removing any <em>Background restrictions</em>.]]></string>
 	<string name="error_permission_duplicate">Error while setting duplication suggestion for Wifi - try to start app again.</string>
 	<string name="error_suggestion_not_taken">Android did not follow suggestion for Wifi - try to dis-connect and reconnect manually</string>
 	<string name="error_no_permissions_provived">This app lacks of the required permissions for Location Services and Wifi access. Please open the Settings and grant the necessary permissions.</string>
 	<string name="summay_permission_settings">Open permission settings of app. This app needs permissions for Wifi and Location in order to work.</string>
-	<string name="summary_location_settings">Open location services settings. This app needs location services enabled in order to work.</string>
+	<string name="summary_location_settings">Open location services settings. This app needs location services enabled in order to retrieve a list of all Wifi access points.</string>
 	<string name="title_permission_settings">Permission settings</string>
 	<string name="title_location_settings">Location settings</string>
+	<string name="title_app_settings">App settings</string>
+	<string name="summay_app_settings">Open settings of this app. Use to remove Background Restrictions and fix permissions or battery optimization settings.</string>
+	<string name="prefs_location_settings">prefs_location_settings</string>
+	<string name="prefs_permission_settings">prefs_permission_settings</string>
+	<string name="prefs_app_settings">prefs_app_settings</string>
+	<string name="prefs_battery_settings">prefs_battery_settings</string>
 	<string-array name="entries25ghz">
 		<item>2.4 GHz</item>
 		<item>5 GHz</item>

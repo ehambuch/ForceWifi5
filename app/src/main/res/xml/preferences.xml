@@ -35,7 +35,16 @@
 
     </PreferenceCategory>
     <PreferenceCategory android:title="Permissions">
+        <Preference
+            app:key="@string/prefs_app_settings"
+            app:title="@string/title_app_settings"
+            app:summary="@string/summay_app_settings">
+            <intent
+                android:action="android.settings.APPLICATION_DETAILS_SETTINGS"
+                android:data="package:de.erichambuch.forcewifi5" />
+        </Preference>
     <Preference
+        app:key="@string/prefs_permission_settings"
         app:title="@string/title_permission_settings"
         app:summary="@string/summay_permission_settings">
         <intent
@@ -43,6 +52,7 @@
             android:data="package:de.erichambuch.forcewifi5" />
     </Preference>
     <Preference
+        app:key="@string/prefs_location_settings"
         app:title="@string/title_location_settings"
         app:summary="@string/summary_location_settings">
         <intent
@@ -50,6 +60,7 @@
              />
     </Preference>
         <Preference
+            app:key="@string/prefs_battery_settings"
             app:title="Battery optimization settings"
             app:summary="Open battery optimization settings to disable all optimizations for this app. This is required for Android 12 and above.">
             <intent

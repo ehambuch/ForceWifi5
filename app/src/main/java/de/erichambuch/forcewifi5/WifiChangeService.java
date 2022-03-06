@@ -28,6 +28,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.annotation.RequiresPermission;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
@@ -63,26 +64,31 @@ public class WifiChangeService extends Service {
 		{
 			final LocalBinder binder = (LocalBinder) service;
 			final WifiChangeService myService = binder.getService();
+			myService.connection = this;
 
 			if ( Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ) {
-				notification =
+				Notification.Builder builder =
 						new Notification.Builder(context, MainActivity.CHANNEL_ID)
 								.setContentTitle(context.getText(R.string.app_name))
 								.setContentText(context.getText(R.string.title_activation))
 								.setSmallIcon(R.mipmap.ic_launcher)
 								.setAutoCancel(false)
-								.setTicker(context.getText(R.string.title_activation))
-								.build();
-				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-					myService.startForeground(ONGOING_NOTIFICATION_ID, notification, FOREGROUND_SERVICE_TYPE_LOCATION);
-				} else {
-					myService.startForeground(ONGOING_NOTIFICATION_ID, notification);
-				}
+								.setTicker(context.getText(R.string.title_activation));
+				final Notification notification = builder.build();
 				try {
+					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+						// With Android 12+ we could get an android.app.ForegroundServiceStartNotAllowedException due to new restrictions
+						builder.setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE);
+						myService.startForeground(ONGOING_NOTIFICATION_ID, notification, FOREGROUND_SERVICE_TYPE_LOCATION);
+					} else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+						myService.startForeground(ONGOING_NOTIFICATION_ID, notification, FOREGROUND_SERVICE_TYPE_LOCATION);
+					} else {
+						myService.startForeground(ONGOING_NOTIFICATION_ID, notification);
+					}
 					// Release the connection to prevent leaks. => may be skipped
 					context.unbindService(this);
 				} catch(Exception e) {
-					Log.i(AppInfo.APP_NAME, "unBind failed.", e);
+					Log.i(AppInfo.APP_NAME, "startForeground or unBind failed.", e);
 				}
 			}
 		}
@@ -118,6 +124,17 @@ public class WifiChangeService extends Service {
 
 	private final LocalBinder binder = new LocalBinder();
 
+	private WifiServiceConnection connection = null;
+
+	protected WifiChangeService(Context context) {
+		super();
+		attachBaseContext(context);
+	}
+
+	public WifiChangeService() {
+		super();
+	}
+
 	/**
 	 * Solution for ANR problem according to {@see https://stackoverflow.com/questions/44425584/context-startforegroundservice-did-not-then-call-service-startforeground}
 	 * @param intent
@@ -130,9 +147,30 @@ public class WifiChangeService extends Service {
 		return binder;
 	}
 
+	/**
+	  Disabled as leeds to many exceptions:
+	@Override
+	public void onDestroy() {
+		try {
+			if (connection != null)
+				getApplicationContext().unbindService(connection);
+		} catch(Exception e) {
+			Log.i(AppInfo.APP_NAME, "Unbinding service failed", e);
+		}
+		super.onDestroy();
+	}
+	 */
+
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		Log.d(AppInfo.APP_NAME, "Starting WifiChangeService");
+		// As of Android 12+ foreground service start is not possible in many cases. We try another way to display a Notification
+		// in case we are still in background. We can perform a test by using adb with:
+		// adb shell device_config put activity_manager default_fgs_starts_restriction_notification_enabled true
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && this.getForegroundServiceType() != FOREGROUND_SERVICE_TYPE_LOCATION)  {
+			startForeground(ONGOING_NOTIFICATION_ID, createNotification(R.string.title_activation), FOREGROUND_SERVICE_TYPE_LOCATION);
+		}
+
 		if (isActivated()) {
 			if(ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
 				&& ActivityCompat.checkSelfPermission(this, CHANGE_WIFI_STATE) == PackageManager.PERMISSION_GRANTED
@@ -163,7 +201,7 @@ public class WifiChangeService extends Service {
 	 * @throws SecurityException on errors
 	 */
 	@RequiresPermission(allOf = {ACCESS_FINE_LOCATION, CHANGE_WIFI_STATE, ACCESS_WIFI_STATE })
-	private void updateNetworks() throws SecurityException {
+	protected void updateNetworks() throws SecurityException {
 		final WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
 		if (isActivated() && wifiManager.isWifiEnabled()) {
 			WifiInfo activeWifi = wifiManager.getConnectionInfo();
@@ -264,7 +302,7 @@ public class WifiChangeService extends Service {
 							case WifiManager.STATUS_NETWORK_SUGGESTIONS_ERROR_INTERNAL:
 							case WifiManager.STATUS_NETWORK_SUGGESTIONS_ERROR_REMOVE_INVALID:
 							default:
-								showError(getString(R.string.error_switch_wifi_android10) + returnCode + ")");
+								showError(R.string.error_switch_wifi_android10);
 								break;
 						}
 					} else if ( networkId >= 0 ) {
@@ -311,11 +349,12 @@ public class WifiChangeService extends Service {
 	}
 
 	private void showError(int stringId) {
-		Toast.makeText(getApplicationContext(), stringId, Toast.LENGTH_LONG).show();
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+			NotificationManagerCompat.from(this).notify(ONGOING_NOTIFICATION_ID, createNotification(stringId));
+		} else
+			Toast.makeText(getApplicationContext(), stringId, Toast.LENGTH_LONG).show();
 	}
-	private void showError(CharSequence string) {
-		Toast.makeText(getApplicationContext(), string, Toast.LENGTH_LONG).show();
-	}
+
 
 	/**
 	 * Check if Location Services are enabled. If not, raise a notification to the user.
@@ -334,7 +373,7 @@ public class WifiChangeService extends Service {
 					.setPriority(NotificationCompat.PRIORITY_DEFAULT)
 					.setAutoCancel(true)
 					.setContentIntent(pendingIntent);
-			NotificationManagerCompat.from(this).notify(4711, builder.build());
+			NotificationManagerCompat.from(this).notify(ONGOING_NOTIFICATION_ID, builder.build());
 			return false;
 		}
 		return true;
@@ -343,7 +382,7 @@ public class WifiChangeService extends Service {
 	/**
 	 * Show notification to user if permissions are missing.
 	 */
-	private void showPermissionError() {
+	protected void showPermissionError() {
 		Intent locationIntent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
 		locationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
 		locationIntent.setData(Uri.fromParts("package", getPackageName(), null));
@@ -355,10 +394,25 @@ public class WifiChangeService extends Service {
 				.setPriority(NotificationCompat.PRIORITY_DEFAULT)
 				.setAutoCancel(true)
 				.setContentIntent(pendingIntent);
-		NotificationManagerCompat.from(this).notify(4711, builder.build());
+		NotificationManagerCompat.from(this).notify(ONGOING_NOTIFICATION_ID, builder.build());
 	}
 
-	private boolean isActivated() {
+	@RequiresApi(api = Build.VERSION_CODES.O)
+	protected Notification createNotification(int resourceId) {
+		Notification.Builder builder =
+				new Notification.Builder(this, MainActivity.CHANNEL_ID)
+						.setContentTitle(getText(R.string.app_name))
+						.setContentText(getText(resourceId))
+						.setSmallIcon(R.mipmap.ic_launcher)
+						.setAutoCancel(false)
+						.setTicker(getText(resourceId));
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+			builder.setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE);
+		}
+		return builder.build();
+	}
+
+	protected boolean isActivated() {
 		return PreferenceManager.getDefaultSharedPreferences(this).getBoolean(getString(R.string.prefs_activation), true);
 	}
 
@@ -376,9 +430,9 @@ public class WifiChangeService extends Service {
 
 	private boolean isWantedFrequency(int freq) {
 		if (is6GHzPreferred()) {
-			return (freq >= 6000);
+			return (freq >= 5925);
 		} else if (is5GHzPreferred())
-			return (freq >= 5000 && freq <= 5998);
+			return (freq >= 5000 && freq <= 5920);
 		else
 			return (freq < 3000);
 	}
