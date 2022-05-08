@@ -84,19 +84,25 @@ public class MainActivity extends AppCompatActivity {
 	/**
 	 * Network callback: We use this on enabling of a network to initiate a change of the network if required.
 	 */
-	private class NetworkCallback extends ConnectivityManager.NetworkCallback {
+	static class NetworkCallback extends ConnectivityManager.NetworkCallback {
 		private volatile long lastNetworkCallback = 0;
 		private volatile String lastNetwork = "unknownNetxyz";
+
+		private Context myContext;
+
+		NetworkCallback(Context context) {
+			myContext = context;
+		}
 
 		@Override
 		public void onAvailable(Network network) {
 			// small circuit breaker: if we are called twice within 60 seconds  - then ignore the call
 			// so we break up an endless loop of connection failures
 			final long lastTimestamp = System.currentTimeMillis();
-			if ( lastTimestamp > lastNetworkCallback+ (60*1000) ) {
+			if ( lastTimestamp > lastNetworkCallback+ (60*1000)) {
 				lastNetworkCallback = lastTimestamp;
 				lastNetwork = network.toString();
-				startWifiService(MainActivity.this);
+				startWifiService(myContext);
 			} else
 				Log.d(AppInfo.APP_NAME, "Skipped NetworkCallBack");
 		}
@@ -201,7 +207,6 @@ public class MainActivity extends AppCompatActivity {
 		}
 	}
 
-	private final NetworkCallback myNetworkCallback = new NetworkCallback();
 	private final ScanFinishedListener scanFinishedListener = new ScanFinishedListener();
 	private final RecommendationListener recommendationListener = new RecommendationListener();
 
@@ -229,7 +234,7 @@ public class MainActivity extends AppCompatActivity {
 		ConnectivityManager connManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
 		connManager.registerNetworkCallback(
 				new NetworkRequest.Builder().addTransportType(NetworkCapabilities.TRANSPORT_WIFI).build(),
-				myNetworkCallback);
+				new NetworkCallback(getApplicationContext()));
 
 		// Get Permissions right away from the start
 		if ((checkSelfPermission(ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) &&
@@ -400,7 +405,8 @@ public class MainActivity extends AppCompatActivity {
 		List<ScanResult> scanResults = wifiManager.getScanResults();
 		WifiInfo activeNetwork = wifiManager.getConnectionInfo();
 		// set active and connected wifis
-		((TextView)findViewById(R.id.actualwifitextview)).setText(activeNetwork != null
+		final boolean activeWifi = (activeNetwork != null && wifiManager.isWifiEnabled() && activeNetwork.getSSID() != null);
+		((TextView)findViewById(R.id.actualwifitextview)).setText(activeWifi
 				? (activeNetwork.getSSID()+" - "+activeNetwork.getBSSID()+" at "+activeNetwork.getFrequency()+" GHz") : getString(R.string.text_nowifi));
 		// build up list with all SSID supporting 2.4 and 5 GHz
 		List<NetworkEntry> listNetworks = new ArrayList<>();
@@ -465,10 +471,13 @@ public class MainActivity extends AppCompatActivity {
 
 		// color Card if frequency is correct, so feedback to user
 		View recommendationView = findViewById(R.id.recommandedwificard);
-		boolean isGreen = (activeNetwork != null && isWantedFrequency(activeNetwork.getFrequency()));
-		recommendationView.setBackgroundColor(
-				isGreen ? getResources().getColor(android.R.color.holo_green_dark, getTheme()) :
-						getResources().getColor(android.R.color.holo_orange_dark, getTheme()));
+		if (activeWifi) {
+			recommendationView.setBackgroundColor(
+					isWantedFrequency(activeNetwork.getFrequency()) ? getResources().getColor(android.R.color.holo_green_dark, getTheme()) :
+							getResources().getColor(android.R.color.holo_orange_dark, getTheme()));
+		} else {
+			recommendationView.setBackgroundColor(getResources().getColor(android.R.color.white, getTheme()));
+		}
 	}
 
 	public static boolean isLocationServicesEnabled(Context context) {

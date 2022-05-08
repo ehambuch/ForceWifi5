@@ -3,7 +3,6 @@ package de.erichambuch.forcewifi5;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
-import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.net.NetworkRequest;
 
@@ -18,18 +17,13 @@ public class StartOnBootReceiver extends android.content.BroadcastReceiver {
 	@Override
 	@RequiresPermission(value = "android.permission.ACCESS_NETWORK_STATE")
 	public void onReceive(final Context context, Intent intent) {
-		if(intent.getAction().equals(Intent.ACTION_BOOT_COMPLETED)) {
+		if(Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) {
 			MainActivity.createNotificationChannel(context);
 			// register a listener to network changes
 			ConnectivityManager connManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
 			connManager.registerNetworkCallback(
 					new NetworkRequest.Builder().addTransportType(NetworkCapabilities.TRANSPORT_WIFI).build(),
-					new ConnectivityManager.NetworkCallback() {
-					    @Override
-					    public void onAvailable(Network network) {
-					        MainActivity.startWifiService(context);
-					    }
-					});
+					new MainActivity.NetworkCallback(context));
 		}
 	}
 
