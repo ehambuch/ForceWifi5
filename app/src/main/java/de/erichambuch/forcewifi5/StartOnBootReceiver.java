@@ -7,6 +7,8 @@ import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.net.NetworkRequest;
 
+import androidx.annotation.RequiresPermission;
+
 /**
  * BroadcastReceiver that is executed on startup of phone.
  * Allows us to register listener for Wifi network changes.
@@ -14,6 +16,7 @@ import android.net.NetworkRequest;
 public class StartOnBootReceiver extends android.content.BroadcastReceiver {
 
 	@Override
+	@RequiresPermission(value = "android.permission.ACCESS_NETWORK_STATE")
 	public void onReceive(final Context context, Intent intent) {
 		if(intent.getAction().equals(Intent.ACTION_BOOT_COMPLETED)) {
 			MainActivity.createNotificationChannel(context);

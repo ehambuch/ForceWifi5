@@ -25,6 +25,7 @@ import android.net.Uri;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.net.wifi.WifiNetworkSuggestion;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
@@ -34,6 +35,7 @@ import android.text.method.LinkMovementMethod;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -44,6 +46,7 @@ import androidx.annotation.RequiresApi;
 import androidx.annotation.RequiresPermission;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.preference.PreferenceManager;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.work.Constraints;
@@ -66,8 +69,14 @@ import java.util.Map;
 public class MainActivity extends AppCompatActivity {
 
 	public static final String CHANNEL_ID = "ForceWifi5";
+
+	public static final String INTENT_WIFICHANGETEXT = "de.erichambuch.forcewifi5.WIFICHANGETEXT";
+
+	public static final String EXTRA_WIFICHANGETEXT = "de.erichambuch.forcewifi5.recommendation";
+
 	private static final int REQUEST_CODE_LOCATION_SERVICES = 4567;
 	private static final int REQUEST_CODE_PERMISSIONS = 5678;
+
 
 	private boolean infoDialogShown = false;
 
@@ -150,6 +159,24 @@ public class MainActivity extends AppCompatActivity {
 	}
 
 	/**
+	 * Listener sobald Wifi Recommendation erledigt.
+	 */
+	public class RecommendationListener extends BroadcastReceiver {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			if (INTENT_WIFICHANGETEXT.equals(intent.getAction())) {
+				// Broadcast von WifiChangeService -> Recommended Wifi anzeigen
+				String recommendation = intent.getStringExtra(EXTRA_WIFICHANGETEXT);
+				if (recommendation != null) {
+					final TextView view = ((TextView) findViewById(R.id.recommandedwifitextview));
+					if (view != null)
+						view.setText(Html.fromHtml(recommendation, Html.FROM_HTML_MODE_COMPACT));
+				}
+			}
+		}
+	}
+
+	/**
 	 * Listener sobald Wifi Scan abgeschlossen. Dann wird die Liste aller Wifis angezeigt.
 	 */
 	public class ScanFinishedListener extends BroadcastReceiver {
@@ -162,7 +189,9 @@ public class MainActivity extends AppCompatActivity {
 					// We could start the WifiSevice here again, but it's already started when a network is available (NetworkCallback)
 					// therefore we do not call startWifiService(context); anymore
 					try {
-						MainActivity.this.listNetworks();
+						if(!MainActivity.this.isFinishing())
+							MainActivity.this.listNetworks();
+						Toast.makeText(context, R.string.error_scan_succesful, Toast.LENGTH_LONG).show();
 					} catch (SecurityException e) {
 						Log.e(AppInfo.APP_NAME, "Error listing networks", e);
 					}
@@ -174,6 +203,7 @@ public class MainActivity extends AppCompatActivity {
 
 	private final NetworkCallback myNetworkCallback = new NetworkCallback();
 	private final ScanFinishedListener scanFinishedListener = new ScanFinishedListener();
+	private final RecommendationListener recommendationListener = new RecommendationListener();
 
 	@SuppressLint("MissingPermission")
 	@Override
@@ -188,8 +218,7 @@ public class MainActivity extends AppCompatActivity {
 				() -> {
 					WifiManager wifiManager = getSystemService(WifiManager.class);
 					if(wifiManager != null )
-						wifiManager.startScan();
-					listNetworks();
+						wifiManager.startScan(); // listNetworks is called by ScanFinishedListener
 					swipeRefreshLayout.setRefreshing(false);
 				}
 		);
@@ -275,13 +304,17 @@ public class MainActivity extends AppCompatActivity {
 			showError(R.string.error_no_location_enabled);
 
 		registerReceiver(scanFinishedListener, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
+		LocalBroadcastManager.getInstance(this).registerReceiver(recommendationListener, new IntentFilter(INTENT_WIFICHANGETEXT));
+
 		WifiManager wifiManager = getSystemService(WifiManager.class);
 		try {
-			wifiManager.startScan(); // startScan() will be deprecated (from API 28)?
+			boolean scanSuccessful = wifiManager.startScan(); // startScan() will be deprecated (from API 28)?
+			if(!scanSuccessful)
+				showError(R.string.error_scan_failed);
 		} catch(SecurityException e) {
 			Log.w(AppInfo.APP_NAME, "startScan failed", e);
 		}
-		listNetworks();
+		findViewById(R.id.mainFragment).post(() -> listNetworks());
 		// and start service for the first time
 		startWifiService(this);
 	}
@@ -289,6 +322,7 @@ public class MainActivity extends AppCompatActivity {
 	public void onStop() {
 		try {
 			unregisterReceiver(scanFinishedListener); // may fail
+			LocalBroadcastManager.getInstance(this).unregisterReceiver(recommendationListener); // may fail
 		} catch(Exception e) {
 			Log.w(AppInfo.APP_NAME, e);
 		}
@@ -365,6 +399,9 @@ public class MainActivity extends AppCompatActivity {
 		WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
 		List<ScanResult> scanResults = wifiManager.getScanResults();
 		WifiInfo activeNetwork = wifiManager.getConnectionInfo();
+		// set active and connected wifis
+		((TextView)findViewById(R.id.actualwifitextview)).setText(activeNetwork != null
+				? (activeNetwork.getSSID()+" - "+activeNetwork.getBSSID()+" at "+activeNetwork.getFrequency()+" GHz") : getString(R.string.text_nowifi));
 		// build up list with all SSID supporting 2.4 and 5 GHz
 		List<NetworkEntry> listNetworks = new ArrayList<>();
 		Map<String, NetworkEntry> map245Ghz = new HashMap<>();
@@ -408,6 +445,30 @@ public class MainActivity extends AppCompatActivity {
 				((TextView) findViewById(R.id.nowifitextview)).setText(R.string.text_nowififound);
 			}
 		}
+
+		// Show recommendations, this actually works due to API restrictions only on latest versions
+		if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+			List<WifiNetworkSuggestion> suggestionList = wifiManager.getNetworkSuggestions();
+			final TextView recommendationView = ((TextView) findViewById(R.id.recommandedwifitextview));
+			if(suggestionList != null && suggestionList.size()> 0) {
+				StringBuilder builder = new StringBuilder();
+				for(WifiNetworkSuggestion suggestion : suggestionList) {
+					builder.append(suggestion.getSsid()).append(" - ").append(suggestion.getBssid()).append(" recommended at prio ").append(suggestion.getPriority()).append("<br/>");
+				}
+				builder.delete(builder.length() - 5, builder.length()); // br am Ende entfernen
+				if (recommendationView != null)
+					recommendationView.setText(Html.fromHtml(builder.toString(), Html.FROM_HTML_MODE_COMPACT));
+			} else {
+				recommendationView.setText(R.string.text_nowifirecommended);
+			}
+		}
+
+		// color Card if frequency is correct, so feedback to user
+		View recommendationView = findViewById(R.id.recommandedwificard);
+		boolean isGreen = (activeNetwork != null && isWantedFrequency(activeNetwork.getFrequency()));
+		recommendationView.setBackgroundColor(
+				isGreen ? getResources().getColor(android.R.color.holo_green_dark, getTheme()) :
+						getResources().getColor(android.R.color.holo_orange_dark, getTheme()));
 	}
 
 	public static boolean isLocationServicesEnabled(Context context) {
@@ -546,5 +607,27 @@ public class MainActivity extends AppCompatActivity {
 			return ssid.substring(1, ssid.length()-1);
 		} else
 			return ssid;
+	}
+
+	// TODO: duplicated code!!!
+	private boolean is5GHzPreferred() {
+		return ("1".equals(PreferenceManager.getDefaultSharedPreferences(this).getString(getString(R.string.prefs_2ghz5ghz), "1")));
+	}
+
+	private boolean is6GHzPreferred() {
+		return ("2".equals(PreferenceManager.getDefaultSharedPreferences(this).getString(getString(R.string.prefs_2ghz5ghz), "1")));
+	}
+
+	private boolean isWrongFrequency(int freq) {
+		return !isWantedFrequency(freq);
+	}
+
+	public boolean isWantedFrequency(int freq) {
+		if (is6GHzPreferred()) {
+			return (freq >= 5925);
+		} else if (is5GHzPreferred())
+			return (freq >= 5000 && freq <= 5920);
+		else
+			return (freq < 3000);
 	}
 }

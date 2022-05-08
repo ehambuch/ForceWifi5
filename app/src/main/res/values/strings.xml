@@ -64,4 +64,7 @@
 		<item>1</item>
 		<item>2</item>
 	</string-array>
+	<string name="text_nowifi">No Wifi access point connected</string>
+	<string name="text_nowifirecommended">No Wifi access point recommended</string>
+	<string name="error_scan_succesful">Wifi scan successful</string>
 </resources>

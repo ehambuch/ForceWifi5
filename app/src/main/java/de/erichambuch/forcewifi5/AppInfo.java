@@ -25,6 +25,7 @@ package de.erichambuch.forcewifi5;
  *     <li>V1.9.2 (25.01.2022) - Bugfix for Android 12 (Battery Optimizations), Fixes Wifi-Suggestion logic</li>
  *     <li>V1.10.0 (02.02.2022) - Improved Settings, Tried fixes for Foreground-Service-problem in Android 12</li>
  *     <li>V1.11.0 (16.02.2022) - Now uses WorkManager for Android 12, Fix Exception in WifiChangeService.onDestroy()</li>
+ *     <li>V1.12.0 (08.05.2022) - Now displays connected Wifi as well as recommended wifi channel</li>
  * </ul>
  * <ul>
  *     <li>TODO: disconnect does not work anymore: https://issuetracker.google.com/issues/128554616</li>

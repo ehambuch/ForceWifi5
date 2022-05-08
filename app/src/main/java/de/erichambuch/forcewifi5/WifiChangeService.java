@@ -33,6 +33,7 @@ import androidx.annotation.RequiresPermission;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.preference.PreferenceManager;
 
 import java.util.ArrayList;
@@ -218,6 +219,7 @@ public class WifiChangeService extends Service {
 				int networkId = -1;
 				final boolean switchToOtherSSID = isSwitchToOtherSSID();
 				final List<WifiNetworkSuggestion> suggestions = new ArrayList<>(5);
+				final StringBuilder suggestionsString = new StringBuilder(256); // wir müssen parallel noch das als String mitführen
 				for (ScanResult result : scanResults) {
 					final int signalLevel = WifiManager.calculateSignalLevel(result.level, 100);
 					if (isWantedFrequency(result.frequency)
@@ -228,9 +230,13 @@ public class WifiChangeService extends Service {
 						if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
 							final WifiNetworkSuggestion.Builder suggestionBuilder = new WifiNetworkSuggestion.Builder();
 							suggestionBuilder.setSsid(normalizeSSID(result.SSID));
-							if ( result.BSSID != null )
+							suggestionsString.append(normalizeSSID(result.SSID)).append(" - ");
+							if ( result.BSSID != null ) {
 								suggestionBuilder.setBssid(MacAddress.fromString(result.BSSID));
+								suggestionsString.append(result.BSSID);
+							}
 
+							suggestionsString.append(" recommended at prio ").append(priority);
 							suggestionBuilder.setPriority(priority++);
 							suggestions.add(suggestionBuilder.build());
 							// special case: wir haben ein Netzwerk mit normalisierter SSID, versuchen wir dazuzufügen
@@ -252,6 +258,8 @@ public class WifiChangeService extends Service {
 									reconnected = true;
 									minimumSignalLevel = signalLevel;
 									networkId = config.networkId;
+
+									suggestionsString.append(result.SSID).append(" - ").append(result.BSSID).append(" recommended with ID ").append(config.networkId);
 									break;
 								}
 							}
@@ -305,6 +313,7 @@ public class WifiChangeService extends Service {
 								showError(R.string.error_switch_wifi_android10);
 								break;
 						}
+
 					} else if ( networkId >= 0 ) {
 						// Check auf networkId != activeWifi.getNetworkId() bringt nichts, weil Android unter derselben networkId
 						// ein und dasselbe Netzwerk mit 2/5 GHz führt, dass kann zu nervigen Endlosschleifen führen
@@ -313,6 +322,11 @@ public class WifiChangeService extends Service {
 						Log.i(AppInfo.APP_NAME, "Switch to Wifi: "+networkId);
 						showError(R.string.info_switch_wifi_5ghz);
 					}
+
+					// and display by sending a broadcast to MainActivity
+					final Intent intent = new Intent(MainActivity.INTENT_WIFICHANGETEXT);
+					intent.putExtra(MainActivity.EXTRA_WIFICHANGETEXT, suggestionsString.toString());
+					LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 				}
 				else
 					showError(R.string.error_5ghz_not_configured);
@@ -428,7 +442,7 @@ public class WifiChangeService extends Service {
 		return !isWantedFrequency(freq);
 	}
 
-	private boolean isWantedFrequency(int freq) {
+	public boolean isWantedFrequency(int freq) {
 		if (is6GHzPreferred()) {
 			return (freq >= 5925);
 		} else if (is5GHzPreferred())
