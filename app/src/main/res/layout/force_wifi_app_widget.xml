@@ -1,0 +1,19 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/Widget.ForceWifi5.AppWidget.Container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:theme="@style/Widget.ForceWifi5.AppWidget.Container">
+
+    <TextView
+        android:id="@+id/appwidget_text"
+        style="@style/Widget.ForceWifi5.AppWidget.InnerView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:layout_margin="4dp"
+        android:contentDescription="@string/app_description"
+        android:text="@string/title_deacttived"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+</RelativeLayout>

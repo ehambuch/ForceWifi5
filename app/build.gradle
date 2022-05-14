@@ -10,8 +10,8 @@ android {
         minSdkVersion 24
         maxSdkVersion 31
         targetSdkVersion 31
-        versionCode 25
-        versionName '1.12.1'
+        versionCode 26
+        versionName '1.13.0'
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -25,6 +25,9 @@ android {
     compileOptions {
         targetCompatibility JavaVersion.VERSION_1_8
         sourceCompatibility JavaVersion.VERSION_1_8
+    }
+    buildFeatures {
+        viewBinding true
     }
 }
 

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:description="@string/app_description"
+    android:initialKeyguardLayout="@layout/force_wifi_app_widget"
+    android:initialLayout="@layout/force_wifi_app_widget"
+    android:minWidth="40dp"
+    android:minHeight="40dp"
+    android:previewImage="@mipmap/ic_launcher"
+    android:previewLayout="@layout/force_wifi_app_widget"
+    android:resizeMode="horizontal"
+    android:targetCellWidth="1"
+    android:targetCellHeight="1"
+    android:updatePeriodMillis="14400000"
+    android:widgetCategory="home_screen"
+    tools:targetApi="s" />

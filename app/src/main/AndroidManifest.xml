@@ -1,51 +1,81 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="de.erichambuch.forcewifi5" android:installLocation="internalOnly">
+    package="de.erichambuch.forcewifi5"
+    android:installLocation="internalOnly">
 
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
-    <uses-feature android:name="android.hardware.wifi" android:required="true" />
+    <uses-feature
+        android:name="android.hardware.wifi"
+        android:required="true" />
 
     <queries>
         <intent>
-            <action android:name="android.settings.IGNORE_BATTERY_OPTIMIZATION_SETTINGS"/>
+            <action android:name="android.settings.IGNORE_BATTERY_OPTIMIZATION_SETTINGS" />
         </intent>
     </queries>
 
     <application
         android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme"
-        android:fullBackupContent="true"
-        android:dataExtractionRules="@xml/data_extraction_rules">
+        android:theme="@style/AppTheme">
+        <receiver
+            android:name=".ForceWifiAppWidget"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/force_wifi_app_widget_info" />
+        </receiver>
+
         <activity
             android:name=".MainActivity"
-            android:label="@string/app_name"
-            android:exported="true">
+            android:exported="true"
+            android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+            </intent-filter>
         </activity>
-        <activity android:name=".SettingsActivity" android:label="@string/action_settings" android:exported="false"/>
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="false"
+            android:label="@string/action_settings" />
         <activity
             android:name="com.google.android.gms.oss.licenses.OssLicensesMenuActivity"
-            android:theme="@style/AppTheme" android:exported="false"/>
+            android:exported="false"
+            android:theme="@style/AppTheme" />
         <activity
             android:name="com.google.android.gms.oss.licenses.OssLicensesActivity"
-            android:theme="@style/AppTheme" android:exported="false" />
-        <service android:name=".WifiChangeService" android:foregroundServiceType="location"/>
-        <receiver android:name=".StartOnBootReceiver" android:exported="true">
+            android:exported="false"
+            android:theme="@style/AppTheme" />
+
+        <service
+            android:name=".WifiChangeService"
+            android:foregroundServiceType="location" />
+
+        <receiver
+            android:name=".StartOnBootReceiver"
+            android:enabled="true"
+            android:exported="true">
             <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
             </intent-filter>
         </receiver>
     </application>

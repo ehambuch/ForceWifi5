@@ -203,6 +203,7 @@ public class WifiChangeService extends Service {
 	 */
 	@RequiresPermission(allOf = {ACCESS_FINE_LOCATION, CHANGE_WIFI_STATE, ACCESS_WIFI_STATE })
 	protected void updateNetworks() throws SecurityException {
+		Log.d(AppInfo.APP_NAME, "Started updateNetworks...");
 		final WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
 		if (isActivated() && wifiManager.isWifiEnabled()) {
 			WifiInfo activeWifi = wifiManager.getConnectionInfo();
@@ -268,6 +269,7 @@ public class WifiChangeService extends Service {
 					}
 				}
 				if (reconnected) {
+					Log.d(AppInfo.APP_NAME, "Try to reconnect");
 					if ( android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && suggestions.size() > 0 ) {
 						// show suggestion in Notification
 						final Notification notification =
@@ -318,7 +320,7 @@ public class WifiChangeService extends Service {
 						// Check auf networkId != activeWifi.getNetworkId() bringt nichts, weil Android unter derselben networkId
 						// ein und dasselbe Netzwerk mit 2/5 GHz führt, dass kann zu nervigen Endlosschleifen führen
 						wifiManager.disconnect(); // kein disable, sonst geht evtl. gar nichts mehr
-						wifiManager.enableNetwork(networkId, true); // TODO: lt. Javadoc geht das mit TargetAPI = 29 nicht mehr
+						wifiManager.enableNetwork(networkId, true); // lt. Javadoc geht das mit TargetAPI = 29 nicht mehr
 						Log.i(AppInfo.APP_NAME, "Switch to Wifi: "+networkId);
 						showError(R.string.info_switch_wifi_5ghz);
 					}

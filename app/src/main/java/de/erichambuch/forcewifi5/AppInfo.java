@@ -27,12 +27,15 @@ package de.erichambuch.forcewifi5;
  *     <li>V1.11.0 (16.02.2022) - Now uses WorkManager for Android 12, Fix Exception in WifiChangeService.onDestroy()</li>
  *     <li>V1.12.0 (08.05.2022) - Now displays connected Wifi as well as recommended wifi channel</li>
  *     <li>V1.12.1 (08.05.2022) - Bugfixes for connection identification</li>
+ *     <li>V1.13.0 (14.05.2022) - Added buttom to switch wifi on/off, added widget</li>
  * </ul>
  * <ul>
  *     <li>TODO: disconnect does not work anymore: https://issuetracker.google.com/issues/128554616</li>
  *     <li>TODO: make a guided setup process for all the settings</li>
+ *     <li>https://developer.android.com/training/location/permissions#background - Probleme mit Foreground/Background</li>
  * </ul>
  */
 public class AppInfo {
+
     public static final String APP_NAME = "ForceWifi5";
 }

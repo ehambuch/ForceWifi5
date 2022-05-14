@@ -10,7 +10,9 @@ import android.annotation.SuppressLint;
 import android.app.ActivityManager;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.appwidget.AppWidgetManager;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -105,6 +107,23 @@ public class MainActivity extends AppCompatActivity {
 				startWifiService(myContext);
 			} else
 				Log.d(AppInfo.APP_NAME, "Skipped NetworkCallBack");
+		}
+
+		@Override
+		public void onLost(Network network) {
+			onUnavailable();
+		}
+
+		@Override
+		public void onUnavailable() {
+			// and update widget if any
+			final AppWidgetManager appWidgetManager = (AppWidgetManager) myContext.getSystemService(APPWIDGET_SERVICE);
+			final int[] widgetIds = appWidgetManager.getAppWidgetIds(new ComponentName(myContext, ForceWifiAppWidget.class.getName()));
+			if(widgetIds.length > 0) {
+				final Intent widgetIntent = new Intent(myContext.getApplicationContext(), ForceWifiAppWidget.class);
+				widgetIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
+				myContext.sendBroadcast(widgetIntent);
+			}
 		}
 	}
 
@@ -201,6 +220,14 @@ public class MainActivity extends AppCompatActivity {
 					} catch (SecurityException e) {
 						Log.e(AppInfo.APP_NAME, "Error listing networks", e);
 					}
+					// and update widget if any
+					final AppWidgetManager appWidgetManager = (AppWidgetManager) context.getSystemService(APPWIDGET_SERVICE);
+					final int[] widgetIds = appWidgetManager.getAppWidgetIds(new ComponentName(context, ForceWifiAppWidget.class.getName()));
+					if(widgetIds.length > 0) {
+						final Intent widgetIntent = new Intent(context.getApplicationContext(), ForceWifiAppWidget.class);
+						widgetIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
+						context.sendBroadcast(widgetIntent);
+					}
 				} else
 					Toast.makeText(context, R.string.error_scan_failed, Toast.LENGTH_LONG).show();
 			}
@@ -218,6 +245,11 @@ public class MainActivity extends AppCompatActivity {
 		setContentView(R.layout.activity_main);
 
 		findViewById(R.id.floatingActionButton).setOnClickListener(v -> startActivity(new Intent(getApplicationContext(), SettingsActivity.class)));
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) { // Inline Settings with Android 10+
+			findViewById(R.id.floatingWifiToggleButton).setOnClickListener(v -> startActivity(new Intent(Settings.Panel.ACTION_WIFI)));
+		} else {
+			findViewById(R.id.floatingWifiToggleButton).setOnClickListener(v -> startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS)));
+		}
 		final SwipeRefreshLayout swipeRefreshLayout = ((SwipeRefreshLayout) findViewById(R.id.swiperefresh));
 		swipeRefreshLayout.setOnRefreshListener(
 				() -> {
@@ -240,7 +272,10 @@ public class MainActivity extends AppCompatActivity {
 		if ((checkSelfPermission(ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) &&
 				(checkSelfPermission(ACCESS_WIFI_STATE) == PackageManager.PERMISSION_GRANTED) &&
 				(checkSelfPermission(CHANGE_NETWORK_STATE) == PackageManager.PERMISSION_GRANTED)) {
-			showInfoDialog();
+			if(Intent.ACTION_MAIN.equals(getIntent().getAction())) // show info dialog only on first start
+				showInfoDialog();
+			else
+				infoDialogShown = true;
 		} else {
 			requestPermissions(new String[]{
 					ACCESS_FINE_LOCATION,
@@ -252,6 +287,10 @@ public class MainActivity extends AppCompatActivity {
 
 	protected void onStart() {
 		super.onStart();
+
+		// Start from Widget: do not show info dialog
+		if(Intent.ACTION_VIEW.equals(getIntent().getAction()))
+			infoDialogShown = true;
 
 		if ((checkSelfPermission(ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) &&
 				(checkSelfPermission(ACCESS_WIFI_STATE) == PackageManager.PERMISSION_GRANTED) &&
@@ -565,7 +604,7 @@ public class MainActivity extends AppCompatActivity {
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
 				// With Android 12 we cannot start a Foreground service anymore, so we have to use a WorkManager
 				Constraints constraints = new Constraints.Builder()
-						.setRequiredNetworkType(NetworkType.UNMETERED).build();
+						.setRequiredNetworkType(NetworkType.CONNECTED).build();
 				WorkRequest wifiWorkRequest =
 						new OneTimeWorkRequest.Builder(WifiChangeWorker.class).
 								setConstraints(constraints).

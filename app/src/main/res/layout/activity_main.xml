@@ -128,18 +128,31 @@
                 />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/floatingWifiToggleButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_margin="@dimen/fab_margin"
+            android:clickable="true"
+            android:contentDescription="@string/wifi_settings"
+            android:focusable="true"
+            app:layout_constraintBottom_toTopOf="@id/floatingActionButton"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:srcCompat="@drawable/wifi_24px" />
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/floatingActionButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="@dimen/fab_margin"
             android:clickable="true"
+            android:contentDescription="@string/action_settings"
+            android:focusable="true"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:layout_gravity="end|bottom"
-            android:layout_margin="@dimen/fab_margin"
-            app:srcCompat="@android:drawable/ic_menu_preferences"
-            android:focusable="true"
-            android:contentDescription="@string/action_settings" />
+            app:srcCompat="@android:drawable/ic_menu_preferences" />
     </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
