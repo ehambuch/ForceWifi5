@@ -2,11 +2,12 @@
     style="@style/Widget.ForceWifi5.AppWidget.Container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:theme="@style/Widget.ForceWifi5.AppWidget.Container">
+    android:theme="@style/AppTheme.AppWidgetContainer"
+    android:background="@drawable/app_widget_background"
+    >
 
     <TextView
         android:id="@+id/appwidget_text"
-        style="@style/Widget.ForceWifi5.AppWidget.InnerView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
@@ -14,6 +15,6 @@
         android:layout_margin="4dp"
         android:contentDescription="@string/app_description"
         android:text="@string/title_deacttived"
-        android:textSize="20sp"
+        android:textSize="16sp"
         android:textStyle="bold" />
 </RelativeLayout>

@@ -28,6 +28,7 @@ package de.erichambuch.forcewifi5;
  *     <li>V1.12.0 (08.05.2022) - Now displays connected Wifi as well as recommended wifi channel</li>
  *     <li>V1.12.1 (08.05.2022) - Bugfixes for connection identification</li>
  *     <li>V1.13.0 (14.05.2022) - Added buttom to switch wifi on/off, added widget</li>
+ *     <li>V1.13.1 (16.05.2022) - Update Widget</li>
  * </ul>
  * <ul>
  *     <li>TODO: disconnect does not work anymore: https://issuetracker.google.com/issues/128554616</li>

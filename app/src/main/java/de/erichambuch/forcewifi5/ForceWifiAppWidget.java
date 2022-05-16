@@ -10,6 +10,8 @@ import android.widget.RemoteViews;
 
 import androidx.preference.PreferenceManager;
 
+import java.math.BigDecimal;
+
 /**
  * Application widget just showing the current frequency.
  */
@@ -22,7 +24,7 @@ public class ForceWifiAppWidget extends AppWidgetProvider {
         final int widgetColor;
         if (wifiManager.isWifiEnabled()) {
             int frequency = wifiManager.getConnectionInfo().getFrequency();
-            widgetText = frequency + " GHz";
+            widgetText = BigDecimal.valueOf(frequency).divide(BigDecimal.valueOf(1000)) + " GHz";
             widgetColor = isWantedFrequency(context, frequency) ? context.getResources().getColor(android.R.color.holo_green_light, context.getTheme()) :
                     context.getResources().getColor(android.R.color.holo_red_light, context.getTheme());
         } else {

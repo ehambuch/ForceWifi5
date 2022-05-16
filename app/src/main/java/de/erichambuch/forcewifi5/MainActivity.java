@@ -90,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
 		private volatile long lastNetworkCallback = 0;
 		private volatile String lastNetwork = "unknownNetxyz";
 
-		private Context myContext;
+		private final Context myContext;
 
 		NetworkCallback(Context context) {
 			myContext = context;
@@ -107,6 +107,8 @@ public class MainActivity extends AppCompatActivity {
 				startWifiService(myContext);
 			} else
 				Log.d(AppInfo.APP_NAME, "Skipped NetworkCallBack");
+
+			updateWidget();
 		}
 
 		@Override
@@ -116,6 +118,10 @@ public class MainActivity extends AppCompatActivity {
 
 		@Override
 		public void onUnavailable() {
+			updateWidget();
+		}
+
+		private void updateWidget() {
 			// and update widget if any
 			final AppWidgetManager appWidgetManager = (AppWidgetManager) myContext.getSystemService(APPWIDGET_SERVICE);
 			final int[] widgetIds = appWidgetManager.getAppWidgetIds(new ComponentName(myContext, ForceWifiAppWidget.class.getName()));

@@ -1,6 +1,6 @@
 <resources>
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.DarkActionBar"/>
+    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.DarkActionBar" />
 
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.DayNight.ActionBar" />
 
@@ -9,6 +9,7 @@
     <style name="Widget.ForceWifi5.AppWidget.Container" parent="android:Widget">
         <item name="android:id">@android:id/background</item>
         <item name="android:background">?android:attr/colorBackground</item>
+        <item name="backgroundRadius">@dimen/my_background_radius_dimen</item>
     </style>
 
     <style name="Widget.ForceWifi5.AppWidget.InnerView" parent="android:Widget">

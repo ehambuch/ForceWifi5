@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="de.erichambuch.forcewifi5"
     android:installLocation="internalOnly">
 
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
@@ -35,6 +34,7 @@
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
+
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/force_wifi_app_widget_info" />
@@ -67,7 +67,7 @@
 
         <service
             android:name=".WifiChangeService"
-            android:foregroundServiceType="location" />
+            android:foregroundServiceType="location" android:exported="false" />
 
         <receiver
             android:name=".StartOnBootReceiver"

@@ -71,4 +71,6 @@
     <string name="error_scan_succesful">Wifi scan successful</string>
     <string name="wifi_settings">Wifi settings</string>
     <string name="add_widget">Add widget</string>
+    <string name="appwidget_text">EXAMPLE</string>
+    <string name="app_widget_description">This is an app widget description</string>
 </resources>
