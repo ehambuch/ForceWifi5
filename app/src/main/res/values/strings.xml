@@ -73,4 +73,7 @@
     <string name="add_widget">Add widget</string>
     <string name="appwidget_text">EXAMPLE</string>
     <string name="app_widget_description">This is an app widget description</string>
+    <string name="title_unknown">Unknown</string>
+    <string name="error_not_supported">Function not supported on your phone</string>
+    <string name="prefs_widget_settings">prefs_widget_settings</string>
 </resources>

@@ -30,7 +30,7 @@
         android:theme="@style/AppTheme">
         <receiver
             android:name=".ForceWifiAppWidget"
-            android:exported="false">
+            android:exported="true" android:enabled="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -53,6 +53,10 @@
             </intent-filter>
         </activity>
         <activity
+            android:name=".MainActivity$AddWidgetActivity"
+            android:exported="false"
+            android:label="@string/add_widget" />
+        <activity
             android:name=".SettingsActivity"
             android:exported="false"
             android:label="@string/action_settings" />
@@ -69,12 +73,21 @@
             android:name=".WifiChangeService"
             android:foregroundServiceType="location" android:exported="false" />
 
+        <!-- works only up to Android 9 -->
+        <receiver android:name=".MainActivity$NetworkStateChangedReceiver" android:enabled="true" android:exported="true">
+            <intent-filter>
+                <action android:name="android.net.wifi.NETWORK_STATE_CHANGED_ACTION"/>
+            </intent-filter>
+        </receiver>
+
         <receiver
             android:name=".StartOnBootReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+            <intent-filter>
                 <action android:name="android.intent.action.QUICKBOOT_POWERON" />
             </intent-filter>
         </receiver>

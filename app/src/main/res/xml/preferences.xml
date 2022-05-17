@@ -33,6 +33,13 @@
             app:title="@string/title_switchnetwork"
             app:summary="@string/summary_switchnetwork"/>
 
+        <Preference
+            app:key="@string/prefs_widget_settings"
+            app:title="Frequency widget"
+            app:summary="Add a widget to your home screen. This gives you a chance to quickly check your current frequency.">
+            <intent android:targetPackage="de.erichambuch.forcewifi5"
+                android:targetClass="de.erichambuch.forcewifi5.MainActivity$AddWidgetActivity" />
+        </Preference>
     </PreferenceCategory>
     <PreferenceCategory android:title="Permissions">
         <Preference

@@ -26,7 +26,6 @@ public class WifiChangeWorker extends Worker {
         super(context, workerParams);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
     @NonNull
     @Override
     public Result doWork() {

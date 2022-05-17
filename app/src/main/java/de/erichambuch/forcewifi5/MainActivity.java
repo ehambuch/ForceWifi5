@@ -7,6 +7,7 @@ import static android.Manifest.permission.CHANGE_WIFI_STATE;
 import static android.text.Html.FROM_HTML_MODE_LEGACY;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -22,6 +23,7 @@ import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
+import android.net.NetworkInfo;
 import android.net.NetworkRequest;
 import android.net.Uri;
 import android.net.wifi.ScanResult;
@@ -82,13 +84,48 @@ public class MainActivity extends AppCompatActivity {
 
 	private boolean infoDialogShown = false;
 
+	/**
+	 * Circuit breaker - shared by different listeners.
+	 */
+	protected static volatile long lastNetworkCallback = 0;
+
+	/**
+	 * Broadcast receiver for WifiManager.NETWORK_STATE_CHANGED_ACTION.
+	 * <p>This works due to Android background restrictions only up to Android 9. Above we won't receive any events.</p>
+	 */
+	static class NetworkStateChangedReceiver extends BroadcastReceiver {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			Log.d(AppInfo.APP_NAME, "NetworkStateChangedReceiver called");
+			final long lastTimestamp = System.currentTimeMillis();
+			if ( lastTimestamp > lastNetworkCallback+ (30*1000)) { // Circuit breaker
+				lastNetworkCallback = lastTimestamp;
+				final NetworkInfo networkInfo = (NetworkInfo) intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
+				if(networkInfo == null || (networkInfo.isConnectedOrConnecting() && networkInfo.getType() == ConnectivityManager.TYPE_WIFI) )
+					startWifiService(context.getApplicationContext());
+			} else
+				Log.d(AppInfo.APP_NAME, "Skipped NetworkCallBack");
+
+			updateWidget(context.getApplicationContext());
+		}
+
+		private void updateWidget(Context context) {
+			// and update widget if any
+			final AppWidgetManager appWidgetManager = (AppWidgetManager) context.getSystemService(APPWIDGET_SERVICE);
+			final int[] widgetIds = appWidgetManager.getAppWidgetIds(new ComponentName(context, ForceWifiAppWidget.class.getName()));
+			if(widgetIds.length > 0) {
+				final Intent widgetIntent = new Intent(context.getApplicationContext(), ForceWifiAppWidget.class);
+				widgetIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
+				widgetIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, widgetIds);
+				context.sendBroadcast(widgetIntent);
+			}
+		}
+	}
 
 	/**
 	 * Network callback: We use this on enabling of a network to initiate a change of the network if required.
 	 */
 	static class NetworkCallback extends ConnectivityManager.NetworkCallback {
-		private volatile long lastNetworkCallback = 0;
-		private volatile String lastNetwork = "unknownNetxyz";
 
 		private final Context myContext;
 
@@ -98,12 +135,12 @@ public class MainActivity extends AppCompatActivity {
 
 		@Override
 		public void onAvailable(Network network) {
+			Log.d(AppInfo.APP_NAME, "Networkcallback onAvailable");
 			// small circuit breaker: if we are called twice within 60 seconds  - then ignore the call
 			// so we break up an endless loop of connection failures
 			final long lastTimestamp = System.currentTimeMillis();
 			if ( lastTimestamp > lastNetworkCallback+ (60*1000)) {
 				lastNetworkCallback = lastTimestamp;
-				lastNetwork = network.toString();
 				startWifiService(myContext);
 			} else
 				Log.d(AppInfo.APP_NAME, "Skipped NetworkCallBack");
@@ -113,11 +150,14 @@ public class MainActivity extends AppCompatActivity {
 
 		@Override
 		public void onLost(Network network) {
-			onUnavailable();
+			Log.d(AppInfo.APP_NAME, "Networkcallback onLost");
+			updateWidget();
 		}
 
 		@Override
-		public void onUnavailable() {
+		public void onLinkPropertiesChanged(android.net.Network network,
+														android.net.LinkProperties linkProperties) {
+			Log.d(AppInfo.APP_NAME, "Networkcallback onLinkPropertiesChanged");
 			updateWidget();
 		}
 
@@ -128,6 +168,7 @@ public class MainActivity extends AppCompatActivity {
 			if(widgetIds.length > 0) {
 				final Intent widgetIntent = new Intent(myContext.getApplicationContext(), ForceWifiAppWidget.class);
 				widgetIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
+				widgetIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, widgetIds);
 				myContext.sendBroadcast(widgetIntent);
 			}
 		}
@@ -216,6 +257,7 @@ public class MainActivity extends AppCompatActivity {
 		public void onReceive(Context context, Intent intent) {
 			if (WifiManager.SCAN_RESULTS_AVAILABLE_ACTION.equals(intent.getAction())) {
 				boolean success = intent.getBooleanExtra(WifiManager.EXTRA_RESULTS_UPDATED, false);
+				Log.d(AppInfo.APP_NAME, "ScanFinished: "+success);
 				if (success) {
 					// We could start the WifiSevice here again, but it's already started when a network is available (NetworkCallback)
 					// therefore we do not call startWifiService(context); anymore
@@ -237,6 +279,21 @@ public class MainActivity extends AppCompatActivity {
 				} else
 					Toast.makeText(context, R.string.error_scan_failed, Toast.LENGTH_LONG).show();
 			}
+		}
+	}
+
+	public static class AddWidgetActivity extends Activity {
+		protected void onStart() {
+			super.onStart();
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+				AppWidgetManager mAppWidgetManager = getSystemService(AppWidgetManager.class);
+				ComponentName myProvider = new ComponentName(AddWidgetActivity.this, ForceWifiAppWidget.class);
+				if (mAppWidgetManager.isRequestPinAppWidgetSupported()) {
+					mAppWidgetManager.requestPinAppWidget(myProvider, new Bundle(), null);
+				} else
+					Toast.makeText(this, R.string.error_not_supported, Toast.LENGTH_LONG).show();
+			} else
+				Toast.makeText(this, R.string.error_not_supported, Toast.LENGTH_LONG).show();
 		}
 	}
 
@@ -268,7 +325,7 @@ public class MainActivity extends AppCompatActivity {
 
 		createNotificationChannel(this);
 
-		// register a listener to network changes
+		// register a listener to network changes (this may occure twice if already done in StartOnBootReceiver!)
 		ConnectivityManager connManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
 		connManager.registerNetworkCallback(
 				new NetworkRequest.Builder().addTransportType(NetworkCapabilities.TRANSPORT_WIFI).build(),
@@ -445,7 +502,7 @@ public class MainActivity extends AppCompatActivity {
 	 * Show a list of all detected network with provide both: 2.4 and 5 GHz.
 	 */
 	@RequiresPermission(allOf = {ACCESS_WIFI_STATE, ACCESS_FINE_LOCATION})
-	private void listNetworks() {
+	void listNetworks() {
 		WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
 		List<ScanResult> scanResults = wifiManager.getScanResults();
 		WifiInfo activeNetwork = wifiManager.getConnectionInfo();

@@ -25,7 +25,7 @@ public class StartOnBootReceiver extends android.content.BroadcastReceiver {
 			ConnectivityManager connManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
 			connManager.registerNetworkCallback(
 					new NetworkRequest.Builder().addTransportType(NetworkCapabilities.TRANSPORT_WIFI).build(),
-					new MainActivity.NetworkCallback(context));
+					new MainActivity.NetworkCallback(context.getApplicationContext()));
 			Log.i(AppInfo.APP_NAME, "Network callback registered");
 		}
 	}
