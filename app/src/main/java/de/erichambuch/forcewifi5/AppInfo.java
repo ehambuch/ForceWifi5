@@ -30,6 +30,7 @@ package de.erichambuch.forcewifi5;
  *     <li>V1.13.0 (14.05.2022) - Added buttom to switch wifi on/off, added widget</li>
  *     <li>V1.13.1 (16.05.2022) - Update Widget</li>
  *     <li>V1.13.2 (17.05.2022) - Improvements for network detection and widget</li>
+ *     <li>V1.13.3 (07.06.2022) - Update Libs, ProGuard</li>
  * </ul>
  * <ul>
  *     <li>TODO: disconnect does not work anymore: https://issuetracker.google.com/issues/128554616</li>

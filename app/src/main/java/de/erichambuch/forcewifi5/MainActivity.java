@@ -6,6 +6,8 @@ import static android.Manifest.permission.CHANGE_NETWORK_STATE;
 import static android.Manifest.permission.CHANGE_WIFI_STATE;
 import static android.text.Html.FROM_HTML_MODE_LEGACY;
 
+import static de.erichambuch.forcewifi5.WifiUtils.normalizeSSID;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ActivityManager;
@@ -704,21 +706,7 @@ public class MainActivity extends AppCompatActivity {
 		}
 	}
 
-	/**
-	 * Normalizes the SSID (remote quotation marks)
-	 *
-	 * @param ssid SSID
-	 * @return normaoized SSID
-	 * @see WifiInfo#getSSID()
-	 */
-	private static String normalizeSSID(String ssid) {
-		if (ssid == null )
-			return "";
-		if (ssid.startsWith("\"") && ssid.endsWith("\"")){
-			return ssid.substring(1, ssid.length()-1);
-		} else
-			return ssid;
-	}
+
 
 	// TODO: duplicated code!!!
 	private boolean is5GHzPreferred() {

@@ -35,12 +35,13 @@ public class WifiChangeWorker extends Worker {
         // move Worker to foreground
         setForegroundAsync(new ForegroundInfo(
                 WifiChangeService.ONGOING_NOTIFICATION_ID, service.createNotification(R.string.title_activation)));
-        boolean success = false;
+        boolean success = true;
         if(service.isActivated()) {
             if(ActivityCompat.checkSelfPermission(getApplicationContext(), ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
                     && ActivityCompat.checkSelfPermission(getApplicationContext(), CHANGE_WIFI_STATE) == PackageManager.PERMISSION_GRANTED
                     && ActivityCompat.checkSelfPermission(getApplicationContext(), ACCESS_WIFI_STATE) == PackageManager.PERMISSION_GRANTED) {
                 try {
+                    success = false;
                     service.updateNetworks();
                     success = true;
                 } catch(Exception e) {

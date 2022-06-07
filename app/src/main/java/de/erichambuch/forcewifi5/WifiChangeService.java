@@ -5,6 +5,9 @@ import static android.Manifest.permission.ACCESS_WIFI_STATE;
 import static android.Manifest.permission.CHANGE_WIFI_STATE;
 import static android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION;
 
+import static de.erichambuch.forcewifi5.WifiUtils.hasNormalizedSSID;
+import static de.erichambuch.forcewifi5.WifiUtils.normalizeSSID;
+
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -286,10 +289,10 @@ public class WifiChangeService extends Service {
 						// disconnect geht nicht mehr: https://issuetracker.google.com/issues/128554616
 						final List<WifiNetworkSuggestion> actualSuggestions = getActualSuggestions(wifiManager);
 						if ( actualSuggestions.equals(suggestions)) {
-							Log.i(AppInfo.APP_NAME, "Suggestions given: "+actualSuggestions);
+							Log.i(AppInfo.APP_NAME, "Suggestions already given: "+actualSuggestions);
 							showError(R.string.error_suggestion_not_taken);
 							// suggestions have already been set - no change to change anything
-							wifiManager.removeNetworkSuggestions(Collections.emptyList()); // do the hard way - again and again
+							return;
 						} else {
 							int returnCode = wifiManager.removeNetworkSuggestions(actualSuggestions);
 							Log.i(AppInfo.APP_NAME, "removeNetworks, RC="+returnCode);
@@ -463,25 +466,5 @@ public class WifiChangeService extends Service {
 
 	private boolean isSwitchToOtherSSID() {
 		return PreferenceManager.getDefaultSharedPreferences(this).getBoolean(getString(R.string.prefs_switchnetwork), false);
-	}
-
-	/**
-	 * Normalizes the SSID (remote quotation marks)
-	 *
-	 * @param ssid SSID
-	 * @return normalized SSID
-	 * @see WifiInfo#getSSID()
-	 */
-	private static String normalizeSSID(String ssid) {
-		if (ssid == null )
-			return "";
-		if (ssid.startsWith("\"") && ssid.endsWith("\"")){
-			return ssid.substring(1, ssid.length()-1);
-		} else
-			return ssid;
-	}
-
-	private static boolean hasNormalizedSSID(String ssid) {
-		return (ssid != null && ssid.startsWith("\"") && ssid.endsWith("\""));
 	}
 }
