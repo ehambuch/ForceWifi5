@@ -5,7 +5,6 @@ import static android.Manifest.permission.ACCESS_WIFI_STATE;
 import static android.Manifest.permission.CHANGE_NETWORK_STATE;
 import static android.Manifest.permission.CHANGE_WIFI_STATE;
 import static android.text.Html.FROM_HTML_MODE_LEGACY;
-
 import static de.erichambuch.forcewifi5.WifiUtils.normalizeSSID;
 
 import android.annotation.SuppressLint;
@@ -342,11 +341,7 @@ public class MainActivity extends AppCompatActivity {
 			else
 				infoDialogShown = true;
 		} else {
-			requestPermissions(new String[]{
-					ACCESS_FINE_LOCATION,
-					ACCESS_WIFI_STATE,
-					CHANGE_WIFI_STATE
-			}, REQUEST_CODE_PERMISSIONS);
+			requestMyPermissions();
 		}
 	}
 
@@ -370,6 +365,30 @@ public class MainActivity extends AppCompatActivity {
 			}
 		} else {
 			showPermissionsError();
+			requestMyPermissions();
+		}
+	}
+
+	/**
+	 * Request the runtime permissions that are required by the app.
+	 */
+	private void requestMyPermissions() {
+		// TODO: stimmt im flow noch nicht.
+		if((checkSelfPermission(ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) ||
+				shouldShowRequestPermissionRationale(ACCESS_FINE_LOCATION)) {
+			AlertDialog dialog = new MaterialAlertDialogBuilder(this)
+					.setTitle(getString(R.string.app_name))
+					.setPositiveButton("I got it", (dialog1, which) -> {
+						dialog1.cancel();
+						requestPermissions(new String[]{
+								ACCESS_FINE_LOCATION,
+								ACCESS_WIFI_STATE,
+								CHANGE_WIFI_STATE
+						}, REQUEST_CODE_PERMISSIONS);
+					})
+					.setMessage(Html.fromHtml(getString(R.string.message_requestpermission_rationale), Html.FROM_HTML_MODE_COMPACT))
+					.show();
+		} else {
 			requestPermissions(new String[]{
 					ACCESS_FINE_LOCATION,
 					ACCESS_WIFI_STATE,
@@ -557,6 +576,8 @@ public class MainActivity extends AppCompatActivity {
 		}
 
 		// Show recommendations, this actually works due to API restrictions only on latest versions
+		// On OnePlus/Realme we get a strange BadParcelableException/ClassNotFoundException from WifiNetworkSuggestion$1.createFromParcel
+		// I cannot determinate a real reason behind it, maybe Chinese changes to the Android standard frameworks?
 		if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
 			List<WifiNetworkSuggestion> suggestionList = wifiManager.getNetworkSuggestions();
 			final TextView recommendationView = ((TextView) findViewById(R.id.recommandedwifitextview));
