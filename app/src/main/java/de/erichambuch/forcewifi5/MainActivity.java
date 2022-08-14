@@ -4,6 +4,7 @@ import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.Manifest.permission.ACCESS_WIFI_STATE;
 import static android.Manifest.permission.CHANGE_NETWORK_STATE;
 import static android.Manifest.permission.CHANGE_WIFI_STATE;
+import static android.Manifest.permission.POST_NOTIFICATIONS;
 import static android.text.Html.FROM_HTML_MODE_LEGACY;
 import static de.erichambuch.forcewifi5.WifiUtils.normalizeSSID;
 
@@ -31,6 +32,7 @@ import android.net.wifi.ScanResult;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiNetworkSuggestion;
+import android.os.BadParcelableException;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
@@ -383,7 +385,8 @@ public class MainActivity extends AppCompatActivity {
 						requestPermissions(new String[]{
 								ACCESS_FINE_LOCATION,
 								ACCESS_WIFI_STATE,
-								CHANGE_WIFI_STATE
+								CHANGE_WIFI_STATE,
+								POST_NOTIFICATIONS
 						}, REQUEST_CODE_PERMISSIONS);
 					})
 					.setMessage(Html.fromHtml(getString(R.string.message_requestpermission_rationale), Html.FROM_HTML_MODE_COMPACT))
@@ -392,12 +395,14 @@ public class MainActivity extends AppCompatActivity {
 			requestPermissions(new String[]{
 					ACCESS_FINE_LOCATION,
 					ACCESS_WIFI_STATE,
-					CHANGE_WIFI_STATE
+					CHANGE_WIFI_STATE,
+					POST_NOTIFICATIONS
 			}, REQUEST_CODE_PERMISSIONS);
 		}
 	}
 
 	private void showInfoDialog() {
+		// TODO: ab Android 13: areNotificationsEnabled() -> ggf. nachfordern
 		AlertDialog dialog = new MaterialAlertDialogBuilder(this)
 				.setTitle(getString(R.string.app_name))
 				.setPositiveButton("Continue", new DialogInterface.OnClickListener() {
@@ -576,21 +581,26 @@ public class MainActivity extends AppCompatActivity {
 		}
 
 		// Show recommendations, this actually works due to API restrictions only on latest versions
-		// On OnePlus/Realme we get a strange BadParcelableException/ClassNotFoundException from WifiNetworkSuggestion$1.createFromParcel
+		// On OnePlus/Realme we get a strange BadParcelableException/ClassNotFoundException from WifiNetworkSuggestion$1.createFromParcel (com.android.server.wifi.OplusWifiConfiguration)
 		// I cannot determinate a real reason behind it, maybe Chinese changes to the Android standard frameworks?
 		if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
-			List<WifiNetworkSuggestion> suggestionList = wifiManager.getNetworkSuggestions();
 			final TextView recommendationView = ((TextView) findViewById(R.id.recommandedwifitextview));
-			if(suggestionList != null && suggestionList.size()> 0) {
-				StringBuilder builder = new StringBuilder();
-				for(WifiNetworkSuggestion suggestion : suggestionList) {
-					builder.append(suggestion.getSsid()).append(" - ").append(suggestion.getBssid()).append(" recommended at prio ").append(suggestion.getPriority()).append("<br/>");
+			try {
+				List<WifiNetworkSuggestion> suggestionList = wifiManager.getNetworkSuggestions();
+				if (suggestionList != null && suggestionList.size() > 0) {
+					StringBuilder builder = new StringBuilder();
+					for (WifiNetworkSuggestion suggestion : suggestionList) {
+						builder.append(suggestion.getSsid()).append(" - ").append(suggestion.getBssid()).append(" recommended at prio ").append(suggestion.getPriority()).append("<br/>");
+					}
+					builder.delete(builder.length() - 5, builder.length()); // br am Ende entfernen
+					if (recommendationView != null)
+						recommendationView.setText(Html.fromHtml(builder.toString(), Html.FROM_HTML_MODE_COMPACT));
+				} else {
+					recommendationView.setText(R.string.text_nowifirecommended);
 				}
-				builder.delete(builder.length() - 5, builder.length()); // br am Ende entfernen
-				if (recommendationView != null)
-					recommendationView.setText(Html.fromHtml(builder.toString(), Html.FROM_HTML_MODE_COMPACT));
-			} else {
-				recommendationView.setText(R.string.text_nowifirecommended);
+			} catch(BadParcelableException e) { // on OnePlus...
+				Log.e(AppInfo.APP_NAME, "Error on getNetworkSuggestions", e);
+				recommendationView.setText(R.string.error_cannot_display_recommended_wifi);
 			}
 		}
 

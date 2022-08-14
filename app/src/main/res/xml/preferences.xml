@@ -90,11 +90,10 @@
                 android:targetClass="com.google.android.gms.oss.licenses.OssLicensesMenuActivity" />
         </Preference>
     <Preference
-        app:title="Send feedback"
-        app:summary="Report a bug or suggest new features">
+        app:title="@string/title_sendfeedback"
+        app:summary="Report a bug, suggest new features or rate this app on Google Play">
         <intent
-            android:action="android.intent.action.SENDTO"
-            android:data="@string/app_mailto" />
+            android:data="market://details?id=de.erichambuch.forcewifi5" android:action="android.intent.action.VIEW"/>
         </Preference>
     </PreferenceCategory>
 </PreferenceScreen>

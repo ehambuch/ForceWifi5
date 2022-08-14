@@ -78,16 +78,16 @@ public class WifiChangeService extends Service {
 								.setSmallIcon(R.mipmap.ic_launcher)
 								.setAutoCancel(false)
 								.setTicker(context.getText(R.string.title_activation));
-				final Notification notification = builder.build();
 				try {
 					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
 						// With Android 12+ we could get an android.app.ForegroundServiceStartNotAllowedException due to new restrictions
 						builder.setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE);
-						myService.startForeground(ONGOING_NOTIFICATION_ID, notification, FOREGROUND_SERVICE_TYPE_LOCATION);
+						builder.setOngoing(true);
+						myService.startForeground(ONGOING_NOTIFICATION_ID, builder.build(), FOREGROUND_SERVICE_TYPE_LOCATION);
 					} else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-						myService.startForeground(ONGOING_NOTIFICATION_ID, notification, FOREGROUND_SERVICE_TYPE_LOCATION);
+						myService.startForeground(ONGOING_NOTIFICATION_ID, builder.build(), FOREGROUND_SERVICE_TYPE_LOCATION);
 					} else {
-						myService.startForeground(ONGOING_NOTIFICATION_ID, notification);
+						myService.startForeground(ONGOING_NOTIFICATION_ID, builder.build());
 					}
 					// Release the connection to prevent leaks. => may be skipped
 					context.unbindService(this);

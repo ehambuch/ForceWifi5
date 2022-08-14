@@ -18,7 +18,7 @@
     <string name="action_settings">Settings</string>
     <string name="action_ignore">Ignore</string>
     <string name="app_url">https://sites.google.com/site/erichambuch</string>
-    <string name="app_mailto">mailto:erichambuch@googlemail.com?subject=Feedback%20on%20ForceWifi5</string>
+    <string name="app_mailto">erichambuch@googlemail.com</string>
     <string name="title_deacttived">Inactive</string>
     <string name="title_5ghz">5 GHz</string>
     <string name="title_2ghz">2.4 GHz</string>
@@ -46,7 +46,7 @@
     <string name="error_permission_duplicate">Error while setting duplication suggestion for Wifi - try to start app again.</string>
     <string name="error_suggestion_not_taken">Android did not follow suggestion for Wifi - try to dis-connect and reconnect manually</string>
     <string name="error_no_permissions_provived">This app lacks of the required permissions for Location Services and Wifi access. Please open the Settings and grant the necessary permissions.</string>
-    <string name="summay_permission_settings">Open permission settings of app. This app needs permissions for Wifi and Location in order to work.</string>
+    <string name="summay_permission_settings">Open permission settings of app. This app needs permissions for Wifi, Location and Notifications in order to work.</string>
     <string name="summary_location_settings">Open location services settings. This app needs location services enabled in order to retrieve a list of all Wifi access points.</string>
     <string name="title_permission_settings">Permission settings</string>
     <string name="title_location_settings">Location settings</string>
@@ -77,4 +77,7 @@
     <string name="error_not_supported">Function not supported on your phone</string>
     <string name="prefs_widget_settings">prefs_widget_settings</string>
     <string name="message_requestpermission_rationale"><![CDATA[<p>This app requires several permissions settings in order to work properly. Please grant them all:</p><ol><li>Access to your location - this is mandatory by Android to determinate all Wifi access points nearby</li><li>Enabled location services - and your <em>Location Services</em> must be enabled too</li><li><em>Battery optimization modes</em> should be deactived to keep the app running in background</li><li>… and you may be asked when the app proposes another Wifi. Please say ‘Yes’, because thats the only purpose of this app.</li></ol>]]></string>
+    <string name="title_sendfeedback">Provide feedback</string>
+    <string name="feedback_subject">Feedback on ForceWifi5</string>
+    <string name="error_cannot_display_recommended_wifi">Cannot display suggested Wifi list</string>
 </resources>

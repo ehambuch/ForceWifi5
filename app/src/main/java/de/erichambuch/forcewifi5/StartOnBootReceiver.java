@@ -12,6 +12,7 @@ import androidx.annotation.RequiresPermission;
 /**
  * BroadcastReceiver that is executed on startup of phone.
  * Allows us to register listener for Wifi network changes.
+ * <p>Starting with Android 13, this is only called if App is started!</p>
  */
 public class StartOnBootReceiver extends android.content.BroadcastReceiver {
 

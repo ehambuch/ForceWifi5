@@ -5,11 +5,15 @@ import static android.Manifest.permission.ACCESS_WIFI_STATE;
 import static android.Manifest.permission.CHANGE_WIFI_STATE;
 
 import android.app.ActivityManager;
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
+import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
@@ -38,10 +42,26 @@ public class SettingsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getSupportFragmentManager()
-                .beginTransaction()
-                .replace(android.R.id.content, settingsFragment = new MySettingsFragment())
-                .commit();
+		if(Intent.ACTION_SENDTO.equals(getIntent().getAction())) {
+			try {
+				final Intent emailIntent = new Intent(Intent.ACTION_SENDTO);
+				emailIntent.setDataAndType(Uri.parse("mailto:"),"*/*");
+				emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL, new String[]{getString(R.string.app_mailto)});
+				emailIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, getString(R.string.feedback_subject));
+				if (emailIntent.resolveActivity(getPackageManager()) != null) {
+					Bundle bundle = new Bundle();
+					startActivity(Intent.createChooser(emailIntent, getString(R.string.feedback_subject)), bundle);
+				}
+				finish();
+			} catch(ActivityNotFoundException e) {
+				Log.e(AppInfo.APP_NAME, "Error sending email", e);
+			}
+		} else{
+			getSupportFragmentManager()
+					.beginTransaction()
+					.replace(android.R.id.content, settingsFragment = new MySettingsFragment())
+					.commit();
+		}
 	}
 
 	protected void onStart() {
