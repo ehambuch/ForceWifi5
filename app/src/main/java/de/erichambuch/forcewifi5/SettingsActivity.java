@@ -14,6 +14,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
@@ -42,21 +43,36 @@ public class SettingsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-		if(Intent.ACTION_SENDTO.equals(getIntent().getAction())) {
+		if(AppInfo.INTENT_SHOW_DATAPROCTECTION.equals(getIntent().getAction())) {
 			try {
-				final Intent emailIntent = new Intent(Intent.ACTION_SENDTO);
-				emailIntent.setDataAndType(Uri.parse("mailto:"),"*/*");
-				emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL, new String[]{getString(R.string.app_mailto)});
-				emailIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, getString(R.string.feedback_subject));
+				final Intent emailIntent = new Intent(Intent.ACTION_VIEW);
+				emailIntent.setData(Uri.parse(getString(R.string.app_url)));
+				if (emailIntent.resolveActivity(getPackageManager()) != null) {
+					Bundle bundle = new Bundle();
+					startActivity(Intent.createChooser(emailIntent, getString(R.string.action_info)), bundle);
+				} else
+					Toast.makeText(this, R.string.error_not_supported, Toast.LENGTH_LONG).show();
+				finish();
+			} catch(ActivityNotFoundException e) {
+				Log.e(AppInfo.APP_NAME, "Error opening browser", e);
+				Toast.makeText(this, R.string.error_not_supported, Toast.LENGTH_LONG).show();
+			}
+		} else if (AppInfo.INTENT_SHOW_MARKET.equals(getIntent().getAction())) {
+			try {
+				final Intent emailIntent = new Intent(Intent.ACTION_VIEW);
+				emailIntent.setData(Uri.parse("market://details?id="+getPackageName()));
 				if (emailIntent.resolveActivity(getPackageManager()) != null) {
 					Bundle bundle = new Bundle();
 					startActivity(Intent.createChooser(emailIntent, getString(R.string.feedback_subject)), bundle);
-				}
+				} else
+					Toast.makeText(this, R.string.error_not_supported, Toast.LENGTH_LONG).show();
 				finish();
 			} catch(ActivityNotFoundException e) {
-				Log.e(AppInfo.APP_NAME, "Error sending email", e);
+				Log.e(AppInfo.APP_NAME, "Error opening browser", e);
+				Toast.makeText(this, R.string.error_not_supported, Toast.LENGTH_LONG).show();
 			}
-		} else{
+
+		} else {
 			getSupportFragmentManager()
 					.beginTransaction()
 					.replace(android.R.id.content, settingsFragment = new MySettingsFragment())

@@ -80,4 +80,5 @@
     <string name="title_sendfeedback">Provide feedback</string>
     <string name="feedback_subject">Feedback on ForceWifi5</string>
     <string name="error_cannot_display_recommended_wifi">Cannot display suggested Wifi list</string>
+    <string name="message_requestpermissionnotifications_rationale">Starting with Android 13, you will also have to provide an extra permission to allow notifications. So please active notifications for this app.</string>
 </resources>

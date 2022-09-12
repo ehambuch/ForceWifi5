@@ -310,6 +310,8 @@ public class MainActivity extends AppCompatActivity {
 
 		setContentView(R.layout.activity_main);
 
+		createNotificationChannel(this);
+
 		findViewById(R.id.floatingActionButton).setOnClickListener(v -> startActivity(new Intent(getApplicationContext(), SettingsActivity.class)));
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) { // Inline Settings with Android 10+
 			findViewById(R.id.floatingWifiToggleButton).setOnClickListener(v -> startActivity(new Intent(Settings.Panel.ACTION_WIFI)));
@@ -325,8 +327,6 @@ public class MainActivity extends AppCompatActivity {
 					swipeRefreshLayout.setRefreshing(false);
 				}
 		);
-
-		createNotificationChannel(this);
 
 		// register a listener to network changes (this may occure twice if already done in StartOnBootReceiver!)
 		ConnectivityManager connManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -376,9 +376,9 @@ public class MainActivity extends AppCompatActivity {
 	 */
 	private void requestMyPermissions() {
 		// TODO: stimmt im flow noch nicht.
-		if((checkSelfPermission(ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) ||
+		if ((checkSelfPermission(ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) ||
 				shouldShowRequestPermissionRationale(ACCESS_FINE_LOCATION)) {
-			AlertDialog dialog = new MaterialAlertDialogBuilder(this)
+			new MaterialAlertDialogBuilder(this)
 					.setTitle(getString(R.string.app_name))
 					.setPositiveButton("I got it", (dialog1, which) -> {
 						dialog1.cancel();
@@ -386,7 +386,6 @@ public class MainActivity extends AppCompatActivity {
 								ACCESS_FINE_LOCATION,
 								ACCESS_WIFI_STATE,
 								CHANGE_WIFI_STATE,
-								POST_NOTIFICATIONS
 						}, REQUEST_CODE_PERMISSIONS);
 					})
 					.setMessage(Html.fromHtml(getString(R.string.message_requestpermission_rationale), Html.FROM_HTML_MODE_COMPACT))
@@ -395,9 +394,29 @@ public class MainActivity extends AppCompatActivity {
 			requestPermissions(new String[]{
 					ACCESS_FINE_LOCATION,
 					ACCESS_WIFI_STATE,
-					CHANGE_WIFI_STATE,
-					POST_NOTIFICATIONS
+					CHANGE_WIFI_STATE
 			}, REQUEST_CODE_PERMISSIONS);
+		}
+
+		// with Android 13: new permission
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+			if ((checkSelfPermission(POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) ||
+					shouldShowRequestPermissionRationale(POST_NOTIFICATIONS)) {
+				new MaterialAlertDialogBuilder(this)
+						.setTitle(getString(R.string.app_name))
+						.setPositiveButton("I got it", (dialog1, which) -> {
+							dialog1.cancel();
+							requestPermissions(new String[]{
+									POST_NOTIFICATIONS
+							}, REQUEST_CODE_PERMISSIONS);
+						})
+						.setMessage(Html.fromHtml(getString(R.string.message_requestpermissionnotifications_rationale), Html.FROM_HTML_MODE_COMPACT))
+						.show();
+			} else {
+				requestPermissions(new String[]{
+						POST_NOTIFICATIONS
+				}, REQUEST_CODE_PERMISSIONS);
+			}
 		}
 	}
 

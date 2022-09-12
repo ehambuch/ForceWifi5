@@ -34,14 +34,18 @@ package de.erichambuch.forcewifi5;
  *     <li>V1.13.4 (22.07.2022) - Update Google Libs</li>
  *     <li>V1.13.5 (25.07.2022) - Bugfix Feedbackmail</li>
  *     <li>V1.14.0 (14.08.2022) - Replace Feedback button by link to Play Store to avoid spamming, Migration Android API 32</li>
+ *     <li>V1.14.1 (12.09.2022) - Android API 33</li>
  * </ul>
  * <ul>
  *     <li>TODO: disconnect does not work anymore: https://issuetracker.google.com/issues/128554616</li>
  *     <li>TODO: make a guided setup process for all the settings</li>
  *     <li>https://developer.android.com/training/location/permissions#background - Probleme mit Foreground/Background</li>
+ *     <li>https://issuetracker.google.com/issues/192032398?pli=1#comment6/li>
  * </ul>
  */
 public class AppInfo {
 
     public static final String APP_NAME = "ForceWifi5";
+    public static final String INTENT_SHOW_DATAPROCTECTION = "de.erichambuch.forcewifi5.VIEW_DATA_PROTECTION";
+    public static final String INTENT_SHOW_MARKET = "de.erichambuch.forcewifi5.VIEW_MARKET";
 }

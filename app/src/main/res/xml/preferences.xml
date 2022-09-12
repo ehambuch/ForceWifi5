@@ -80,8 +80,9 @@
         app:title="Data privacy &amp; FAQ"
         app:summary="Read data privacy and FAQ">
         <intent
-            android:action="android.intent.action.VIEW"
-            android:data="@string/app_url" />
+            android:action="de.erichambuch.forcewifi5.VIEW_DATA_PROTECTION"
+            android:targetPackage="de.erichambuch.forcewifi5"
+            android:targetClass="de.erichambuch.forcewifi5.SettingsActivity" />
     </Preference>
         <Preference
             app:title="Licenses"
@@ -93,7 +94,9 @@
         app:title="@string/title_sendfeedback"
         app:summary="Report a bug, suggest new features or rate this app on Google Play">
         <intent
-            android:data="market://details?id=de.erichambuch.forcewifi5" android:action="android.intent.action.VIEW"/>
+            android:action="de.erichambuch.forcewifi5.VIEW_MARKET"
+            android:targetPackage="de.erichambuch.forcewifi5"
+            android:targetClass="de.erichambuch.forcewifi5.SettingsActivity" />
         </Preference>
     </PreferenceCategory>
 </PreferenceScreen>

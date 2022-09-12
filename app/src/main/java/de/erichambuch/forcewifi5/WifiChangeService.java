@@ -71,12 +71,13 @@ public class WifiChangeService extends Service {
 			myService.connection = this;
 
 			if ( Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ) {
-				Notification.Builder builder =
-						new Notification.Builder(context, MainActivity.CHANNEL_ID)
+				NotificationCompat.Builder builder =
+						new NotificationCompat.Builder(context, MainActivity.CHANNEL_ID)
 								.setContentTitle(context.getText(R.string.app_name))
 								.setContentText(context.getText(R.string.title_activation))
 								.setSmallIcon(R.mipmap.ic_launcher)
 								.setAutoCancel(false)
+								.setCategory(Notification.CATEGORY_SERVICE)
 								.setTicker(context.getText(R.string.title_activation));
 				try {
 					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -128,7 +129,7 @@ public class WifiChangeService extends Service {
 
 	private final LocalBinder binder = new LocalBinder();
 
-	private WifiServiceConnection connection = null;
+	WifiServiceConnection connection = null;
 
 	protected WifiChangeService(Context context) {
 		super();
@@ -172,7 +173,7 @@ public class WifiChangeService extends Service {
 		// in case we are still in background. We can perform a test by using adb with:
 		// adb shell device_config put activity_manager default_fgs_starts_restriction_notification_enabled true
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && this.getForegroundServiceType() != FOREGROUND_SERVICE_TYPE_LOCATION)  {
-			startForeground(ONGOING_NOTIFICATION_ID, createNotification(R.string.title_activation), FOREGROUND_SERVICE_TYPE_LOCATION);
+			startForeground(ONGOING_NOTIFICATION_ID, createMessageNotification(R.string.title_activation), FOREGROUND_SERVICE_TYPE_LOCATION);
 		}
 
 		if (isActivated()) {
@@ -276,11 +277,12 @@ public class WifiChangeService extends Service {
 					if ( android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && suggestions.size() > 0 ) {
 						// show suggestion in Notification
 						final Notification notification =
-									new Notification.Builder(this, MainActivity.CHANNEL_ID)
+									new NotificationCompat.Builder(this, MainActivity.CHANNEL_ID)
 											.setContentTitle(this.getText(R.string.app_name))
 											.setContentText(this.getText(R.string.title_activation))
 											.setSmallIcon(R.mipmap.ic_launcher)
 											.setAutoCancel(true)
+											.setCategory(Notification.CATEGORY_MESSAGE)
 											.setTicker(this.getText(R.string.info_switch_wifi_5ghz) + " "+suggestionToString(suggestions.get(0)))
 											.build();
 						NotificationManager notificationManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
@@ -314,6 +316,7 @@ public class WifiChangeService extends Service {
 							case WifiManager.STATUS_NETWORK_SUGGESTIONS_ERROR_ADD_NOT_ALLOWED:
 							case WifiManager.STATUS_NETWORK_SUGGESTIONS_ERROR_INTERNAL:
 							case WifiManager.STATUS_NETWORK_SUGGESTIONS_ERROR_REMOVE_INVALID:
+							case WifiManager.STATUS_NETWORK_SUGGESTIONS_ERROR_RESTRICTED_BY_ADMIN:
 							default:
 								showError(R.string.error_switch_wifi_android10);
 								break;
@@ -368,8 +371,8 @@ public class WifiChangeService extends Service {
 	}
 
 	private void showError(int stringId) {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-			NotificationManagerCompat.from(this).notify(ONGOING_NOTIFICATION_ID, createNotification(stringId));
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && NotificationManagerCompat.from(this).areNotificationsEnabled()) {
+			NotificationManagerCompat.from(this).notify(ONGOING_NOTIFICATION_ID, createMessageNotification(stringId));
 		} else
 			Toast.makeText(getApplicationContext(), stringId, Toast.LENGTH_LONG).show();
 	}
@@ -392,7 +395,11 @@ public class WifiChangeService extends Service {
 					.setPriority(NotificationCompat.PRIORITY_DEFAULT)
 					.setAutoCancel(true)
 					.setContentIntent(pendingIntent);
-			NotificationManagerCompat.from(this).notify(ONGOING_NOTIFICATION_ID, builder.build());
+			if(NotificationManagerCompat.from(this).areNotificationsEnabled()) {
+				NotificationManagerCompat.from(this).notify(ONGOING_NOTIFICATION_ID, builder.build());
+			} else {
+				showError(R.string.error_no_location_enabled);
+			}
 			return false;
 		}
 		return true;
@@ -409,24 +416,30 @@ public class WifiChangeService extends Service {
 		NotificationCompat.Builder builder = new NotificationCompat.Builder(this, MainActivity.CHANNEL_ID)
 				.setSmallIcon(R.mipmap.ic_launcher)
 				.setContentTitle(getString(R.string.app_name))
-				.setContentText(getString(R.string.error_no_location_enabled))
+				.setContentText(getString(R.string.error_permission_missing))
 				.setPriority(NotificationCompat.PRIORITY_DEFAULT)
 				.setAutoCancel(true)
 				.setContentIntent(pendingIntent);
-		NotificationManagerCompat.from(this).notify(ONGOING_NOTIFICATION_ID, builder.build());
+		if(NotificationManagerCompat.from(this).areNotificationsEnabled()) {
+			NotificationManagerCompat.from(this).notify(ONGOING_NOTIFICATION_ID, builder.build());
+		} else {
+			showError(R.string.error_permission_missing);
+		}
 	}
 
 	@RequiresApi(api = Build.VERSION_CODES.O)
-	protected Notification createNotification(int resourceId) {
-		Notification.Builder builder =
-				new Notification.Builder(this, MainActivity.CHANNEL_ID)
+	protected Notification createMessageNotification(int resourceId) {
+		NotificationCompat.Builder builder =
+				new NotificationCompat.Builder(this, MainActivity.CHANNEL_ID)
 						.setContentTitle(getText(R.string.app_name))
 						.setContentText(getText(resourceId))
 						.setSmallIcon(R.mipmap.ic_launcher)
 						.setAutoCancel(false)
+						.setCategory(Notification.CATEGORY_MESSAGE)
 						.setTicker(getText(resourceId));
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
 			builder.setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE);
+			builder.setOngoing(true);
 		}
 		return builder.build();
 	}

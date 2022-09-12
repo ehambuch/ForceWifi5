@@ -75,7 +75,12 @@
             android:exported="false"
             android:label="@string/action_settings" >
             <intent-filter>
-                <action android:name="android.intent.action.SENDTO" />
+                <action android:name="de.erichambuch.forcewifi5.VIEW_DATA_PROTECTION" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="de.erichambuch.forcewifi5.VIEW_MARKET" />
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
         <activity

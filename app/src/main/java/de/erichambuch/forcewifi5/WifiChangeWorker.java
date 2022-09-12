@@ -34,7 +34,7 @@ public class WifiChangeWorker extends Worker {
         final WifiChangeService service = new WifiChangeService(getApplicationContext());
         // move Worker to foreground
         setForegroundAsync(new ForegroundInfo(
-                WifiChangeService.ONGOING_NOTIFICATION_ID, service.createNotification(R.string.title_activation)));
+                WifiChangeService.ONGOING_NOTIFICATION_ID, service.createMessageNotification(R.string.title_activation)));
         boolean success = true;
         if(service.isActivated()) {
             if(ActivityCompat.checkSelfPermission(getApplicationContext(), ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
