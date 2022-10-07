@@ -35,6 +35,7 @@ package de.erichambuch.forcewifi5;
  *     <li>V1.13.5 (25.07.2022) - Bugfix Feedbackmail</li>
  *     <li>V1.14.0 (14.08.2022) - Replace Feedback button by link to Play Store to avoid spamming, Migration Android API 32</li>
  *     <li>V1.14.1 (12.09.2022) - Android API 33</li>
+ *     <li>V1.14.2 (07.10.2022) - Fixes for Android 12 (WorkManager)</li>
  * </ul>
  * <ul>
  *     <li>TODO: disconnect does not work anymore: https://issuetracker.google.com/issues/128554616</li>

@@ -3,6 +3,7 @@ package de.erichambuch.forcewifi5;
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.Manifest.permission.ACCESS_WIFI_STATE;
 import static android.Manifest.permission.CHANGE_WIFI_STATE;
+import static android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION;
 
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -34,7 +35,7 @@ public class WifiChangeWorker extends Worker {
         final WifiChangeService service = new WifiChangeService(getApplicationContext());
         // move Worker to foreground
         setForegroundAsync(new ForegroundInfo(
-                WifiChangeService.ONGOING_NOTIFICATION_ID, service.createMessageNotification(R.string.title_activation)));
+                WifiChangeService.ONGOING_NOTIFICATION_ID, service.createMessageNotification(R.string.title_activation), FOREGROUND_SERVICE_TYPE_LOCATION ));
         boolean success = true;
         if(service.isActivated()) {
             if(ActivityCompat.checkSelfPermission(getApplicationContext(), ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
