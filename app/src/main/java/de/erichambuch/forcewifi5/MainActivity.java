@@ -5,6 +5,7 @@ import static android.Manifest.permission.ACCESS_WIFI_STATE;
 import static android.Manifest.permission.CHANGE_NETWORK_STATE;
 import static android.Manifest.permission.CHANGE_WIFI_STATE;
 import static android.Manifest.permission.POST_NOTIFICATIONS;
+import static android.content.Intent.ACTION_UNINSTALL_PACKAGE;
 import static android.text.Html.FROM_HTML_MODE_LEGACY;
 import static de.erichambuch.forcewifi5.WifiUtils.normalizeSSID;
 
@@ -49,10 +50,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.annotation.RequiresPermission;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.location.LocationManagerCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.preference.PreferenceManager;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -83,9 +86,6 @@ public class MainActivity extends AppCompatActivity {
 
 	private static final int REQUEST_CODE_LOCATION_SERVICES = 4567;
 	private static final int REQUEST_CODE_PERMISSIONS = 5678;
-
-
-	private boolean infoDialogShown = false;
 
 	/**
 	 * Circuit breaker - shared by different listeners.
@@ -305,7 +305,7 @@ public class MainActivity extends AppCompatActivity {
 
 	@SuppressLint("MissingPermission")
 	@Override
-	protected void onCreate(Bundle savedInstanceState) {
+	protected void onCreate(@Nullable Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
 		setContentView(R.layout.activity_main);
@@ -334,36 +334,33 @@ public class MainActivity extends AppCompatActivity {
 				new NetworkRequest.Builder().addTransportType(NetworkCapabilities.TRANSPORT_WIFI).build(),
 				new NetworkCallback(getApplicationContext()));
 
-		// Get Permissions right away from the start
-		if ((checkSelfPermission(ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) &&
-				(checkSelfPermission(ACCESS_WIFI_STATE) == PackageManager.PERMISSION_GRANTED) &&
-				(checkSelfPermission(CHANGE_NETWORK_STATE) == PackageManager.PERMISSION_GRANTED)) {
-			if(Intent.ACTION_MAIN.equals(getIntent().getAction())) // show info dialog only on first start
+		if(Intent.ACTION_MAIN.equals(getIntent().getAction())) // show info dialog only on first start
+		{
+			if(!checkAndShowNotUsefulDialog())
 				showInfoDialog();
-			else
-				infoDialogShown = true;
-		} else {
-			requestMyPermissions();
+		}
+		else {
+			// Get Permissions right away from the start
+			if ((checkSelfPermission(ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) &&
+					(checkSelfPermission(ACCESS_WIFI_STATE) == PackageManager.PERMISSION_GRANTED) &&
+					(checkSelfPermission(CHANGE_NETWORK_STATE) == PackageManager.PERMISSION_GRANTED)) {
+				// everything okay
+			} else {
+				requestMyPermissions();
+			}
 		}
 	}
 
+	@SuppressLint("MissingPermission")
 	protected void onStart() {
 		super.onStart();
 
-		// Start from Widget: do not show info dialog
-		if(Intent.ACTION_VIEW.equals(getIntent().getAction()))
-			infoDialogShown = true;
-
-		if ((checkSelfPermission(ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) &&
-				(checkSelfPermission(ACCESS_WIFI_STATE) == PackageManager.PERMISSION_GRANTED) &&
-				(checkSelfPermission(CHANGE_NETWORK_STATE) == PackageManager.PERMISSION_GRANTED)) {
+		if ((missingPermissions().isEmpty())) {
 			// starting with Android 6, Location services has to be enabled to list all wifis
 			if (isLocationServicesEnabled(this)) {
 				doStart();
 			} else {
-				showError(R.string.error_no_location_enabled);
-				Intent settingsIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-				startActivity(settingsIntent);
+				showLocationServicesDialog();
 			}
 		} else {
 			showPermissionsError();
@@ -374,79 +371,143 @@ public class MainActivity extends AppCompatActivity {
 	/**
 	 * Request the runtime permissions that are required by the app.
 	 */
-	private void requestMyPermissions() {
-		// TODO: stimmt im flow noch nicht.
-		if ((checkSelfPermission(ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) ||
-				shouldShowRequestPermissionRationale(ACCESS_FINE_LOCATION)) {
+	void requestMyPermissions() {
+		final List<String> missingPermissions = missingPermissions();
+		if ((missingPermissions.contains(ACCESS_FINE_LOCATION) && shouldShowRequestPermissionRationale(ACCESS_FINE_LOCATION))
+				 || (missingPermissions.contains(POST_NOTIFICATIONS) && shouldShowRequestPermissionRationale(POST_NOTIFICATIONS))) {
 			new MaterialAlertDialogBuilder(this)
 					.setTitle(getString(R.string.app_name))
 					.setPositiveButton("I got it", (dialog1, which) -> {
 						dialog1.cancel();
-						requestPermissions(new String[]{
-								ACCESS_FINE_LOCATION,
-								ACCESS_WIFI_STATE,
-								CHANGE_WIFI_STATE,
-						}, REQUEST_CODE_PERMISSIONS);
+						requestPermissions((String[])missingPermissions.toArray(new String[0]), REQUEST_CODE_PERMISSIONS);
 					})
 					.setMessage(Html.fromHtml(getString(R.string.message_requestpermission_rationale), Html.FROM_HTML_MODE_COMPACT))
 					.show();
-		} else {
-			requestPermissions(new String[]{
-					ACCESS_FINE_LOCATION,
-					ACCESS_WIFI_STATE,
-					CHANGE_WIFI_STATE
-			}, REQUEST_CODE_PERMISSIONS);
-		}
-
-		// with Android 13: new permission
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-			if ((checkSelfPermission(POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) ||
-					shouldShowRequestPermissionRationale(POST_NOTIFICATIONS)) {
-				new MaterialAlertDialogBuilder(this)
-						.setTitle(getString(R.string.app_name))
-						.setPositiveButton("I got it", (dialog1, which) -> {
-							dialog1.cancel();
-							requestPermissions(new String[]{
-									POST_NOTIFICATIONS
-							}, REQUEST_CODE_PERMISSIONS);
-						})
-						.setMessage(Html.fromHtml(getString(R.string.message_requestpermissionnotifications_rationale), Html.FROM_HTML_MODE_COMPACT))
-						.show();
-			} else {
-				requestPermissions(new String[]{
-						POST_NOTIFICATIONS
-				}, REQUEST_CODE_PERMISSIONS);
-			}
+		} else if(!missingPermissions.isEmpty()){
+			requestPermissions((String[])missingPermissions.toArray(new String[0]), REQUEST_CODE_PERMISSIONS);
 		}
 	}
 
-	private void showInfoDialog() {
+	/**
+	 * Check if we have all the necessary permissions.
+	 * @return list of missing
+	 */
+	List<String> missingPermissions() {
+		List<String> permissions = new ArrayList<>();
+		permissions.add(ACCESS_FINE_LOCATION);
+		permissions.add(ACCESS_WIFI_STATE);
+		permissions.add(CHANGE_WIFI_STATE);
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) // with Android 13: new permission
+			permissions.add(POST_NOTIFICATIONS);
+		List<String> missing = new ArrayList<>();
+		for(String p : permissions) {
+			if (checkSelfPermission(p) != PackageManager.PERMISSION_GRANTED)
+				missing.add(p);
+		}
+		return missing;
+	}
+
+	/**
+	 * Shows the Information Dialog (first time on app start).
+	 * <p>
+	 *     Then follows:
+	 *     <ol>
+	 *         <li>Permission Dialog (for Wifi, Location services etc.)</li>
+	 *         <li>Location Services (GPS or Network etc.)</li>
+	 *         <li>Battery Optimizations (Android 12+)</li>
+	 *     </ol>
+	 * </p>
+	 */
+	protected void showInfoDialog() {
 		// TODO: ab Android 13: areNotificationsEnabled() -> ggf. nachfordern
 		AlertDialog dialog = new MaterialAlertDialogBuilder(this)
 				.setTitle(getString(R.string.app_name))
+				.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						finish();
+					}
+				})
 				.setPositiveButton("Continue", new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
 						dialog.cancel();
+						if(!missingPermissions().isEmpty())
+							requestMyPermissions();
 						// here we catch the flow that Location settings are not enabled (which blocks the check in onStart())
 						if(!isLocationServicesEnabled(MainActivity.this)) {
-							showError(R.string.error_no_location_enabled);
-							Intent settingsIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-							startActivity(settingsIntent);
+							showLocationServicesDialog();
 						}
 						// for Android 12: we have to go for an exception from the "don't start foreground service from background"
 						// so we ask the user to exempt the app from battery optimizations
-						else if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)) {
+						if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)) {
 							checkBatteryOptimizationsDisabled();
 						}
 					}
 				})
 				.setMessage(Html.fromHtml(getString(R.string.message_welcome), Html.FROM_HTML_MODE_COMPACT))
 				.show();
-		infoDialogShown = true;
+		PreferenceManager.getDefaultSharedPreferences(this).edit().putBoolean(AppInfo.PREFS_INFO_DIALOG_SHOWN, true).apply();
 		TextView view = (TextView) dialog.findViewById(android.R.id.message);
 		if (view != null)
 			view.setMovementMethod(LinkMovementMethod.getInstance()); // make links clickable
+	}
+
+	protected boolean checkAndShowNotUsefulDialog() {
+		final WifiManager wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
+		final int is24Ghz = (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || wifiManager.is24GHzBandSupported()) ? 1 : 0;
+		final int is50Ghz = wifiManager.is5GHzBandSupported() ? 1 : 0;
+		final int is60Ghz = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && wifiManager.is60GHzBandSupported()) ? 1 : 0;
+		if((is24Ghz + is50Ghz + is60Ghz) < 2) {
+			new MaterialAlertDialogBuilder(this)
+					.setTitle(getString(R.string.app_name))
+					.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							dialog.dismiss();
+						}
+					})
+					.setPositiveButton("I got it", new DialogInterface.OnClickListener() {
+						@Override
+						public void onClick(DialogInterface dialog, int which) { // force deinstallation
+							Intent intent = new Intent(ACTION_UNINSTALL_PACKAGE);
+							intent.setData(Uri.parse("package:" + getPackageName()));
+							startActivity(intent);
+						}
+					})
+					.setMessage(Html.fromHtml(getString(R.string.message_nosupport), Html.FROM_HTML_MODE_COMPACT))
+					.show();
+			return true;
+		}
+		return false;
+	}
+	protected void showLocationServicesDialog() {
+		new MaterialAlertDialogBuilder(this)
+				.setTitle(getString(R.string.app_name))
+				.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						finish();
+					}
+				})
+				.setPositiveButton("Activate", new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						dialog.cancel();
+						// here we catch the flow that Location settings are not enabled (which blocks the check in onStart())
+						if(!isLocationServicesEnabled(MainActivity.this)) {
+							Intent settingsIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+							startActivityForResult(settingsIntent, 0);
+						}
+						// for Android 12: we have to go for an exception from the "don't start foreground service from background"
+						// so we ask the user to exempt the app from battery optimizations
+						if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)) {
+							checkBatteryOptimizationsDisabled();
+						}
+					}
+				})
+				.setMessage(Html.fromHtml(getString(R.string.message_activate_locationservices), Html.FROM_HTML_MODE_COMPACT))
+				.show();
 	}
 
 	@RequiresPermission(allOf = {ACCESS_WIFI_STATE, ACCESS_FINE_LOCATION})
@@ -496,7 +557,7 @@ public class MainActivity extends AppCompatActivity {
 			}
 			try {
 				// ensure that in all the permission flows etc. the dialog is shown
-				if(!infoDialogShown)
+				if(!PreferenceManager.getDefaultSharedPreferences(this).getBoolean(AppInfo.PREFS_INFO_DIALOG_SHOWN, false))
 					showInfoDialog();
 				doStart();
 			} catch (SecurityException e) {
@@ -513,7 +574,7 @@ public class MainActivity extends AppCompatActivity {
 	}
 
 	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
+	public boolean onOptionsItemSelected(@NonNull MenuItem item) {
 		int id = item.getItemId();
 		if (id == R.id.action_settings) {
 			startActivity(new Intent(getApplicationContext(), SettingsActivity.class));
@@ -634,18 +695,9 @@ public class MainActivity extends AppCompatActivity {
 		}
 	}
 
-	public static boolean isLocationServicesEnabled(Context context) {
-		// TODO use androidx.appcompat:appcompat:1.2.0
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-			// This is new method provided in API 28
-			LocationManager lm = (LocationManager) context.getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
-			return lm != null && lm.isLocationEnabled();
-		} else {
-			// This is Deprecated in API 28
-			int mode = Settings.Secure.getInt(context.getApplicationContext().getContentResolver(), Settings.Secure.LOCATION_MODE,
-					Settings.Secure.LOCATION_MODE_OFF);
-			return  (mode != Settings.Secure.LOCATION_MODE_OFF);
-		}
+	public static boolean isLocationServicesEnabled(@NonNull Context context) {
+		LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+		return LocationManagerCompat.isLocationEnabled(locationManager);
 	}
 
 	/**
@@ -683,7 +735,7 @@ public class MainActivity extends AppCompatActivity {
 								intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
 								intent.setPackage(MainActivity.this.getPackageName());
 							}
-							startActivity(intent);
+							startActivityForResult(intent, 0);
 						}
 					})
 					.setMessage(Html.fromHtml(getString(R.string.message_batteryoptimizations), Html.FROM_HTML_MODE_COMPACT))
@@ -691,7 +743,7 @@ public class MainActivity extends AppCompatActivity {
 		}
 	}
 
-	private void showError(int stringId) {
+	void showError(int stringId) {
 		Toast.makeText(this, stringId, Toast.LENGTH_LONG).show();
 	}
 
@@ -699,7 +751,7 @@ public class MainActivity extends AppCompatActivity {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 			CharSequence name = context.getString(R.string.app_name);
 			String description = context.getString(R.string.app_description);
-			int importance = NotificationManager.IMPORTANCE_LOW;
+			int importance = NotificationManager.IMPORTANCE_DEFAULT;
 			NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
 			channel.setDescription(description);
 			NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
@@ -766,11 +818,6 @@ public class MainActivity extends AppCompatActivity {
 	private boolean is6GHzPreferred() {
 		return ("2".equals(PreferenceManager.getDefaultSharedPreferences(this).getString(getString(R.string.prefs_2ghz5ghz), "1")));
 	}
-
-	private boolean isWrongFrequency(int freq) {
-		return !isWantedFrequency(freq);
-	}
-
 	public boolean isWantedFrequency(int freq) {
 		if (is6GHzPreferred()) {
 			return (freq >= 5925);

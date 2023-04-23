@@ -7,6 +7,7 @@ import android.net.NetworkCapabilities;
 import android.net.NetworkRequest;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresPermission;
 
 /**
@@ -18,7 +19,7 @@ public class StartOnBootReceiver extends android.content.BroadcastReceiver {
 
 	@Override
 	@RequiresPermission(value = "android.permission.ACCESS_NETWORK_STATE")
-	public void onReceive(final Context context, Intent intent) {
+	public void onReceive(final Context context, @NonNull Intent intent) {
 		Log.i(AppInfo.APP_NAME, "StartOnBootReceiver started");
 		if(Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction()) || "android.intent.action.QUICKBOOT_POWERON".equals(intent.getAction())) {
 			MainActivity.createNotificationChannel(context);

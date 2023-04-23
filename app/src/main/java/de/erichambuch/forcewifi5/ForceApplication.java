@@ -3,6 +3,7 @@ package de.erichambuch.forcewifi5;
 import android.app.Application;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.work.Configuration;
 import androidx.work.WorkManager;
 
@@ -21,6 +22,7 @@ public class ForceApplication extends Application implements Configuration.Provi
         }
     }
 
+    @NonNull
     @Override
     public Configuration getWorkManagerConfiguration() {
         return new Configuration.Builder()

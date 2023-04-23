@@ -16,6 +16,7 @@ import android.os.PowerManager;
 import android.util.Log;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -35,13 +36,13 @@ public class SettingsActivity extends AppCompatActivity {
 
 	public static class MySettingsFragment extends PreferenceFragmentCompat {
 	    @Override
-	    public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
+	    public void onCreatePreferences(@NonNull Bundle savedInstanceState, @NonNull String rootKey) {
 	        setPreferencesFromResource(R.xml.preferences, rootKey);
 		}
 	}
 	
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(@NonNull Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 		if(AppInfo.INTENT_SHOW_DATAPROCTECTION.equals(getIntent().getAction())) {
 			try {

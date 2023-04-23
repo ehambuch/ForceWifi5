@@ -2,6 +2,9 @@ package de.erichambuch.forcewifi5;
 
 import android.net.wifi.WifiInfo;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 public class WifiUtils {
 
     /**
@@ -11,7 +14,8 @@ public class WifiUtils {
      * @return normaoized SSID
      * @see WifiInfo#getSSID()
      */
-    public static String normalizeSSID(String ssid) {
+    @NonNull
+    public static String normalizeSSID(@Nullable String ssid) {
         if (ssid == null )
             return "";
         if (ssid.startsWith("\"") && ssid.endsWith("\"")){
@@ -20,7 +24,7 @@ public class WifiUtils {
             return ssid;
     }
 
-    public static boolean hasNormalizedSSID(String ssid) {
+    public static boolean hasNormalizedSSID(@Nullable String ssid) {
         return (ssid != null && ssid.startsWith("\"") && ssid.endsWith("\""));
     }
 }

@@ -12,9 +12,11 @@ import android.net.wifi.WifiManager;
 import android.util.Log;
 import android.widget.RemoteViews;
 
+import androidx.annotation.NonNull;
 import androidx.preference.PreferenceManager;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 /**
  * Application widget just showing the current frequency.
@@ -39,7 +41,7 @@ public class ForceWifiAppWidget extends AppWidgetProvider {
         }
     }
 
-    public void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
+    public void updateAppWidget(@NonNull Context context, @NonNull AppWidgetManager appWidgetManager,
                                 int appWidgetId) {
         Log.d(AppInfo.APP_NAME, "Update widget");
         final WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
@@ -48,7 +50,7 @@ public class ForceWifiAppWidget extends AppWidgetProvider {
         if (wifiManager.isWifiEnabled()) {
             int frequency = wifiManager.getConnectionInfo().getFrequency();
             if (frequency > 0) {
-                widgetText = BigDecimal.valueOf(frequency).divide(BigDecimal.valueOf(1000)) + " GHz";
+                widgetText = BigDecimal.valueOf(frequency).divide(BigDecimal.valueOf(1000), RoundingMode.HALF_UP) + " GHz";
                 widgetColor = isWantedFrequency(context, frequency) ? context.getResources().getColor(android.R.color.holo_green_light, context.getTheme()) :
                         context.getResources().getColor(android.R.color.holo_red_light, context.getTheme());
             } else { // e.g. mission permissionss
@@ -85,7 +87,7 @@ public class ForceWifiAppWidget extends AppWidgetProvider {
         return ("2".equals(PreferenceManager.getDefaultSharedPreferences(context).getString(context.getString(R.string.prefs_2ghz5ghz), "1")));
     }
 
-    public boolean isWantedFrequency(Context context, int freq) {
+    public boolean isWantedFrequency(@NonNull Context context, int freq) {
         if (is6GHzPreferred(context)) {
             return (freq >= 5925);
         } else if (is5GHzPreferred(context))

@@ -40,6 +40,7 @@
     <string name="summary_switchnetwork">Choose another network (SSID) with the desired frequency instead of staying with the same SSID</string>
     <string name="info_switch_wifi_5ghz_android10">Please re-connect to your Wifi manually or reboot the device to change frequency</string>
     <string name="message_welcome"><![CDATA[<p>I wrote this app to force my devices to the less used 5 GHz channels of my Wifi network.</p><br/><p>Unfortunately starting with Android 10, apps cannot <em>force</em> the system to change the Wifi channel, but only give a <em>recommendation</em> to do so.</p><br/><p>Therefore this app <em>MAY or MAY NOT</em> work on your device. Please give a try. In certain cases you will have to disable and enable your Wifi manually once or even reboot your device in order to get an effect.</p><p>If it\'s not working, just de-install it.</p><br/><p>Any feedback is welcome - just drop me an email.</p>]]></string>
+    <string name="message_activate_locationservices"><![CDATA[<p>This app requires access to all wireless networks nearby. Therefore <em>Location Services</em> must be enabled in order to retrieve a list of all Wifis.<br/>Without the app WILL NOT work.]]></string>
     <string name="error_switch_wifi_android10">Error while setting suggestion for wifi</string>
     <string name="error_permission_missing">Permission to access Wifis state has been revoked!</string>
     <string name="message_batteryoptimizations"><![CDATA[<p>Under Android 12+ you will have to disable the <em>Battery Optimizations</em> for this app.</p><br/>Please open the Settings and grant an exception to this app by selecting the app and choosing <em>Don\'t optimize</em> as well as removing any <em>Background restrictions</em>.]]></string>
@@ -81,4 +82,6 @@
     <string name="feedback_subject">Feedback on ForceWifi5</string>
     <string name="error_cannot_display_recommended_wifi">Cannot display suggested Wifi list</string>
     <string name="message_requestpermissionnotifications_rationale">Starting with Android 13, you will also have to provide an extra permission to allow notifications. So please active notifications for this app.</string>
+    <string name="error_no_permissions_notification">Please grant the NOTIFICATION permission in the app settings!</string>
+    <string name="message_nosupport">This app requires that your Android device supports multi-band Wifi - so 2.4 GHz as well as 5 or 6 GHz. Obviously this is not the case. Therefore please de-install it.</string>
 </resources>
