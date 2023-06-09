@@ -42,10 +42,10 @@
 
         </com.google.android.material.card.MaterialCardView>
 
-            <ListView
-                android:id="@+id/listview"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/listview"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
                 android:dividerHeight="2dp"
                 android:orientation="vertical"
                 android:scrollbars="vertical"

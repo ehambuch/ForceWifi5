@@ -1,7 +1,48 @@
-<TextView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/textview"
-    android:layout_width="wrap_content"
+<RelativeLayout
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="2dp"
-    android:textColor="?android:attr/textColorPrimary"
-    />
+    android:paddingTop="2dp"
+    android:paddingBottom="2dp"
+    android:paddingStart="8dp"
+    android:paddingEnd="8dp"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <TextView android:id="@+id/networktextviewName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="?android:attr/textColorPrimary"
+        android:textIsSelectable="false"
+        android:layout_alignParentStart="true"
+        android:text="name"
+        />
+    <TextView android:id="@+id/networktextviewBSSID"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="?android:attr/textColorSecondary"
+        android:textIsSelectable="false"
+        android:layout_below="@id/networktextviewName"
+        android:text="bssid"/>
+    <ImageView
+        android:id="@+id/networkimage1"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:paddingLeft="24dp"
+        android:paddingRight="24dp"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:gravity="center_vertical"
+        android:background="@drawable/baseline_wifi_24"
+        android:contentDescription="wifiactive"
+        />
+    <ImageView
+        android:id="@+id/networkimage2"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:paddingLeft="24dp"
+        android:paddingRight="24dp"
+        android:layout_toStartOf="@id/networkimage1"
+        android:layout_centerVertical="true"
+        android:gravity="center_vertical"
+        android:background="@drawable/baseline_high_priority_24"
+        android:contentDescription="priority" />
+</RelativeLayout>

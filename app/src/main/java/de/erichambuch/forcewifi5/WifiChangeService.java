@@ -57,7 +57,6 @@ public class WifiChangeService extends Service {
 	public static class WifiServiceConnection implements android.content.ServiceConnection {
 
 		private final Context context;
-		private Notification notification;
 
 		public WifiServiceConnection(Context context) {
 			this.context = context;
@@ -234,7 +233,7 @@ public class WifiChangeService extends Service {
 								suggestionsString.append(result.BSSID);
 							}
 
-							suggestionsString.append(" recommended at prio ").append(priority);
+							suggestionsString.append(" recommended at prio ").append(priority).append(". Please disable and re-enable your Wifi.");
 							suggestionBuilder.setPriority(priority++);
 							suggestions.add(suggestionBuilder.build());
 							// special case: wir haben ein Netzwerk mit normalisierter SSID, versuchen wir dazuzufügen
@@ -281,7 +280,17 @@ public class WifiChangeService extends Service {
 						NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 						notificationManager.notify(ONGOING_NOTIFICATION_ID, notification);
 
+						// Starting with API 33, Android allows to use setWifiEnabled in certain cases (device owner, etc.), so we give a try
 						// disconnect geht nicht mehr: https://issuetracker.google.com/issues/128554616
+						if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ) {
+							try {
+								wifiManager.setWifiEnabled(false);
+								wifiManager.setWifiEnabled(true);
+							} catch (Exception e) {
+								Log.w(AppInfo.APP_NAME, "Wifi disabling/enabled failed", e);
+							}
+						}
+
 						final List<WifiNetworkSuggestion> actualSuggestions = getActualSuggestions(wifiManager);
 						if (actualSuggestions.equals(suggestions)) {
 							Log.i(AppInfo.APP_NAME, "Suggestions already given: " + actualSuggestions);
@@ -314,7 +323,6 @@ public class WifiChangeService extends Service {
 								showError(R.string.error_switch_wifi_android10);
 								break;
 						}
-
 					} else if (networkId >= 0) {
 						// Check auf networkId != activeWifi.getNetworkId() bringt nichts, weil Android unter derselben networkId
 						// ein und dasselbe Netzwerk mit 2/5 GHz führt, dass kann zu nervigen Endlosschleifen führen

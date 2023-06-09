@@ -6,12 +6,18 @@
     <item
         android:id="@+id/action_settings"
         android:orderInCategory="100"
-        app:showAsAction="never"
+        app:showAsAction="ifRoom"
         android:title="@string/action_settings"/>
 
     <item
-        android:id="@+id/action_info"
+        android:id="@+id/action_about"
         android:orderInCategory="200"
+        app:showAsAction="never"
+        android:title="@string/action_about"/>
+
+    <item
+        android:id="@+id/action_info"
+        android:orderInCategory="300"
         app:showAsAction="never"
         android:title="@string/action_info"/>
 </menu>

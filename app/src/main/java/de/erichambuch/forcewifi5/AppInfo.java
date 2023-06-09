@@ -37,6 +37,7 @@ package de.erichambuch.forcewifi5;
  *     <li>V1.14.1 (12.09.2022) - Android API 33</li>
  *     <li>V1.14.2 (07.10.2022) - Fixes for Android 12 (WorkManager)</li>
  *     <li>V1.15.0 (10.4.2023) - Updated Libs, More explanation on permissions</li>
+ *     <li>V1.16.0 (08.06.2023) - changed permission/location/notification UI flows, displays additional infos</li>
  * </ul>
  * <ul>
  *     <li>TODO: disconnect does not work anymore: https://issuetracker.google.com/issues/128554616</li>
@@ -51,9 +52,4 @@ public class AppInfo {
     public static final String APP_NAME = "ForceWifi5";
     public static final String INTENT_SHOW_DATAPROCTECTION = "de.erichambuch.forcewifi5.VIEW_DATA_PROTECTION";
     public static final String INTENT_SHOW_MARKET = "de.erichambuch.forcewifi5.VIEW_MARKET";
-
-    /**
-     * Flag in SharedPreferences to indicate that info dialog has been shown.
-     */
-    public static final String PREFS_INFO_DIALOG_SHOWN = "prefs_infodialog";
 }
