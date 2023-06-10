@@ -94,6 +94,16 @@ public class MainActivity extends AppCompatActivity {
 	protected static volatile long lastNetworkCallback = 0;
 
 	/**
+	 * Flag whether to check for battery optimizations or the user dismissed the check.
+	 */
+	protected volatile boolean checkForBatteryOptimization = true;
+
+	/**
+	 * Flag whether to check for notification enabling or the user dismissed that check.
+	 */
+	protected volatile boolean checkForNotificationsEnabled = true;
+
+	/**
 	 * Broadcast receiver for WifiManager.NETWORK_STATE_CHANGED_ACTION.
 	 * <p>This works due to Android background restrictions only up to Android 9. Above we won't receive any events.</p>
 	 */
@@ -363,7 +373,7 @@ public class MainActivity extends AppCompatActivity {
 		if(Intent.ACTION_MAIN.equals(getIntent().getAction())) // show info dialog only on first start
 		{
 			if(!checkAndShowNotUsefulDialog())
-				checkPermissionDialogs();
+				checkPermissionDialogs(true);
 		}
 		else {
 			// Get Permissions right away from the start
@@ -372,7 +382,7 @@ public class MainActivity extends AppCompatActivity {
 					(checkSelfPermission(CHANGE_NETWORK_STATE) == PackageManager.PERMISSION_GRANTED)) {
 				// everything okay
 			} else {
-				requestMyPermissions();
+				requestMyPermissions(true);
 			}
 		}
 	}
@@ -390,27 +400,31 @@ public class MainActivity extends AppCompatActivity {
 			}
 		} else {
 			showPermissionsError();
-			requestMyPermissions();
+			requestMyPermissions(true);
 		}
 	}
 
 	/**
 	 * Request the runtime permissions that are required by the app.
+	 *
+	 * @param showExplanation show explanation only in beginning to avoid cycles
 	 */
-	void requestMyPermissions() {
+	void requestMyPermissions(boolean showExplanation) {
 		final List<String> missingPermissions = missingPermissions();
-		if ((missingPermissions.contains(ACCESS_FINE_LOCATION) && shouldShowRequestPermissionRationale(ACCESS_FINE_LOCATION))
-				 || (missingPermissions.contains(POST_NOTIFICATIONS) && shouldShowRequestPermissionRationale(POST_NOTIFICATIONS))) {
-			new MaterialAlertDialogBuilder(this)
-					.setTitle(getString(R.string.app_name))
-					.setPositiveButton("I got it", (dialog1, which) -> {
-						dialog1.cancel();
-						requestPermissions((String[])missingPermissions.toArray(new String[0]), REQUEST_CODE_PERMISSIONS);
-					})
-					.setMessage(Html.fromHtml(getString(R.string.message_requestpermission_rationale), Html.FROM_HTML_MODE_COMPACT))
-					.show();
-		} else if(!missingPermissions.isEmpty()){
-			requestPermissions((String[])missingPermissions.toArray(new String[0]), REQUEST_CODE_PERMISSIONS);
+		if (!missingPermissions.isEmpty()) {
+			for(String permission : missingPermissions)
+				shouldShowRequestPermissionRationale(permission); // just call to satisfy Android, we should the rational anyway
+			if(showExplanation) {
+				new MaterialAlertDialogBuilder(this)
+						.setTitle(getString(R.string.app_name))
+						.setPositiveButton("I got it", (dialog1, which) -> {
+							requestPermissions((String[]) missingPermissions.toArray(new String[0]), REQUEST_CODE_PERMISSIONS);
+						})
+						.setMessage(Html.fromHtml(getString(R.string.message_requestpermission_rationale), Html.FROM_HTML_MODE_COMPACT))
+						.show();
+			} else {
+				requestPermissions((String[]) missingPermissions.toArray(new String[0]), REQUEST_CODE_PERMISSIONS);
+			}
 		}
 	}
 
@@ -445,20 +459,22 @@ public class MainActivity extends AppCompatActivity {
 	 *     </ol>
 	 * </p>
 	 */
-	protected void checkPermissionDialogs() {
-		if(!missingPermissions().isEmpty())
-			requestMyPermissions();
+	protected void checkPermissionDialogs(boolean showExplanations) {
+		final List<String> missingPermssions = missingPermissions();
+		if(!missingPermssions.isEmpty())
+			requestMyPermissions(showExplanations);
+
 		// here we catch the flow that Location settings are not enabled (which blocks the check in onStart())
-		if(!isLocationServicesEnabled(MainActivity.this)) {
+		if(missingPermssions.isEmpty() && !isLocationServicesEnabled(MainActivity.this)) {
 			showLocationServicesDialog();
 		}
 		// for Android 12: we have to go for an exception from the "don't start foreground service from background"
 		// so we ask the user to exempt the app from battery optimizations
-		if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)) {
+		if (missingPermssions.isEmpty() && (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)) {
 			checkBatteryOptimizationsDisabled();
 		}
 		// Android 13: Notifications
-		if((Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)) {
+		if(missingPermssions.isEmpty() && (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)) {
 			checkNotificationsEnalbed();
 		}
 	}
@@ -467,21 +483,22 @@ public class MainActivity extends AppCompatActivity {
 	 * Starting with Android 13 the user may disable notifications.
 	 */
 	private void checkNotificationsEnalbed() {
-		if(!getSystemService(NotificationManager.class).areNotificationsEnabled()) {
+		if(checkForNotificationsEnabled && !getSystemService(NotificationManager.class).areNotificationsEnabled()) {
 			new MaterialAlertDialogBuilder(this)
 					.setTitle(getString(R.string.app_name))
 					.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
 						@Override
 						public void onClick(DialogInterface dialog, int which) {
+							checkForNotificationsEnabled = false; // user dismissed
 							dialog.cancel();
 						}
 					})
 					.setPositiveButton("Settings", new DialogInterface.OnClickListener() {
 						@Override
 						public void onClick(DialogInterface dialog, int which) {
-							dialog.dismiss();
 							Intent settingsIntent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
 							settingsIntent.setData(Uri.parse("package:"+getPackageName()));
+							settingsIntent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
 							startActivity(settingsIntent);
 						}
 					})
@@ -494,14 +511,14 @@ public class MainActivity extends AppCompatActivity {
 		final WifiManager wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
 		final int is24Ghz = (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || wifiManager.is24GHzBandSupported()) ? 1 : 0;
 		final int is50Ghz = wifiManager.is5GHzBandSupported() ? 1 : 0;
-		final int is60Ghz = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && wifiManager.is60GHzBandSupported()) ? 1 : 0;
+		final int is60Ghz = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && wifiManager.is6GHzBandSupported()) ? 1 : 0;
 		if((is24Ghz + is50Ghz + is60Ghz) < 2) {
 			new MaterialAlertDialogBuilder(this)
 					.setTitle(getString(R.string.app_name))
 					.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
 						@Override
 						public void onClick(DialogInterface dialog, int which) {
-							dialog.dismiss();
+							dialog.cancel();
 						}
 					})
 					.setPositiveButton("I got it", new DialogInterface.OnClickListener() {
@@ -509,6 +526,7 @@ public class MainActivity extends AppCompatActivity {
 						public void onClick(DialogInterface dialog, int which) { // force deinstallation
 							Intent intent = new Intent(ACTION_UNINSTALL_PACKAGE);
 							intent.setData(Uri.parse("package:" + getPackageName()));
+							intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
 							startActivity(intent);
 						}
 					})
@@ -530,11 +548,11 @@ public class MainActivity extends AppCompatActivity {
 				.setPositiveButton("Activate", new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
-						dialog.dismiss();
 						// here we catch the flow that Location settings are not enabled (which blocks the check in onStart())
 						if(!isLocationServicesEnabled(MainActivity.this)) {
 							Intent settingsIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-							startActivityForResult(settingsIntent, 0);
+							settingsIntent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+							startActivity(settingsIntent);
 						}
 					}
 				})
@@ -589,7 +607,7 @@ public class MainActivity extends AppCompatActivity {
 			}
 			try {
 				// ensure that in all the permission flows etc. the dialog is shown
-				checkPermissionDialogs();
+				checkPermissionDialogs(false);
 				doStart();
 			} catch (SecurityException e) {
 				Log.e(AppInfo.APP_NAME, "Error starting scan", e);
@@ -778,7 +796,7 @@ public class MainActivity extends AppCompatActivity {
 				.setNeutralButton("Continue", new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
-						dialog.dismiss();
+						dialog.cancel();
 					}
 				})
 				.setMessage(Html.fromHtml(getString(R.string.message_welcome), Html.FROM_HTML_MODE_COMPACT)).create();
@@ -794,28 +812,30 @@ public class MainActivity extends AppCompatActivity {
 		ActivityManager am = (ActivityManager)getSystemService(ACTIVITY_SERVICE);
 		final boolean batteryOptimizationIgnored = pm.isIgnoringBatteryOptimizations(getPackageName());
 		final boolean backgroundRestricted = am.isBackgroundRestricted();
-		if(!batteryOptimizationIgnored || backgroundRestricted) {
+		if(checkForBatteryOptimization && (!batteryOptimizationIgnored || backgroundRestricted)) {
 			new MaterialAlertDialogBuilder(this)
 					.setTitle(getString(R.string.app_name))
 					.setNegativeButton(R.string.action_ignore, new DialogInterface.OnClickListener() {
 						@Override
 						public void onClick(DialogInterface dialog, int which) {
+							checkForBatteryOptimization = false; // user does not want
 							dialog.cancel();}
 						}
 						)
 					.setPositiveButton(R.string.action_settings, new DialogInterface.OnClickListener() {
 						@Override
 						public void onClick(DialogInterface dialog, int which) {
-							dialog.dismiss();
 							Intent intent = new Intent();
 							if(!batteryOptimizationIgnored) {
 								// kein REQUEST... nutzen, weil lt. Google Policy verboten
 								intent.setAction(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
+								intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
 							} else { // Background Restriction -> Open App settings
 								intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
 								intent.setPackage(MainActivity.this.getPackageName());
+								intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
 							}
-							startActivityForResult(intent, 0);
+							startActivity(intent);
 						}
 					})
 					.setMessage(Html.fromHtml(getString(R.string.message_batteryoptimizations), Html.FROM_HTML_MODE_COMPACT))

@@ -22,7 +22,7 @@ public class CustomWifiListAdapter extends RecyclerView.Adapter<CustomWifiListAd
         private final ImageView image1;
         private final ImageView image2;
 
-        public ViewHolder(View view) {
+        public ViewHolder(@NonNull View view) {
             super(view);
             textViewName = (TextView) view.findViewById(R.id.networktextviewName);
             textViewBSSID = (TextView) view.findViewById(R.id.networktextviewBSSID);
@@ -30,24 +30,28 @@ public class CustomWifiListAdapter extends RecyclerView.Adapter<CustomWifiListAd
             image2 = view.findViewById(R.id.networkimage2);
         }
 
+        @NonNull
         public TextView getTextViewName() {
             return textViewName;
         }
 
+        @NonNull
         public TextView getTextViewInformation() {
             return textViewBSSID;
         }
 
+        @NonNull
         public ImageView getImageView1() {
             return image1;
         }
 
+        @NonNull
         public ImageView getImageView2() {
             return image2;
         }
     }
 
-    private List<MainActivity.AccessPointEntry> networkEntries;
+    private final List<MainActivity.AccessPointEntry> networkEntries;
 
     public CustomWifiListAdapter(@NonNull List<MainActivity.AccessPointEntry> networkEntries) {
         this.networkEntries = networkEntries;
@@ -66,7 +70,7 @@ public class CustomWifiListAdapter extends RecyclerView.Adapter<CustomWifiListAd
 
     // Replace the contents of a view (invoked by the layout manager)
     @Override
-    public void onBindViewHolder(ViewHolder viewHolder, final int position) {
+    public void onBindViewHolder(@NonNull ViewHolder viewHolder, final int position) {
         MainActivity.AccessPointEntry entry = networkEntries.get(position);
         viewHolder.getTextViewName().setText(entry.name);
         viewHolder.getTextViewInformation().setText(entry.bssid + " - "+entry.frequency + " MHz");

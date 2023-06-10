@@ -8,10 +8,9 @@ android {
     defaultConfig {
         applicationId "de.erichambuch.forcewifi5"
         minSdkVersion 24
-        maxSdkVersion 32
         targetSdkVersion 33
-        versionCode 37
-        versionName '1.16.0'
+        versionCode 39
+        versionName '1.16.1'
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

@@ -37,7 +37,8 @@ package de.erichambuch.forcewifi5;
  *     <li>V1.14.1 (12.09.2022) - Android API 33</li>
  *     <li>V1.14.2 (07.10.2022) - Fixes for Android 12 (WorkManager)</li>
  *     <li>V1.15.0 (10.4.2023) - Updated Libs, More explanation on permissions</li>
- *     <li>V1.16.0 (08.06.2023) - changed permission/location/notification UI flows, displays additional infos</li>
+ *     <li>V1.16.0 (08.06.2023) - changed permission/location/notification UI flows, displays additional infos, Android 13 tested</li>
+ *     <li>V1.16.1 (10.06.2023) - Support for 6 GHz, Updated permission workflow</li>
  * </ul>
  * <ul>
  *     <li>TODO: disconnect does not work anymore: https://issuetracker.google.com/issues/128554616</li>

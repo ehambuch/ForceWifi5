@@ -91,9 +91,9 @@ public class SettingsActivity extends AppCompatActivity {
 
 	private void enableValidGhz() {
 		final WifiManager wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
-		final boolean is24Ghz = Build.VERSION.SDK_INT < Build.VERSION_CODES.S || wifiManager.is24GHzBandSupported();
+		final boolean is24Ghz = (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) || wifiManager.is24GHzBandSupported();
 		final boolean is50Ghz = wifiManager.is5GHzBandSupported();
-		final boolean is60Ghz = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && wifiManager.is60GHzBandSupported();
+		final boolean is60Ghz = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) && wifiManager.is6GHzBandSupported();
 
 		final ListPreference listPreference = settingsFragment.findPreference(getString(R.string.prefs_2ghz5ghz));
 		final List<String> entries = new ArrayList<>();
