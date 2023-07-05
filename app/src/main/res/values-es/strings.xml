@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?><resources>
+      
+  <string name="app_name">Forzar Wifi 5 GHz</string>
+
+    <string name="action_info">Preguntas más frecuentes</string>
+      
+  <string name="error_wifi_not_enabled">¡El wifi no está habilitado!</string>
+      
+  <string name="error_no_5ghz_found">¡No se encontraron redes con ambas frecuencias y el mismo SSID!</string>
+      
+  <string name="error_no_location_enabled">¡Los servicios de ubicación deben estar habilitados!</string>
+      
+  <string name="info_switch_wifi_5ghz">Intentando cambiar de frecuencia...</string>
+      
+  <string name="info_5ghz_active">Wifi ya conectado con frecuencia preferida</string>
+      
+  <string name="text_listnetworks">Redes disponibles con ambos 2,4/5 GHz:</string>
+      
+  <string name="title_activation">Forzar frecuencia Wifi activada</string>
+      
+  <string name="error_5ghz_not_configured">Intente configurar la red de 5 GHz con el SSID actual...</string>
+      
+  <string name="error_scan_failed_throttle">Error en el análisis de Wi-Fi: limitación de demasiados análisis</string>
+      
+  <string name="error_scan_failed_wifi">No se pudo escanear Wi-Fi: Wi-Fi no disponible</string>
+      
+  <string name="app_description">Obliga a Wifi a cambiar a canales de 5 GHz</string>
+      
+  <string name="title_2ghz5ghz">Elija la frecuencia preferida</string>
+      
+  <string name="action_settings">Ajustes</string>
+      
+  <string name="action_ignore">Ignorar</string>
+
+  <string name="title_deacttived">Inactivo</string>
+      
+  <string name="title_5ghz">5 GHz</string>
+      
+  <string name="title_2ghz">2,4 GHz</string>
+      
+  <string name="title_6ghz">6 GHz</string>
+      
+  <string name="prefs_activation">prefs_activación</string>
+      
+  <string name="prefs_2ghz5ghz">prefs_ghz25interruptor</string>
+      
+  <string name="title_minimumlevel">Nivel de señal mínimo para cambiar</string>
+      
+  <string name="prefs_signallevel">prefs_signallevel</string>
+      
+  <string name="summary_activation">Activa o desactiva la funcionalidad para cambiar automáticamente la frecuencia de tu Wifi</string>
+      
+  <string name="summary_2ghz5ghz">Elija su frecuencia preferida: 2,4 GHz o 5 GHz, si es compatible</string>
+      
+  <string name="summary_signallevel">Defina el nivel de señal mínimo para cambiar a otra frecuencia. Esto evita cambiar a una red más débil.</string>
+      
+  <string name="title_settings">Ajustes</string>
+      
+  <string name="text_wififound">Encontré los siguientes puntos de acceso Wifi con el mismo SSID y 2.4/5 GHz, tratando de cambiar al preferido. Esto puede llevar algo de tiempo o varios conmutadores de red.</string>
+      
+  <string name="text_nowififound">No tienes puntos de acceso Wi-Fi con bandas de 2,4 y 5 GHz en el mismo SSID cercano. Busque otro punto de acceso Wifi con múltiples frecuencias en el mismo SSID para usar esta aplicación.</string>
+      
+  <string name="error_not_android10">Encontré los siguientes puntos de acceso Wifi con el mismo SSID y 2.4/5 GHz, tratando de cambiar al preferido. Tenga en cuenta: ¡A partir de Android 10, probablemente tenga que desactivar y luego volver a conectar su Wifi manualmente!</string>
+      
+  <string name="prefs_switchnetwork">prefs_switchnetworkssid</string>
+      
+  <string name="title_switchnetwork">Cambiar a otra red</string>
+      
+  <string name="summary_switchnetwork">Elija otra red (SSID) con la frecuencia deseada en lugar de quedarse con el mismo SSID</string>
+      
+  <string name="info_switch_wifi_5ghz_android10">Vuelva a conectarse a su Wifi manualmente o reinicie el dispositivo para cambiar la frecuencia</string>
+      
+  <string name="message_welcome">&lt;p&gt;Escribí esta aplicación para obligar a mis dispositivos a utilizar los canales de 5 GHz menos utilizados de mi red Wi-Fi.&lt;/p&gt;&lt;br/&gt;&lt;p&gt;Lamentablemente, a partir de Android 10, las aplicaciones no pueden &lt;em&gt;forzar&lt;/em&gt; la sistema para cambiar el canal Wifi, pero solo da una &lt;em&gt;recomendación&lt;/em&gt; para hacerlo.&lt;/p&gt;&lt;br/&gt;&lt;p&gt;Por lo tanto, esta aplicación &lt;em&gt;PUEDE o NO&lt;/em&gt; funcionar en tu dispositivo. Por favor, inténtalo. En determinados casos, tendrás que desactivar y activar tu Wi-Fi manualmente una vez o incluso reiniciar el dispositivo para que funcione.&lt;/p&gt;&lt;p&gt;Si no funciona, simplemente desinstálalo.&lt;/p&gt;&lt;p&gt;2}&lt;br/&gt;&lt;p&gt;Cualquier comentario es bienvenido, solo envíame un correo electrónico.&lt;/p&gt;&lt;/p&gt;</string>
+      
+  <string name="message_activate_locationservices">&lt;p&gt;Esta aplicación requiere acceso a todas las redes inalámbricas cercanas. Por lo tanto, los &lt;em&gt;Servicios de ubicación&lt;/em&gt; deben estar habilitados para recuperar una lista de todas las Wifi. Este es un requisito impuesto por Android.&lt;br/&gt;Sin la aplicación NO FUNCIONARÁ.&lt;br/&gt;&lt;p&gt;La aplicación nunca intentará localizar su posición o similar.&lt;/p&gt;</string>
+      
+  <string name="message_activate_notifications">Esta aplicación requiere mostrar notificaciones; de lo contrario, la funcionalidad puede ser limitada. Habilite las notificaciones en la configuración de la aplicación.</string>
+      
+  <string name="error_switch_wifi_android10">Error al configurar sugerencia para wifi</string>
+      
+  <string name="error_permission_missing">¡Se ha revocado el permiso para acceder al estado de Wifis!</string>
+      
+  <string name="message_batteryoptimizations">&lt;p&gt;En Android 12 o superior, tendrás que inhabilitar las &lt;em&gt;optimizaciones de la batería&lt;/em&gt; para esta aplicación.&lt;/p&gt;&lt;br/&gt;&lt;p&gt;Abre la configuración y otorga una excepción a esta aplicación seleccionando el seleccionando &lt;em&gt;No optimizar&lt;/em&gt; y eliminando las &lt;em&gt;restricciones en segundo plano&lt;/em&gt;.&lt;/p&gt;&lt;p&gt;Si no desactivas las optimizaciones de la batería, es posible que esta aplicación se detenga de forma forzosa. por Android.&lt;/p&gt;</string>
+      
+  <string name="error_permission_duplicate">Error al configurar la sugerencia de duplicación para Wi-Fi: intente iniciar la aplicación nuevamente.</string>
+      
+  <string name="error_suggestion_not_taken">Android no siguió la sugerencia de Wifi: intente desconectarse y volver a conectarse manualmente</string>
+      
+  <string name="error_no_permissions_provived">Esta aplicación carece de los permisos necesarios para los servicios de ubicación y el acceso Wifi. Abra la Configuración y conceda los permisos necesarios.</string>
+      
+  <string name="summay_permission_settings">Abra la configuración de permisos de la aplicación. Esta aplicación necesita permisos para Wifi, Ubicación y Notificaciones para poder funcionar.</string>
+      
+  <string name="summary_location_settings">Abra la configuración de los servicios de ubicación. Esta aplicación necesita que los servicios de ubicación estén habilitados para recuperar una lista de todos los puntos de acceso Wifi.</string>
+      
+  <string name="title_permission_settings">Configuración de permisos</string>
+      
+  <string name="title_location_settings">Configuración de ubicación</string>
+      
+  <string name="title_app_settings">Ajustes de Aplicacion</string>
+      
+  <string name="summay_app_settings">Abra la configuración de esta aplicación. Úselo para eliminar las restricciones de fondo y corregir los permisos o la configuración de optimización de la batería.</string>
+      
+  <string name="prefs_location_settings">preferencias_ubicación_configuraciones</string>
+      
+  <string name="prefs_permission_settings">preferencias_permisos_configuraciones</string>
+      
+  <string name="prefs_app_settings">prefs_app_settings</string>
+      
+  <string name="prefs_battery_settings">prefs_battery_settings</string>
+      
+  <string-array name="entries25ghz">
+            
+    <item>2,4 GHz</item>
+            
+    <item>5 GHz</item>
+            
+    <item>6 GHz</item>
+        
+  </string-array>
+      
+  <string-array name="values25ghz">
+            
+    <item>0</item>
+            
+    <item>1</item>
+            
+    <item>2</item>
+        
+  </string-array>
+      
+  <string name="text_nowifi">No hay punto de acceso Wifi conectado</string>
+      
+  <string name="text_nowifirecommended">No se recomienda ningún punto de acceso Wifi</string>
+      
+  <string name="error_scan_succesful">Escaneo wifi exitoso</string>
+      
+  <string name="wifi_settings">Configuración wifi</string>
+      
+  <string name="add_widget">Añadir widget</string>
+      
+  <string name="appwidget_text">EJEMPLO</string>
+      
+  <string name="app_widget_description">Widget ForceWifi5</string>
+      
+  <string name="title_unknown">Desconocido</string>
+      
+  <string name="error_not_supported">Función no compatible con su teléfono</string>
+      
+  <string name="prefs_widget_settings">prefs_widget_settings</string>
+      
+  <string name="message_requestpermission_rationale">&lt;p&gt;Esta aplicación requiere varias configuraciones de permisos para funcionar correctamente. Concédeles a todos:&lt;/p&gt;&lt;ol&gt;&lt;li&gt;&lt;b&gt; Acceso a tu ubicación&lt;/b&gt;: Android lo requiere para determinar todos los puntos de acceso Wi-Fi cercanos&lt;/li&gt;&lt;li&gt;&lt;b&gt; Habilitado servicios de ubicación&lt;/b&gt;, y sus &lt;em&gt;Servicios de ubicación&lt;/em&gt; también deben estar habilitados&lt;/li&gt;&lt;li&gt;&lt;em&gt;&lt;b&gt; Modos de optimización de batería&lt;/b&gt;&lt;/em&gt; deben estar desactivados para mantén la aplicación ejecutándose en segundo plano&lt;/li&gt;&lt;li&gt;... y es posible que se te pregunte cuándo la aplicación propone otra red Wi-Fi. Di \"Sí\", porque ese es el único propósito de esta aplicación.&lt;/li&gt;&lt;/ol&gt;</string>
+      
+  <string name="title_sendfeedback">Suministre realimentación</string>
+      
+  <string name="feedback_subject">Comentarios sobre ForceWifi5</string>
+      
+  <string name="error_cannot_display_recommended_wifi">No se puede mostrar la lista wifi sugerida</string>
+      
+  <string name="message_requestpermissionnotifications_rationale">A partir de Android 13, también deberá proporcionar un permiso adicional para permitir las notificaciones. Así que active las notificaciones para esta aplicación.</string>
+      
+  <string name="error_no_permissions_notification">¡Otorgue el permiso de NOTIFICACIÓN en la configuración de la aplicación!</string>
+      
+  <string name="message_nosupport">Esta aplicación requiere que su dispositivo Android admita Wi-Fi multibanda, es decir, 2,4 GHz y 5 o 6 GHz. Obviamente, este no es el caso. Por lo tanto, desinstálelo.</string>
+      
+  <string name="action_about">Acerca de</string>
+  
+</resources>
