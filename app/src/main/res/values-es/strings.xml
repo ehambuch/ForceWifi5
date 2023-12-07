@@ -163,5 +163,10 @@
   <string name="message_nosupport">Esta aplicación requiere que su dispositivo Android admita Wi-Fi multibanda, es decir, 2,4 GHz y 5 o 6 GHz. Obviamente, este no es el caso. Por lo tanto, desinstálelo.</string>
       
   <string name="action_about">Acerca de</string>
-  
+  <string name="title_batt_optimization_settings">Battery optimization settings</string>
+  <string name="summary_batt_optimization_settings">Open battery optimization settings to disable all optimizations for this app. This is required for Android 12 and above.</string>
+  <string name="title_developer_settings">Configuración del desarrollador</string>
+  <string name="description_developer_settings">Puede desactivar la limitación del escaneo de Wifi en las Opciones de desarrollador (si está activada en su dispositivo).</string>
+    <string name="message_forcewifi14_activated">Forzar Wifi 5 activado. Ábralo para cambiar a un punto de acceso Wifi específico.</string>
+
 </resources>

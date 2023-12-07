@@ -4,6 +4,7 @@ import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.Manifest.permission.ACCESS_WIFI_STATE;
 import static android.Manifest.permission.CHANGE_WIFI_STATE;
 
+import android.Manifest;
 import android.app.ActivityManager;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
@@ -20,6 +21,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.preference.ListPreference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
@@ -126,6 +128,8 @@ public class SettingsActivity extends AppCompatActivity {
 		final int iconAlert = android.R.drawable.ic_dialog_alert;
 		if(am.isBackgroundRestricted())
 			settingsFragment.findPreference(getString(R.string.prefs_app_settings)).setIcon(iconAlert);
+		if(!isNotificationsEnabled())
+			settingsFragment.findPreference(getString(R.string.prefs_notification_settings)).setIcon(iconAlert);
 		if(!MainActivity.isLocationServicesEnabled(this))
 			settingsFragment.findPreference(getString(R.string.prefs_location_settings)).setIcon(iconAlert);
 		if(!pm.isIgnoringBatteryOptimizations(getPackageName()))
@@ -137,12 +141,21 @@ public class SettingsActivity extends AppCompatActivity {
 			settingsFragment.findPreference(getString(R.string.prefs_permission_settings)).setIcon(iconAlert);
 	}
 
-    @Override
+	private boolean isNotificationsEnabled() {
+		if (!NotificationManagerCompat.from(this).areNotificationsEnabled())
+			return false;
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+			return ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED;
+		} else
+			return true;
+	}
+
+	@Override
 	public void onStop() {
 		super.onStop();
 		// Activate or de-activate service on exit of preferences
-		final boolean actived = PreferenceManager.getDefaultSharedPreferences(this).getBoolean(getString(R.string.prefs_activation), true);
-		if (actived) {
+		final boolean activated = PreferenceManager.getDefaultSharedPreferences(this).getBoolean(getString(R.string.prefs_activation), true);
+		if (activated) {
 			MainActivity.startWifiService(this);
 		} else {
 			WifiChangeService.removeSuggestions(this);

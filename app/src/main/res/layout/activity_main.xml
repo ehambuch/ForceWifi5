@@ -26,9 +26,7 @@
             app:layout_constraintTop_toTopOf="parent"
             android:padding="5dp"
             android:visibility="visible"
-            app:cardBackgroundColor="@color/colorPrimaryDark"
-            app:cardCornerRadius="8dp"
-            >
+            app:cardCornerRadius="8dp">
 
                 <TextView
                     android:id="@+id/nowifitextview"

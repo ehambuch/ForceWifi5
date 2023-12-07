@@ -7,6 +7,8 @@ import androidx.annotation.NonNull;
 import androidx.work.Configuration;
 import androidx.work.WorkManager;
 
+import com.google.android.material.color.DynamicColors;
+
 /**
  * @see <a href="https://developer.android.com/topic/libraries/architecture/workmanager/advanced/custom-configuration">...</a>
  */
@@ -20,6 +22,7 @@ public class ForceApplication extends Application implements Configuration.Provi
         } catch(Exception e) {
             Log.w(AppInfo.APP_NAME, e);
         }
+        DynamicColors.applyToActivitiesIfAvailable(this); // for setup of Material 3
     }
 
     @NonNull

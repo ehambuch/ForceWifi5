@@ -24,7 +24,9 @@ import android.net.wifi.WifiManager;
 import android.net.wifi.WifiNetworkSuggestion;
 import android.os.Binder;
 import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.provider.Settings;
 import android.util.Log;
 import android.widget.Toast;
@@ -75,10 +77,21 @@ public class WifiChangeService extends Service {
 								.setContentText(context.getText(R.string.title_activation))
 								.setSmallIcon(R.mipmap.ic_launcher)
 								.setAutoCancel(false)
+								.setContentIntent(PendingIntent.getActivity(context, 0,
+										new Intent(Intent.ACTION_VIEW, null, context.getApplicationContext(), MainActivity.class),
+										PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_IMMUTABLE))
 								.setCategory(Notification.CATEGORY_SERVICE)
 								.setTicker(context.getText(R.string.title_activation));
 				try {
-					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+						// with Android 14 we cannot start a Foreground Service anymore
+						myService.startService(new Intent(myService.getApplicationContext(), WifiChangeService14.class));
+						if (NotificationManagerCompat.from(context).areNotificationsEnabled())
+							if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+								showError(this.context, R.string.error_no_permissions_notification);
+							} else
+								NotificationManagerCompat.from(context).notify(ONGOING_NOTIFICATION_ID, builder.build());
+					} else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
 						// With Android 12+ we could get an android.app.ForegroundServiceStartNotAllowedException due to new restrictions
 						builder.setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE);
 						builder.setOngoing(true);
@@ -164,8 +177,9 @@ public class WifiChangeService extends Service {
 		// As of Android 12+ foreground service start is not possible in many cases. We try another way to display a Notification
 		// in case we are still in background. We can perform a test by using adb with:
 		// adb shell device_config put activity_manager default_fgs_starts_restriction_notification_enabled true
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && this.getForegroundServiceType() != FOREGROUND_SERVICE_TYPE_LOCATION) {
-			startForeground(ONGOING_NOTIFICATION_ID, createMessageNotification(R.string.title_activation), FOREGROUND_SERVICE_TYPE_LOCATION);
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE &&
+				this.getForegroundServiceType() != FOREGROUND_SERVICE_TYPE_LOCATION) {
+			startForeground(ONGOING_NOTIFICATION_ID, createMessageNotification(this, R.string.title_activation), FOREGROUND_SERVICE_TYPE_LOCATION);
 		}
 
 		if (isActivated()) {
@@ -274,6 +288,9 @@ public class WifiChangeService extends Service {
 										.setContentText(this.getText(R.string.title_activation))
 										.setSmallIcon(R.mipmap.ic_launcher)
 										.setAutoCancel(true)
+										.setContentIntent(PendingIntent.getActivity(getApplicationContext(), 0,
+												new Intent(Intent.ACTION_VIEW, null, getApplicationContext(), MainActivity.class),
+												PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_IMMUTABLE))
 										.setCategory(Notification.CATEGORY_MESSAGE)
 										.setTicker(this.getText(R.string.info_switch_wifi_5ghz) + " " + suggestionToString(suggestions.get(0)))
 										.build();
@@ -371,16 +388,30 @@ public class WifiChangeService extends Service {
 	}
 
 	private void showError(int stringId) {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && NotificationManagerCompat.from(this).areNotificationsEnabled()) {
-			try {
-				NotificationManagerCompat.from(this).notify(ONGOING_NOTIFICATION_ID, createMessageNotification(stringId));
-			} catch(SecurityException e) {
-				showError(R.string.error_no_permissions_notification);
-			}
-		} else
-			Toast.makeText(getApplicationContext(), stringId, Toast.LENGTH_LONG).show();
+		showError(getApplicationContext(), stringId, false);
+	}
+	static void showError(Context context, int stringId) {
+		showError(context, stringId, false);
 	}
 
+	private static void showError(Context context, int stringId, boolean forceToast) {
+		if (!forceToast && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && NotificationManagerCompat.from(context).areNotificationsEnabled()) {
+			try {
+				NotificationManagerCompat.from(context).notify(ONGOING_NOTIFICATION_ID, createMessageNotification(context, stringId));
+			} catch (SecurityException e) {
+				showError(context, R.string.error_no_permissions_notification, forceToast);
+			}
+		} else {
+			// a bit tricky to display a toast from a (background) service
+			new Handler(Looper.getMainLooper()).post(new Runnable() {
+
+				@Override
+				public void run() {
+					Toast.makeText(context, stringId, Toast.LENGTH_LONG).show();
+				}
+			});
+		}
+	}
 
 	/**
 	 * Check if Location Services are enabled. If not, raise a notification to the user.
@@ -441,16 +472,20 @@ public class WifiChangeService extends Service {
 
 	@NonNull
 	@RequiresApi(api = Build.VERSION_CODES.O)
-	protected Notification createMessageNotification(int resourceId) {
+	protected static Notification createMessageNotification(Context context, int resourceId) {
 		NotificationCompat.Builder builder =
-				new NotificationCompat.Builder(this, MainActivity.CHANNEL_ID)
-						.setContentTitle(getText(R.string.app_name))
-						.setContentText(getText(resourceId))
+				new NotificationCompat.Builder(context, MainActivity.CHANNEL_ID)
+						.setContentTitle(context.getText(R.string.app_name))
+						.setContentText(context.getText(resourceId))
 						.setSmallIcon(R.mipmap.ic_launcher)
 						.setAutoCancel(false)
+						.setContentIntent(PendingIntent.getActivity(context
+										.getApplicationContext(), 0,
+								new Intent(Intent.ACTION_VIEW, null, context.getApplicationContext(), MainActivity.class),
+								PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_IMMUTABLE))
 						.setCategory(Notification.CATEGORY_MESSAGE)
-						.setTicker(getText(resourceId));
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+						.setTicker(context.getText(resourceId));
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
 			builder.setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE);
 			builder.setOngoing(true);
 		}

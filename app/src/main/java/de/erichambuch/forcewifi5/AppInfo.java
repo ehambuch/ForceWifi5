@@ -41,6 +41,7 @@ package de.erichambuch.forcewifi5;
  *     <li>V1.16.1 (10.06.2023) - Support for 6 GHz, Updated permission workflow</li>
  *     <li>V1.17.0 (17.06.2023) - Polish translation provided by Marek Bogacz, Spanish/French by automatic Google translation</li>
  *     <li>V1.18.0 (18.08.2023) - Update Android 14</li>
+ *     <li>V1.19.0 (02.12.2023) - Android 14 Permission Update (new developer policy, no automatic switch on Android14+ from background), Material 3</li>
  * </ul>
  * <ul>
  *     <li>TODO: disconnect does not work anymore: https://issuetracker.google.com/issues/128554616</li>

@@ -163,5 +163,10 @@
   <string name="message_nosupport">Cette application nécessite que votre appareil Android prenne en charge le Wi-Fi multibande - donc 2,4 GHz ainsi que 5 ou 6 GHz. De toute évidence, ce n\'est pas le cas. Veuillez donc le désinstaller.</string>
       
   <string name="action_about">À propos</string>
-  
+    <string name="title_batt_optimization_settings">Battery optimization settings</string>
+  <string name="summary_batt_optimization_settings">Open battery optimization settings to disable all optimizations for this app. This is required for Android 12 and above.</string>
+  <string name="title_developer_settings">Paramètres du développeur</string>
+  <string name="description_developer_settings">You can switch off the Wifi scanning Throttling in the Developer Options (if activated on your device).</string>
+    <string name="message_forcewifi14_activated">Forcer l\'activation du Wifi 5. Veuillez l\'ouvrir pour passer à un point d\'accès Wifi spécifique.</string>
+
 </resources>

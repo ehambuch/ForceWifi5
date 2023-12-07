@@ -83,4 +83,11 @@
     <string name="error_no_permissions_notification">Bitte vergeben Sie die BENACHRICHTIGUNG Berechtigung in den App-Einstellungen!</string>
     <string name="message_nosupport">Diese App macht nur Sinn, wenn ihr Android-Gerät mehrere Frequenzbänder - 2.4 GHz und 5 oder 6 GHz unterstützt. Andernfalls deinstallieren Sie die App besser.</string>
     <string name="action_about">Über</string>
+    <string name="title_batt_optimization_settings">Energiespareinstellungen</string>
+    <string name="summary_batt_optimization_settings">Öffnen Sie die Energiespareinstellungen und deaktivieren Sie die Optimierungen für die App</string>
+    <string name="title_developer_settings">Entwickleroptionen</string>
+    <string name="description_developer_settings">"Deaktivieren Sie die Drosselung für Wifi Scans "</string>
+    <string name="message_forcewifi14_activated">ForceWifi5 aktiviert. Bitte öffnen Sie die App, um ein bestimmtes Wifi auszuwählen.</string>
+    <string name="title_notification_settings">Benachrichtigungen</string>
+    <string name="summay_notifications_settings">Aktivieren Sie alle Benachrichtigungen durch die App, um über Änderungen des Wifis informiert zu werden.</string>
 </resources>

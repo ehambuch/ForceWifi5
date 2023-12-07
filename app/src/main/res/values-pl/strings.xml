@@ -83,4 +83,9 @@
     <string name="error_no_permissions_notification">Proszę udzielić uprawnienia POWIADOMIENIE w ustawieniach aplikacji!</string>
     <string name="message_nosupport">Ta aplikacja wymaga, by Twoje urządzenie z Androidem obsługiwało wielozakresowe WiFi - czyli 2,4 GHz oraz 5 lub 6 GHz. Niestety twoje urządzenie nie obsługuje wielozakresowego WiFi, dlatego prosimy o odinstalowanie aplikacji.</string>
     <string name="action_about">O aplikacji</string>
+    <string name="title_batt_optimization_settings">Battery optimization settings</string>
+    <string name="summary_batt_optimization_settings">Open battery optimization settings to disable all optimizations for this app. This is required for Android 12 and above.</string>
+    <string name="title_developer_settings">Developer Settings</string>
+    <string name="description_developer_settings">Możesz wyłączyć ograniczanie skanowania Wi-Fi w Opcjach programisty (jeśli jest włączone na Twoim urządzeniu).</string>
+    <string name="message_forcewifi14_activated">Wymuś aktywację Wi-Fi 5. Otwórz, aby przełączyć się na konkretny punkt dostępu Wi-Fi.</string>
 </resources>

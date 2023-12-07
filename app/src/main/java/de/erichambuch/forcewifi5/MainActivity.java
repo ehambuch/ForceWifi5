@@ -7,6 +7,7 @@ import static android.Manifest.permission.CHANGE_WIFI_STATE;
 import static android.Manifest.permission.POST_NOTIFICATIONS;
 import static android.content.Intent.ACTION_UNINSTALL_PACKAGE;
 import static android.text.Html.FROM_HTML_MODE_LEGACY;
+import static de.erichambuch.forcewifi5.WifiChangeService.ONGOING_NOTIFICATION_ID;
 import static de.erichambuch.forcewifi5.WifiUtils.normalizeSSID;
 
 import android.annotation.SuppressLint;
@@ -53,6 +54,8 @@ import androidx.annotation.RequiresApi;
 import androidx.annotation.RequiresPermission;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.core.location.LocationManagerCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.preference.PreferenceManager;
@@ -73,6 +76,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Main activity für die App.
@@ -91,7 +95,8 @@ public class MainActivity extends AppCompatActivity {
 	/**
 	 * Circuit breaker - shared by different listeners.
 	 */
-	protected static volatile long lastNetworkCallback = 0;
+	@NonNull
+	protected static AtomicLong lastNetworkCallback = new AtomicLong(0);
 
 	/**
 	 * Flag whether to check for battery optimizations or the user dismissed the check.
@@ -112,10 +117,10 @@ public class MainActivity extends AppCompatActivity {
 		public void onReceive(Context context, Intent intent) {
 			Log.d(AppInfo.APP_NAME, "NetworkStateChangedReceiver called");
 			final long lastTimestamp = System.currentTimeMillis();
-			if ( lastTimestamp > lastNetworkCallback+ (30*1000)) { // Circuit breaker
-				lastNetworkCallback = lastTimestamp;
+			if (lastTimestamp > lastNetworkCallback.get() + (30 * 1000)) { // Circuit breaker
+				lastNetworkCallback.set(lastTimestamp);
 				final NetworkInfo networkInfo = (NetworkInfo) intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
-				if(networkInfo == null || (networkInfo.isConnectedOrConnecting() && networkInfo.getType() == ConnectivityManager.TYPE_WIFI) )
+				if (networkInfo == null || (networkInfo.isConnectedOrConnecting() && networkInfo.getType() == ConnectivityManager.TYPE_WIFI))
 					startWifiService(context.getApplicationContext());
 			} else
 				Log.d(AppInfo.APP_NAME, "Skipped NetworkCallBack");
@@ -127,7 +132,7 @@ public class MainActivity extends AppCompatActivity {
 			// and update widget if any
 			final AppWidgetManager appWidgetManager = (AppWidgetManager) context.getSystemService(APPWIDGET_SERVICE);
 			final int[] widgetIds = appWidgetManager.getAppWidgetIds(new ComponentName(context, ForceWifiAppWidget.class.getName()));
-			if(widgetIds.length > 0) {
+			if (widgetIds.length > 0) {
 				final Intent widgetIntent = new Intent(context.getApplicationContext(), ForceWifiAppWidget.class);
 				widgetIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
 				widgetIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, widgetIds);
@@ -148,14 +153,22 @@ public class MainActivity extends AppCompatActivity {
 		}
 
 		@Override
-		public void onAvailable(Network network) {
+		public void onAvailable(@NonNull Network network) {
 			Log.d(AppInfo.APP_NAME, "Networkcallback onAvailable");
 			// small circuit breaker: if we are called twice within 60 seconds  - then ignore the call
 			// so we break up an endless loop of connection failures
 			final long lastTimestamp = System.currentTimeMillis();
-			if ( lastTimestamp > lastNetworkCallback+ (60*1000)) {
-				lastNetworkCallback = lastTimestamp;
-				startWifiService(myContext);
+			if (lastTimestamp > lastNetworkCallback.get() + (60 * 1000)) {
+				lastNetworkCallback.set(lastTimestamp);
+				// On Android 14+ we cannot start a foreground service anymore, so only send a notification
+				if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+					if (ActivityCompat.checkSelfPermission(myContext, android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+						NotificationManagerCompat.from(myContext).notify(ONGOING_NOTIFICATION_ID,
+								WifiChangeService.createMessageNotification(myContext, R.string.message_forcewifi14_activated));
+					}
+				} else {
+					startWifiService(myContext);
+				}
 			} else
 				Log.d(AppInfo.APP_NAME, "Skipped NetworkCallBack");
 
@@ -163,15 +176,32 @@ public class MainActivity extends AppCompatActivity {
 		}
 
 		@Override
-		public void onLost(Network network) {
+		public void onLost(@NonNull Network network) {
 			Log.d(AppInfo.APP_NAME, "Networkcallback onLost");
 			updateWidget();
 		}
 
 		@Override
 		public void onLinkPropertiesChanged(android.net.Network network,
-														android.net.LinkProperties linkProperties) {
+											android.net.LinkProperties linkProperties) {
 			Log.d(AppInfo.APP_NAME, "Networkcallback onLinkPropertiesChanged");
+			// small circuit breaker: if we are called twice within 60 seconds  - then ignore the call
+			// so we break up an endless loop of connection failures
+			final long lastTimestamp = System.currentTimeMillis();
+			if (lastTimestamp > lastNetworkCallback.get() + (60 * 1000)) {
+				lastNetworkCallback.set(lastTimestamp);
+				// On Android 14+ we cannot start a foreground service anymore, so only send a notification
+				if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+					if (ActivityCompat.checkSelfPermission(myContext, android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+						NotificationManagerCompat.from(myContext).notify(ONGOING_NOTIFICATION_ID,
+								WifiChangeService.createMessageNotification(myContext, R.string.message_forcewifi14_activated));
+					}
+				} else {
+					startWifiService(myContext);
+				}
+			} else
+				Log.d(AppInfo.APP_NAME, "Skipped NetworkCallBack");
+
 			updateWidget();
 		}
 
@@ -179,7 +209,7 @@ public class MainActivity extends AppCompatActivity {
 			// and update widget if any
 			final AppWidgetManager appWidgetManager = (AppWidgetManager) myContext.getSystemService(APPWIDGET_SERVICE);
 			final int[] widgetIds = appWidgetManager.getAppWidgetIds(new ComponentName(myContext, ForceWifiAppWidget.class.getName()));
-			if(widgetIds.length > 0) {
+			if (widgetIds.length > 0) {
 				final Intent widgetIntent = new Intent(myContext.getApplicationContext(), ForceWifiAppWidget.class);
 				widgetIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
 				widgetIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, widgetIds);
@@ -227,8 +257,8 @@ public class MainActivity extends AppCompatActivity {
 		}
 
 		public boolean isSuggested() {
-			for(AccessPointEntry entry : accessPoints) {
-				if(entry.recommended)
+			for (AccessPointEntry entry : accessPoints) {
+				if (entry.recommended)
 					return true;
 			}
 			return false;
@@ -285,12 +315,12 @@ public class MainActivity extends AppCompatActivity {
 		public void onReceive(Context context, Intent intent) {
 			if (WifiManager.SCAN_RESULTS_AVAILABLE_ACTION.equals(intent.getAction())) {
 				boolean success = intent.getBooleanExtra(WifiManager.EXTRA_RESULTS_UPDATED, false);
-				Log.d(AppInfo.APP_NAME, "ScanFinished: "+success);
+				Log.d(AppInfo.APP_NAME, "ScanFinished: " + success);
 				if (success) {
 					// We could start the WifiSevice here again, but it's already started when a network is available (NetworkCallback)
 					// therefore we do not call startWifiService(context); anymore
 					try {
-						if(!MainActivity.this.isFinishing())
+						if (!MainActivity.this.isFinishing())
 							MainActivity.this.listNetworks();
 						Toast.makeText(context, R.string.error_scan_succesful, Toast.LENGTH_LONG).show();
 					} catch (SecurityException e) {
@@ -299,7 +329,7 @@ public class MainActivity extends AppCompatActivity {
 					// and update widget if any
 					final AppWidgetManager appWidgetManager = (AppWidgetManager) context.getSystemService(APPWIDGET_SERVICE);
 					final int[] widgetIds = appWidgetManager.getAppWidgetIds(new ComponentName(context, ForceWifiAppWidget.class.getName()));
-					if(widgetIds.length > 0) {
+					if (widgetIds.length > 0) {
 						final Intent widgetIntent = new Intent(context.getApplicationContext(), ForceWifiAppWidget.class);
 						widgetIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
 						context.sendBroadcast(widgetIntent);
@@ -307,7 +337,7 @@ public class MainActivity extends AppCompatActivity {
 				} else {
 					// nevertheless display old results
 					try {
-						if(!MainActivity.this.isFinishing())
+						if (!MainActivity.this.isFinishing())
 							MainActivity.this.listNetworks();
 					} catch (SecurityException e) {
 						Log.e(AppInfo.APP_NAME, "Error listing networks", e);
@@ -355,9 +385,9 @@ public class MainActivity extends AppCompatActivity {
 		swipeRefreshLayout.setOnRefreshListener(
 				() -> {
 					WifiManager wifiManager = getSystemService(WifiManager.class);
-					if(wifiManager != null ) {
+					if (wifiManager != null) {
 						boolean scanSuccessful = wifiManager.startScan(); // listNetworks is called by ScanFinishedListener
-						if(!scanSuccessful)
+						if (!scanSuccessful)
 							showError(R.string.error_scan_failed_throttle);
 					}
 					swipeRefreshLayout.setRefreshing(false);
@@ -370,12 +400,11 @@ public class MainActivity extends AppCompatActivity {
 				new NetworkRequest.Builder().addTransportType(NetworkCapabilities.TRANSPORT_WIFI).build(),
 				new NetworkCallback(getApplicationContext()));
 
-		if(Intent.ACTION_MAIN.equals(getIntent().getAction())) // show info dialog only on first start
+		if (Intent.ACTION_MAIN.equals(getIntent().getAction())) // show info dialog only on first start
 		{
-			if(!checkAndShowNotUsefulDialog())
+			if (!checkAndShowNotUsefulDialog())
 				checkPermissionDialogs(true);
-		}
-		else {
+		} else {
 			// Get Permissions right away from the start
 			if ((checkSelfPermission(ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) &&
 					(checkSelfPermission(ACCESS_WIFI_STATE) == PackageManager.PERMISSION_GRANTED) &&
@@ -412,9 +441,9 @@ public class MainActivity extends AppCompatActivity {
 	void requestMyPermissions(boolean showExplanation) {
 		final List<String> missingPermissions = missingPermissions();
 		if (!missingPermissions.isEmpty()) {
-			for(String permission : missingPermissions)
+			for (String permission : missingPermissions)
 				shouldShowRequestPermissionRationale(permission); // just call to satisfy Android, we should the rational anyway
-			if(showExplanation) {
+			if (showExplanation) {
 				new MaterialAlertDialogBuilder(this)
 						.setTitle(getString(R.string.app_name))
 						.setPositiveButton("I got it", (dialog1, which) -> {
@@ -440,7 +469,7 @@ public class MainActivity extends AppCompatActivity {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) // with Android 13: new permission
 			permissions.add(POST_NOTIFICATIONS);
 		List<String> missing = new ArrayList<>();
-		for(String p : permissions) {
+		for (String p : permissions) {
 			if (checkSelfPermission(p) != PackageManager.PERMISSION_GRANTED)
 				missing.add(p);
 		}
@@ -461,11 +490,11 @@ public class MainActivity extends AppCompatActivity {
 	 */
 	protected void checkPermissionDialogs(boolean showExplanations) {
 		final List<String> missingPermssions = missingPermissions();
-		if(!missingPermssions.isEmpty())
+		if (!missingPermssions.isEmpty())
 			requestMyPermissions(showExplanations);
 
 		// here we catch the flow that Location settings are not enabled (which blocks the check in onStart())
-		if(missingPermssions.isEmpty() && !isLocationServicesEnabled(MainActivity.this)) {
+		if (missingPermssions.isEmpty() && !isLocationServicesEnabled(MainActivity.this)) {
 			showLocationServicesDialog();
 		}
 		// for Android 12: we have to go for an exception from the "don't start foreground service from background"
@@ -474,7 +503,7 @@ public class MainActivity extends AppCompatActivity {
 			checkBatteryOptimizationsDisabled();
 		}
 		// Android 13: Notifications
-		if(missingPermssions.isEmpty() && (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)) {
+		if (missingPermssions.isEmpty() && (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)) {
 			checkNotificationsEnalbed();
 		}
 	}
@@ -483,7 +512,7 @@ public class MainActivity extends AppCompatActivity {
 	 * Starting with Android 13 the user may disable notifications.
 	 */
 	private void checkNotificationsEnalbed() {
-		if(checkForNotificationsEnabled && !getSystemService(NotificationManager.class).areNotificationsEnabled()) {
+		if (checkForNotificationsEnabled && !getSystemService(NotificationManager.class).areNotificationsEnabled()) {
 			new MaterialAlertDialogBuilder(this)
 					.setTitle(getString(R.string.app_name))
 					.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -497,7 +526,7 @@ public class MainActivity extends AppCompatActivity {
 						@Override
 						public void onClick(DialogInterface dialog, int which) {
 							Intent settingsIntent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-							settingsIntent.setData(Uri.parse("package:"+getPackageName()));
+							settingsIntent.setData(Uri.parse("package:" + getPackageName()));
 							settingsIntent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
 							startActivity(settingsIntent);
 						}
@@ -507,12 +536,13 @@ public class MainActivity extends AppCompatActivity {
 		}
 
 	}
+
 	protected boolean checkAndShowNotUsefulDialog() {
 		final WifiManager wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
 		final int is24Ghz = (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || wifiManager.is24GHzBandSupported()) ? 1 : 0;
 		final int is50Ghz = wifiManager.is5GHzBandSupported() ? 1 : 0;
 		final int is60Ghz = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && wifiManager.is6GHzBandSupported()) ? 1 : 0;
-		if((is24Ghz + is50Ghz + is60Ghz) < 2) {
+		if (!BuildConfig.DEBUG && (is24Ghz + is50Ghz + is60Ghz) < 2) {
 			new MaterialAlertDialogBuilder(this)
 					.setTitle(getString(R.string.app_name))
 					.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -536,6 +566,7 @@ public class MainActivity extends AppCompatActivity {
 		}
 		return false;
 	}
+
 	protected void showLocationServicesDialog() {
 		new MaterialAlertDialogBuilder(this)
 				.setTitle(getString(R.string.app_name))
@@ -549,7 +580,7 @@ public class MainActivity extends AppCompatActivity {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
 						// here we catch the flow that Location settings are not enabled (which blocks the check in onStart())
-						if(!isLocationServicesEnabled(MainActivity.this)) {
+						if (!isLocationServicesEnabled(MainActivity.this)) {
 							Intent settingsIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
 							settingsIntent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
 							startActivity(settingsIntent);
@@ -563,7 +594,7 @@ public class MainActivity extends AppCompatActivity {
 	@RequiresPermission(allOf = {ACCESS_WIFI_STATE, ACCESS_FINE_LOCATION})
 	private void doStart() {
 		// check prerequisites on every start and inform the user
-		if(!isLocationServicesEnabled(this))
+		if (!isLocationServicesEnabled(this))
 			showError(R.string.error_no_location_enabled);
 
 		registerReceiver(scanFinishedListener, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
@@ -572,9 +603,9 @@ public class MainActivity extends AppCompatActivity {
 		WifiManager wifiManager = getSystemService(WifiManager.class);
 		try {
 			boolean scanSuccessful = wifiManager.startScan(); // startScan() will be deprecated (from API 28)?
-			if(!scanSuccessful)
+			if (!scanSuccessful)
 				showError(R.string.error_scan_failed_wifi);
-		} catch(SecurityException e) {
+		} catch (SecurityException e) {
 			Log.w(AppInfo.APP_NAME, "startScan failed", e);
 		}
 		findViewById(R.id.mainFragment).post(() -> listNetworks());
@@ -586,12 +617,12 @@ public class MainActivity extends AppCompatActivity {
 		try {
 			unregisterReceiver(scanFinishedListener); // may fail
 			LocalBroadcastManager.getInstance(this).unregisterReceiver(recommendationListener); // may fail
-		} catch(Exception e) {
+		} catch (Exception e) {
 			Log.w(AppInfo.APP_NAME, e);
 		}
 		super.onStop();
 	}
-	
+
 	protected void onDestroy() {
 		// do not call connManager.unregisterNetworkCallback(myNetworkCallback); as we want to continue receiving events
 		super.onDestroy();
@@ -652,8 +683,7 @@ public class MainActivity extends AppCompatActivity {
 					showError(R.string.error_no_location_enabled);
 				}
 			}
-		}
-		else
+		} else
 			super.onActivityResult(requestCode, resultCode, resultIntent);
 	}
 
@@ -667,14 +697,14 @@ public class MainActivity extends AppCompatActivity {
 		WifiInfo activeNetwork = wifiManager.getConnectionInfo();
 		// set active and connected wifis
 		final boolean activeWifi = (activeNetwork != null && wifiManager.isWifiEnabled() && activeNetwork.getSSID() != null);
-		((TextView)findViewById(R.id.actualwifitextview)).setText(activeWifi
-				? (activeNetwork.getSSID()+" - "+activeNetwork.getBSSID()+" at "+activeNetwork.getFrequency()+" MHz") : getString(R.string.text_nowifi));
+		((TextView) findViewById(R.id.actualwifitextview)).setText(activeWifi
+				? (activeNetwork.getSSID() + " - " + activeNetwork.getBSSID() + " at " + activeNetwork.getFrequency() + " MHz") : getString(R.string.text_nowifi));
 		// only with Android 11+ we get a list of all suggestions
 		final List<WifiNetworkSuggestion> suggestionList = new ArrayList<>();
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
 			try {
 				suggestionList.addAll(wifiManager.getNetworkSuggestions());
-			} catch(BadParcelableException e) { // on OnePlus...
+			} catch (BadParcelableException e) { // on OnePlus...
 				Log.e(AppInfo.APP_NAME, "Error on getNetworkSuggestions", e);
 			}
 		}
@@ -682,17 +712,17 @@ public class MainActivity extends AppCompatActivity {
 		// we also always add the connected network (even if only on one frequency) to display completeness to user
 		List<AccessPointEntry> listNetworks = new ArrayList<>();
 		Map<String, NetworkEntry> map245Ghz = new HashMap<>();
-		for(ScanResult result : scanResults) {
+		for (ScanResult result : scanResults) {
 			if (result.SSID != null && result.SSID.length() > 0 && result.BSSID != null) {
 				boolean connected = activeNetwork != null && normalizeSSID(result.SSID).equals(normalizeSSID(activeNetwork.getSSID()));
 				NetworkEntry isThere = map245Ghz.get(result.SSID);
-				if ( isThere == null ) 
+				if (isThere == null)
 					map245Ghz.put(result.SSID, isThere = new NetworkEntry(result.SSID, connected));
-				if ( result.frequency >= 2000 && result.frequency <= 2999 )
+				if (result.frequency >= 2000 && result.frequency <= 2999)
 					isThere.is24ghz = true;
-				if ( result.frequency >= 5000 && result.frequency <= 5999 )
+				if (result.frequency >= 5000 && result.frequency <= 5999)
 					isThere.is5ghz = true;
-				if ( result.frequency >= 6000 && result.frequency <= 6999 )
+				if (result.frequency >= 6000 && result.frequency <= 6999)
 					isThere.is6ghz = true;
 				final boolean suggested = isInSuggestedWifis(result, suggestionList);
 				isThere.addAccessPoint(
@@ -703,31 +733,30 @@ public class MainActivity extends AppCompatActivity {
 			}
 		}
 		// filter out all networks that are qualified for switch
-		for(NetworkEntry entry : map245Ghz.values()) {
-			if((entry.is24ghz && (entry.is5ghz || entry.is6ghz))
+		for (NetworkEntry entry : map245Ghz.values()) {
+			if ((entry.is24ghz && (entry.is5ghz || entry.is6ghz))
 					|| entry.connected || entry.isSuggested()) {
 				listNetworks.addAll(entry.accessPoints);
 			}
 		}
 		final RecyclerView listView = findViewById(R.id.listview);
-		listView.setAdapter(new CustomWifiListAdapter(listNetworks));
+		listView.setAdapter(new CustomWifiListAdapter(listNetworks, wifiManager));
 		listView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
 		listView.addItemDecoration(new MaterialDividerItemDecoration(this, MaterialDividerItemDecoration.VERTICAL));
 		listView.setHasFixedSize(true);
 		if (listNetworks.size() > 0) {
 			findViewById(R.id.nowificardview).setBackgroundColor(getResources().getColor(android.R.color.holo_green_dark, getTheme()));
-			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-				((TextView)findViewById(R.id.nowifitextview)).setText(R.string.error_not_android10);
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+				((TextView) findViewById(R.id.nowifitextview)).setText(R.string.error_not_android10);
 			} else {
 				((TextView) findViewById(R.id.nowifitextview)).setText(R.string.text_wififound);
 			}
 		} else {
 			// we did not get a result: probably permission missing?
-			if(checkSelfPermission(ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+			if (checkSelfPermission(ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 				showPermissionsError();
-			}
-			else { // otherwise: we found networks, but not the appropriate (2.4/5)
-				findViewById(R.id.nowificardview).setBackgroundColor(getResources().getColor(R.color.colorPrimaryDark, getTheme()));
+			} else { // otherwise: we found networks, but not the appropriate (2.4/5)
+				findViewById(R.id.nowificardview).setBackgroundColor(getResources().getColor(R.color.design_default_color_primary_dark, getTheme()));
 				((TextView) findViewById(R.id.nowifitextview)).setText(R.string.text_nowififound);
 			}
 		}
@@ -749,7 +778,7 @@ public class MainActivity extends AppCompatActivity {
 				} else {
 					recommendationView.setText(R.string.text_nowifirecommended);
 				}
-			} catch(BadParcelableException e) { // on OnePlus...
+			} catch (BadParcelableException e) { // on OnePlus...
 				Log.e(AppInfo.APP_NAME, "Error on getNetworkSuggestions", e);
 				recommendationView.setText(R.string.error_cannot_display_recommended_wifi);
 			}
@@ -768,9 +797,9 @@ public class MainActivity extends AppCompatActivity {
 
 	private boolean isInSuggestedWifis(@NonNull ScanResult result, @NonNull List<WifiNetworkSuggestion> suggestionList) {
 		final String ssid = normalizeSSID(result.SSID);
-		for(WifiNetworkSuggestion suggestion : suggestionList) {
+		for (WifiNetworkSuggestion suggestion : suggestionList) {
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-				if(ssid.equals(normalizeSSID(suggestion.getSsid())) && result.BSSID.equals(suggestion.getBssid().toString())) // TODO: stimmt das Format immer ueberein?
+				if (ssid.equals(normalizeSSID(suggestion.getSsid())) && result.BSSID.equals(suggestion.getBssid().toString())) // TODO: stimmt das Format immer ueberein?
 					return true;
 			}
 		}
@@ -787,7 +816,7 @@ public class MainActivity extends AppCompatActivity {
 	 */
 	private void showPermissionsError() {
 		findViewById(R.id.nowificardview).setBackgroundColor(getResources().getColor(android.R.color.holo_red_dark, getTheme()));
-		((TextView)findViewById(R.id.nowifitextview)).setText(R.string.error_no_permissions_provived);
+		((TextView) findViewById(R.id.nowifitextview)).setText(R.string.error_no_permissions_provived);
 	}
 
 	private void showAbout() {
@@ -809,24 +838,25 @@ public class MainActivity extends AppCompatActivity {
 	@RequiresApi(api = Build.VERSION_CODES.P)
 	public void checkBatteryOptimizationsDisabled() {
 		PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
-		ActivityManager am = (ActivityManager)getSystemService(ACTIVITY_SERVICE);
+		ActivityManager am = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
 		final boolean batteryOptimizationIgnored = pm.isIgnoringBatteryOptimizations(getPackageName());
 		final boolean backgroundRestricted = am.isBackgroundRestricted();
-		if(checkForBatteryOptimization && (!batteryOptimizationIgnored || backgroundRestricted)) {
+		if (checkForBatteryOptimization && (!batteryOptimizationIgnored || backgroundRestricted)) {
 			new MaterialAlertDialogBuilder(this)
 					.setTitle(getString(R.string.app_name))
-					.setNegativeButton(R.string.action_ignore, new DialogInterface.OnClickListener() {
-						@Override
-						public void onClick(DialogInterface dialog, int which) {
-							checkForBatteryOptimization = false; // user does not want
-							dialog.cancel();}
-						}
-						)
-					.setPositiveButton(R.string.action_settings, new DialogInterface.OnClickListener() {
+					.setPositiveButton(R.string.action_ignore, new DialogInterface.OnClickListener() {
+								@Override
+								public void onClick(DialogInterface dialog, int which) {
+									checkForBatteryOptimization = false; // user does not want
+									dialog.cancel();
+								}
+							}
+					)
+					.setNeutralButton(R.string.action_settings, new DialogInterface.OnClickListener() {
 						@Override
 						public void onClick(DialogInterface dialog, int which) {
 							Intent intent = new Intent();
-							if(!batteryOptimizationIgnored) {
+							if (!batteryOptimizationIgnored) {
 								// kein REQUEST... nutzen, weil lt. Google Policy verboten
 								intent.setAction(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
 								intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
@@ -836,6 +866,7 @@ public class MainActivity extends AppCompatActivity {
 								intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
 							}
 							startActivity(intent);
+							dialog.dismiss();
 						}
 					})
 					.setMessage(Html.fromHtml(getString(R.string.message_batteryoptimizations), Html.FROM_HTML_MODE_COMPACT))
@@ -866,11 +897,22 @@ public class MainActivity extends AppCompatActivity {
 	 */
 	static void startWifiService(Context context) {
 		Log.i(AppInfo.APP_NAME, "startWifiService");
-		if(PreferenceManager.getDefaultSharedPreferences(context).getBoolean(context.getString(R.string.prefs_activation), true)) {
-			final Intent intent = new Intent(context.getApplicationContext(), WifiChangeService.class);
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+		if (PreferenceManager.getDefaultSharedPreferences(context).getBoolean(context.getString(R.string.prefs_activation), true)) {
+			final Intent intent = Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE ?
+					new Intent(context.getApplicationContext(), WifiChangeService14.class) : new Intent(context.getApplicationContext(), WifiChangeService.class);
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+				// Android 14 forbids all foreground Work Requests - so we try to start the service and hope that our activity is still in foregroud...
+				try {
+					context.startService(new Intent(context.getApplicationContext(), WifiChangeService14.class));
+				} catch (SecurityException | IllegalStateException e) {
+					Log.w(AppInfo.APP_NAME, "Error starting WifiChangeService on Android14+");
+					// we send a notification
+					NotificationManagerCompat.from(context).notify(ONGOING_NOTIFICATION_ID,
+							WifiChangeService.createMessageNotification(context, R.string.message_forcewifi14_activated));
+				}
+			} else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
 				// With Android 12 we cannot start a Foreground service anymore, so we have to use a WorkManager
-				Constraints constraints = new Constraints.Builder()
+				Constraints constraints = new Constraints.Builder() // requires INTERNET permission
 						.setRequiredNetworkType(NetworkType.CONNECTED).build();
 				WorkRequest wifiWorkRequest =
 						new OneTimeWorkRequest.Builder(WifiChangeWorker.class).
@@ -902,13 +944,12 @@ public class MainActivity extends AppCompatActivity {
 	static void stopWifiService(Context context) {
 		Log.i(AppInfo.APP_NAME, "stopWifiService");
 		if(!PreferenceManager.getDefaultSharedPreferences(context).getBoolean(context.getString(R.string.prefs_activation), true)) {
-			final Intent intent = new Intent(context.getApplicationContext(), WifiChangeService.class);
+			final Intent intent = Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE ?
+					new Intent(context.getApplicationContext(), WifiChangeService14.class) : new Intent(context.getApplicationContext(), WifiChangeService.class);
 			context.getApplicationContext().stopService(intent);
 			WorkManager.getInstance(context).cancelAllWorkByTag(AppInfo.APP_NAME);
 		}
 	}
-
-
 
 	// TODO: duplicated code!!!
 	private boolean is5GHzPreferred() {

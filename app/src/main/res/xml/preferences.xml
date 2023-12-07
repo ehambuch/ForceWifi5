@@ -6,6 +6,7 @@
         app:key="@string/prefs_activation"
         app:defaultValue="true"
         app:title="@string/title_activation"
+        app:widgetLayout="@layout/preference_material_switch"
         app:summary="@string/summary_activation"/>
 
     <ListPreference
@@ -31,6 +32,7 @@
             app:key="@string/prefs_switchnetwork"
             app:defaultValue="false"
             app:title="@string/title_switchnetwork"
+            app:widgetLayout="@layout/preference_material_switch"
             app:summary="@string/summary_switchnetwork"/>
 
         <Preference
@@ -46,6 +48,14 @@
             app:key="@string/prefs_app_settings"
             app:title="@string/title_app_settings"
             app:summary="@string/summay_app_settings">
+            <intent
+                android:action="android.settings.APPLICATION_DETAILS_SETTINGS"
+                android:data="package:de.erichambuch.forcewifi5" />
+        </Preference>
+        <Preference
+            app:key="@string/prefs_notification_settings"
+            app:title="@string/title_notification_settings"
+            app:summary="@string/summay_notifications_settings">
             <intent
                 android:action="android.settings.APPLICATION_DETAILS_SETTINGS"
                 android:data="package:de.erichambuch.forcewifi5" />
@@ -68,10 +78,18 @@
     </Preference>
         <Preference
             app:key="@string/prefs_battery_settings"
-            app:title="Battery optimization settings"
-            app:summary="Open battery optimization settings to disable all optimizations for this app. This is required for Android 12 and above.">
+            app:title="@string/title_batt_optimization_settings"
+            app:summary="@string/summary_batt_optimization_settings">
             <intent
                 android:action="android.settings.IGNORE_BATTERY_OPTIMIZATION_SETTINGS"
+                />
+        </Preference>
+        <Preference
+            app:key="@string/prefs_developer_settings"
+            app:title="@string/title_developer_settings"
+            app:summary="@string/description_developer_settings">
+            <intent
+                android:action="android.settings.APPLICATION_DEVELOPMENT_SETTINGS"
                 />
         </Preference>
     </PreferenceCategory>
