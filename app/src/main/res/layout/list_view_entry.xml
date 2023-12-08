@@ -12,9 +12,7 @@
         android:layout_height="wrap_content"
         android:textColor="?android:attr/textColorPrimary"
         android:textIsSelectable="false"
-        android:layout_alignParentStart="true"
-        android:text="name"
-        />
+        android:text="test"/>
     <TextView android:id="@+id/networktextviewBSSID"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

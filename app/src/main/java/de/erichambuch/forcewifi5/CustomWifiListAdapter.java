@@ -56,7 +56,7 @@ public class CustomWifiListAdapter extends RecyclerView.Adapter<CustomWifiListAd
     private final List<MainActivity.AccessPointEntry> networkEntries;
     private final WifiManager wifiManager;
 
-    public CustomWifiListAdapter(@NonNull List<MainActivity.AccessPointEntry> networkEntries, WifiManager wifiManager) {
+    public CustomWifiListAdapter(@NonNull List<MainActivity.AccessPointEntry> networkEntries, @NonNull WifiManager wifiManager) {
         this.networkEntries = networkEntries;
         this.wifiManager = wifiManager;
     }
@@ -81,7 +81,7 @@ public class CustomWifiListAdapter extends RecyclerView.Adapter<CustomWifiListAd
         final StringBuilder text = new StringBuilder(32);
         text.append(entry.bssid).append(" - ").append(entry.frequency).append(" MHz");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            text.append(" - ").append(WifiManager.calculateSignalLevel(entry.signalLevel, 100)).append(" %");
+            text.append(" - ").append(WifiUtils.calculateWifiLevel(wifiManager, entry.signalLevel)).append(" %");
         }
         viewHolder.getTextViewInformation().setText(text);
         viewHolder.getImageView1().setVisibility(entry.connected ? View.VISIBLE : View.INVISIBLE);

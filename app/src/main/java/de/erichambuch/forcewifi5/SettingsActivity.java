@@ -17,7 +17,7 @@ import android.os.PowerManager;
 import android.util.Log;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -38,13 +38,13 @@ public class SettingsActivity extends AppCompatActivity {
 
 	public static class MySettingsFragment extends PreferenceFragmentCompat {
 	    @Override
-	    public void onCreatePreferences(@NonNull Bundle savedInstanceState, @NonNull String rootKey) {
+	    public void onCreatePreferences(@Nullable Bundle savedInstanceState, @Nullable String rootKey) {
 	        setPreferencesFromResource(R.xml.preferences, rootKey);
 		}
 	}
 	
     @Override
-    protected void onCreate(@NonNull Bundle savedInstanceState) {
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 		if(AppInfo.INTENT_SHOW_DATAPROCTECTION.equals(getIntent().getAction())) {
 			try {
@@ -139,6 +139,13 @@ public class SettingsActivity extends AppCompatActivity {
 				|| ActivityCompat.checkSelfPermission(this, CHANGE_WIFI_STATE) != PackageManager.PERMISSION_GRANTED
 				|| ActivityCompat.checkSelfPermission(this, ACCESS_WIFI_STATE) != PackageManager.PERMISSION_GRANTED)
 			settingsFragment.findPreference(getString(R.string.prefs_permission_settings)).setIcon(iconAlert);
+
+		if(!isWifiChangeWifiStateAllowed())
+			settingsFragment.findPreference(getString(R.string.prefs_wifichange_settings)).setIcon(iconAlert);
+
+		// set only enabled if Setting is supported
+		settingsFragment.findPreference(getString(R.string.prefs_wifiband_settings)).setEnabled(
+			(getPackageManager().resolveActivity(new Intent("android.settings.WIFI_FREQUENCY_BAND"), 0) != null));
 	}
 
 	private boolean isNotificationsEnabled() {
@@ -150,12 +157,22 @@ public class SettingsActivity extends AppCompatActivity {
 			return true;
 	}
 
+	/**
+	 * Check if <code>CHANGE_WIFI_STATE</code> permission is granted. If not, request the user to
+	 * open Settings - Apps - Special App access -> Wi-Fi Control to grant it.
+	 * @return
+	 */
+	private boolean isWifiChangeWifiStateAllowed() {
+		return (ActivityCompat.checkSelfPermission(this, CHANGE_WIFI_STATE) == PackageManager.PERMISSION_GRANTED);
+	}
+
 	@Override
 	public void onStop() {
 		super.onStop();
 		// Activate or de-activate service on exit of preferences
 		final boolean activated = PreferenceManager.getDefaultSharedPreferences(this).getBoolean(getString(R.string.prefs_activation), true);
 		if (activated) {
+			WifiChangeService.removeSuggestions(this); // automatically reset
 			MainActivity.startWifiService(this);
 		} else {
 			WifiChangeService.removeSuggestions(this);

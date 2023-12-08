@@ -1,6 +1,8 @@
 package de.erichambuch.forcewifi5;
 
 import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
+import android.os.Build;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -26,5 +28,23 @@ public class WifiUtils {
 
     public static boolean hasNormalizedSSID(@Nullable String ssid) {
         return (ssid != null && ssid.startsWith("\"") && ssid.endsWith("\""));
+    }
+
+    /**
+     * Calculates signal level in percent.
+     * @param signalRssi in dBm
+     * @return 0 to 100
+     */
+    public static int calculateWifiLevel(@NonNull WifiManager manager, int signalRssi) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            return manager.calculateSignalLevel(signalRssi) * 100 / manager.getMaxSignalLevel();
+        } else {
+            if(signalRssi <= -100)
+                return 0;
+            else if(signalRssi >= -50)
+                return 100;
+            else
+                return 2 * (signalRssi + 100);
+        }
     }
 }
