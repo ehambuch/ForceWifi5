@@ -59,40 +59,23 @@
             <intent
                 android:action="android.settings.APPLICATION_DETAILS_SETTINGS"
                 android:data="package:de.erichambuch.forcewifi5" />
-            <!--"-->
         </Preference>
-        <Preference
-            app:key="@string/prefs_permission_settings"
-            app:title="@string/title_permission_settings"
-            app:summary="@string/summay_permission_settings">
-            <intent
-                android:action="android.settings.APPLICATION_DETAILS_SETTINGS"
-                android:data="package:de.erichambuch.forcewifi5" />
-        </Preference>
-        <Preference
-            app:key="@string/prefs_location_settings"
-            app:title="@string/title_location_settings"
-            app:summary="@string/summary_location_settings">
-            <intent
-                android:action="android.settings.LOCATION_SOURCE_SETTINGS"
-                 />
-        </Preference>
-        <Preference
-            app:key="@string/prefs_wifichange_settings"
-            app:title="@string/title_wifichange_settings"
-            app:summary="@string/summary_wifichange_settings">
-            <intent
-                android:action="android.settings.MANAGE_APPLICATIONS_SETTINGS"
-                />
-        </Preference>
-        <Preference
-            app:key="@string/prefs_wifiband_settings"
-            app:title="@string/title_wifiband_settings"
-            app:summary="@string/summary_wifiband_settings">
-            <intent
-                android:action="android.settings.WIFI_FREQUENCY_BAND"
-                />
-        </Preference>
+    <Preference
+        app:key="@string/prefs_permission_settings"
+        app:title="@string/title_permission_settings"
+        app:summary="@string/summay_permission_settings">
+        <intent
+            android:action="android.settings.APPLICATION_DETAILS_SETTINGS"
+            android:data="package:de.erichambuch.forcewifi5" />
+    </Preference>
+    <Preference
+        app:key="@string/prefs_location_settings"
+        app:title="@string/title_location_settings"
+        app:summary="@string/summary_location_settings">
+        <intent
+            android:action="android.settings.LOCATION_SOURCE_SETTINGS"
+             />
+    </Preference>
         <Preference
             app:key="@string/prefs_battery_settings"
             app:title="@string/title_batt_optimization_settings"

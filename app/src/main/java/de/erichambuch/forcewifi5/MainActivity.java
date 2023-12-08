@@ -42,7 +42,9 @@ import android.provider.Settings;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
 import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -50,7 +52,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.annotation.RequiresPermission;
-import androidx.annotation.StringRes;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -68,11 +69,8 @@ import androidx.work.OutOfQuotaPolicy;
 import androidx.work.WorkManager;
 import androidx.work.WorkRequest;
 
-import com.google.android.material.bottomappbar.BottomAppBar;
-import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.divider.MaterialDividerItemDecoration;
-import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -181,16 +179,11 @@ public class MainActivity extends AppCompatActivity {
 		public void onLost(@NonNull Network network) {
 			Log.d(AppInfo.APP_NAME, "Networkcallback onLost");
 			updateWidget();
-			try {
-				NotificationManagerCompat.from(myContext).cancel(ONGOING_NOTIFICATION_ID);
-			} catch (Exception e) {
-				Log.w(AppInfo.APP_NAME, e);
-			}
 		}
 
 		@Override
-		public void onLinkPropertiesChanged(@NonNull android.net.Network network,
-											@NonNull android.net.LinkProperties linkProperties) {
+		public void onLinkPropertiesChanged(android.net.Network network,
+											android.net.LinkProperties linkProperties) {
 			Log.d(AppInfo.APP_NAME, "Networkcallback onLinkPropertiesChanged");
 			// small circuit breaker: if we are called twice within 60 seconds  - then ignore the call
 			// so we break up an endless loop of connection failures
@@ -380,14 +373,14 @@ public class MainActivity extends AppCompatActivity {
 
 		setContentView(R.layout.activity_main);
 
-		final BottomAppBar appbar = ((BottomAppBar)findViewById(R.id.bottomAppBar));
-		appbar.setOnMenuItemClickListener(this::onOptionsItemSelected);
-		appbar.getMenu().findItem(R.id.menu_wifi_suggestions).setEnabled((Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q));
-		appbar.getMenu().findItem(R.id.menu_wifi_reset).setEnabled((Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q));
-
 		createNotificationChannel(this);
 
-		// Reload Wifi List by swipe and button
+		findViewById(R.id.floatingActionButton).setOnClickListener(v -> startActivity(new Intent(getApplicationContext(), SettingsActivity.class)));
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) { // Inline Settings with Android 10+
+			findViewById(R.id.floatingWifiToggleButton).setOnClickListener(v -> startActivity(new Intent(Settings.Panel.ACTION_WIFI)));
+		} else {
+			findViewById(R.id.floatingWifiToggleButton).setOnClickListener(v -> startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS)));
+		}
 		final SwipeRefreshLayout swipeRefreshLayout = ((SwipeRefreshLayout) findViewById(R.id.swiperefresh));
 		swipeRefreshLayout.setOnRefreshListener(
 				() -> {
@@ -399,16 +392,6 @@ public class MainActivity extends AppCompatActivity {
 					}
 					swipeRefreshLayout.setRefreshing(false);
 				}
-		);
-		findViewById(R.id.floatingButtonReload).setOnClickListener(v -> {
-			WifiManager wifiManager = getSystemService(WifiManager.class);
-			if (wifiManager != null) {
-				boolean scanSuccessful = wifiManager.startScan(); // listNetworks is called by ScanFinishedListener
-				if (!scanSuccessful)
-					showError(R.string.error_scan_failed_throttle);
-			}
-			swipeRefreshLayout.setRefreshing(false);
-		}
 		);
 
 		// register a listener to network changes (this may occure twice if already done in StartOnBootReceiver!)
@@ -532,21 +515,20 @@ public class MainActivity extends AppCompatActivity {
 		if (checkForNotificationsEnabled && !getSystemService(NotificationManager.class).areNotificationsEnabled()) {
 			new MaterialAlertDialogBuilder(this)
 					.setTitle(getString(R.string.app_name))
-					.setNegativeButton(R.string.text_cancel, new DialogInterface.OnClickListener() {
+					.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
 						@Override
 						public void onClick(DialogInterface dialog, int which) {
 							checkForNotificationsEnabled = false; // user dismissed
 							dialog.cancel();
 						}
 					})
-					.setPositiveButton(R.string.text_settings, new DialogInterface.OnClickListener() {
+					.setPositiveButton("Settings", new DialogInterface.OnClickListener() {
 						@Override
 						public void onClick(DialogInterface dialog, int which) {
 							Intent settingsIntent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
 							settingsIntent.setData(Uri.parse("package:" + getPackageName()));
 							settingsIntent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
 							startActivity(settingsIntent);
-							dialog.dismiss();
 						}
 					})
 					.setMessage(Html.fromHtml(getString(R.string.message_activate_notifications), Html.FROM_HTML_MODE_COMPACT))
@@ -563,20 +545,19 @@ public class MainActivity extends AppCompatActivity {
 		if (!BuildConfig.DEBUG && (is24Ghz + is50Ghz + is60Ghz) < 2) {
 			new MaterialAlertDialogBuilder(this)
 					.setTitle(getString(R.string.app_name))
-					.setNegativeButton(R.string.text_cancel, new DialogInterface.OnClickListener() {
+					.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
 						@Override
 						public void onClick(DialogInterface dialog, int which) {
 							dialog.cancel();
 						}
 					})
-					.setPositiveButton(R.string.text_ok, new DialogInterface.OnClickListener() {
+					.setPositiveButton("I got it", new DialogInterface.OnClickListener() {
 						@Override
 						public void onClick(DialogInterface dialog, int which) { // force deinstallation
 							Intent intent = new Intent(ACTION_UNINSTALL_PACKAGE);
 							intent.setData(Uri.parse("package:" + getPackageName()));
 							intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
 							startActivity(intent);
-							dialog.dismiss();
 						}
 					})
 					.setMessage(Html.fromHtml(getString(R.string.message_nosupport), Html.FROM_HTML_MODE_COMPACT))
@@ -589,14 +570,13 @@ public class MainActivity extends AppCompatActivity {
 	protected void showLocationServicesDialog() {
 		new MaterialAlertDialogBuilder(this)
 				.setTitle(getString(R.string.app_name))
-				.setNegativeButton(R.string.text_cancel, new DialogInterface.OnClickListener() {
+				.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
-						dialog.cancel();
 						finish();
 					}
 				})
-				.setPositiveButton(R.string.text_settings, new DialogInterface.OnClickListener() {
+				.setPositiveButton("Activate", new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
 						// here we catch the flow that Location settings are not enabled (which blocks the check in onStart())
@@ -605,7 +585,6 @@ public class MainActivity extends AppCompatActivity {
 							settingsIntent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
 							startActivity(settingsIntent);
 						}
-						dialog.dismiss();
 					}
 				})
 				.setMessage(Html.fromHtml(getString(R.string.message_activate_locationservices), Html.FROM_HTML_MODE_COMPACT))
@@ -669,80 +648,29 @@ public class MainActivity extends AppCompatActivity {
 	}
 
 	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		getMenuInflater().inflate(R.menu.menu_main, menu);
+		return true;
+	}
+
+	@Override
 	public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-		final int id = item.getItemId();
-		if( id == R.id.menu_wifionoff) {
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) { // Inline Settings with Android 10+
-				startActivity(new Intent(Settings.Panel.ACTION_WIFI));
-			} else {
-				startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS));
-			}
-			return true;
-		} else if (id == R.id.menu_settings) {
+		int id = item.getItemId();
+		if (id == R.id.action_settings) {
 			startActivity(new Intent(getApplicationContext(), SettingsActivity.class));
 			return true;
-		} else if (id == R.id.menu_about) {
+		}
+		if (id == R.id.action_about) {
 			showAbout();
 			return true;
-		} else if (id == R.id.menu_wifi_suggestions) {
-			showSuggestions();
-			return true;
-		} else if (id == R.id.menu_wifi_reset) {
-			removeAllSuggestions();
-			return true;
-		} else if (id == R.id.menu_info) {
+		}
+		if (id == R.id.action_info) {
 			Intent intent = new Intent(Intent.ACTION_VIEW);
 			intent.setData(Uri.parse(getString(R.string.app_url)));
 			startActivity(intent);
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
-	}
-
-	private void removeAllSuggestions() {
-		new MaterialAlertDialogBuilder(this)
-				.setTitle(getString(R.string.text_reset_suggestions))
-				.setNegativeButton(R.string.text_cancel, new DialogInterface.OnClickListener() {
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						dialog.cancel();
-					}
-				})
-				.setPositiveButton(R.string.text_ok, new DialogInterface.OnClickListener() {
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						dialog.dismiss();
-						WifiChangeService.removeSuggestions(getApplicationContext());
-						Snackbar.make(MainActivity.this.findViewById(R.id.mainFragment), R.string.message_remove_suggestions, Snackbar.LENGTH_LONG).show();
-					}
-				})
-				.setMessage(Html.fromHtml(getString(R.string.message_reset_suggestions), Html.FROM_HTML_MODE_COMPACT))
-				.show();
-	}
-	private void showSuggestions() {
-		final WifiManager wifiManager = getSystemService(WifiManager.class);
-		if(wifiManager != null) {
-			List<WifiNetworkSuggestion> list = WifiChangeService.getActualSuggestions(wifiManager);
-			StringBuilder builder = new StringBuilder();
-			if( list != null && list.size() > 0 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-				builder.append("<ol>");
-				for(WifiNetworkSuggestion s : list) {
-						builder.append("<li> ").append(s.getPriority()).append(": ").append(s.getSsid()).append(" [").append(s.getBssid()).append("]").append("</li>");
-				}
-				builder.append("</ol>");
-			} else {
-				builder.append(getString(R.string.text_nowifirecommended));
-			}
-			new MaterialAlertDialogBuilder(this)
-					.setTitle(getString(R.string.text_listsuggestions))
-					.setPositiveButton(getString(R.string.text_continue), new DialogInterface.OnClickListener() {
-						@Override
-						public void onClick(DialogInterface dialog, int which) {
-							dialog.cancel();
-						}
-					})
-					.setMessage(Html.fromHtml(builder.toString(), Html.FROM_HTML_MODE_COMPACT)).show();
-		}
 	}
 
 	public void onActivityResult(int requestCode, int resultCode, Intent resultIntent) {
@@ -817,7 +745,7 @@ public class MainActivity extends AppCompatActivity {
 		listView.addItemDecoration(new MaterialDividerItemDecoration(this, MaterialDividerItemDecoration.VERTICAL));
 		listView.setHasFixedSize(true);
 		if (listNetworks.size() > 0) {
-			((MaterialCardView)findViewById(R.id.nowificardview)).setCardBackgroundColor(getResources().getColor(android.R.color.holo_green_dark, getTheme()));
+			findViewById(R.id.nowificardview).setBackgroundColor(getResources().getColor(android.R.color.holo_green_dark, getTheme()));
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
 				((TextView) findViewById(R.id.nowifitextview)).setText(R.string.error_not_android10);
 			} else {
@@ -828,7 +756,7 @@ public class MainActivity extends AppCompatActivity {
 			if (checkSelfPermission(ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 				showPermissionsError();
 			} else { // otherwise: we found networks, but not the appropriate (2.4/5)
-				((MaterialCardView)findViewById(R.id.nowificardview)).setCardBackgroundColor(getResources().getColor(R.color.design_default_color_primary_dark, getTheme()));
+				findViewById(R.id.nowificardview).setBackgroundColor(getResources().getColor(R.color.design_default_color_primary_dark, getTheme()));
 				((TextView) findViewById(R.id.nowifitextview)).setText(R.string.text_nowififound);
 			}
 		}
@@ -857,13 +785,13 @@ public class MainActivity extends AppCompatActivity {
 		}
 
 		// color Card if frequency is correct, so feedback to user
-		MaterialCardView recommendationView = findViewById(R.id.recommandedwificard);
+		View recommendationView = findViewById(R.id.recommandedwificard);
 		if (activeWifi) {
-			recommendationView.setCardBackgroundColor(
+			recommendationView.setBackgroundColor(
 					isWantedFrequency(activeNetwork.getFrequency()) ? getResources().getColor(android.R.color.holo_green_dark, getTheme()) :
 							getResources().getColor(android.R.color.holo_orange_dark, getTheme()));
 		} else {
-			recommendationView.setCardBackgroundColor(getResources().getColor(android.R.color.white, getTheme()));
+			recommendationView.setBackgroundColor(getResources().getColor(android.R.color.white, getTheme()));
 		}
 	}
 
@@ -878,10 +806,6 @@ public class MainActivity extends AppCompatActivity {
 		return false;
 	}
 
-	void showMessage(@StringRes int id) {
-		Snackbar.make(MainActivity.this.findViewById(R.id.mainFragment), id, Snackbar.LENGTH_LONG).show(); // otherwise use Toast
-	}
-
 	public static boolean isLocationServicesEnabled(@NonNull Context context) {
 		LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 		return LocationManagerCompat.isLocationEnabled(locationManager);
@@ -891,7 +815,7 @@ public class MainActivity extends AppCompatActivity {
 	 * Show the permission error in the card on top of the main screen.
 	 */
 	private void showPermissionsError() {
-		((MaterialCardView)findViewById(R.id.nowificardview)).setCardBackgroundColor(getResources().getColor(android.R.color.holo_red_dark, getTheme()));
+		findViewById(R.id.nowificardview).setBackgroundColor(getResources().getColor(android.R.color.holo_red_dark, getTheme()));
 		((TextView) findViewById(R.id.nowifitextview)).setText(R.string.error_no_permissions_provived);
 	}
 
@@ -950,7 +874,7 @@ public class MainActivity extends AppCompatActivity {
 		}
 	}
 
-	void showError(@StringRes int stringId) {
+	void showError(int stringId) {
 		Toast.makeText(this, stringId, Toast.LENGTH_LONG).show();
 	}
 

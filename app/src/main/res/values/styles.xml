@@ -1,6 +1,6 @@
 <resources>
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="AppTheme" parent="Theme.Material3.DayNight">
         <!-- try to fix "flashing" problem on update of widget -->
         <item name="android:windowDisablePreview">true</item>
     </style>

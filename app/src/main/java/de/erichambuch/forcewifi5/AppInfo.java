@@ -42,17 +42,16 @@ package de.erichambuch.forcewifi5;
  *     <li>V1.17.0 (17.06.2023) - Polish translation provided by Marek Bogacz, Spanish/French by automatic Google translation</li>
  *     <li>V1.18.0 (18.08.2023) - Update Android 14</li>
  *     <li>V1.19.0 (02.12.2023) - Android 14 Permission Update (new developer policy, no automatic switch on Android14+ from background), Material 3</li>
- *     <li>V1.19.1 (07.12.2023) - Several bug fixes, new Navigation Bar</li>
  * </ul>
  * <ul>
  *     <li>TODO: disconnect does not work anymore: https://issuetracker.google.com/issues/128554616</li>
  *     <li>TODO: make a guided setup process for all the settings</li>
- *     <li>https://developer.android.com/training/location/permissions#background - Problems with Foreground/Background</li>
+ *     <li>https://developer.android.com/training/location/permissions#background - Probleme mit Foreground/Background</li>
  *     <li>https://issuetracker.google.com/issues/192032398?pli=1#comment6/li>
- *     <li>https://stackoverflow.com/questions/44425584/context-startforegroundservice-did-not-then-call-service-startforeground/46449975#46449975</li>
+ *         <li>https://stackoverflow.com/questions/44425584/context-startforegroundservice-did-not-then-call-service-startforeground/46449975#46449975</li>
  * </ul>
  */
-public final class AppInfo {
+public class AppInfo {
 
     public static final String APP_NAME = "ForceWifi5";
     public static final String INTENT_SHOW_DATAPROCTECTION = "de.erichambuch.forcewifi5.VIEW_DATA_PROTECTION";

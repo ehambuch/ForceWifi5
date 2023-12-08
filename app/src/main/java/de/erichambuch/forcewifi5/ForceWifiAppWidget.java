@@ -50,7 +50,7 @@ public class ForceWifiAppWidget extends AppWidgetProvider {
         if (wifiManager.isWifiEnabled()) {
             int frequency = wifiManager.getConnectionInfo().getFrequency();
             if (frequency > 0) {
-                widgetText = BigDecimal.valueOf(frequency).divide(BigDecimal.valueOf(1000), RoundingMode.HALF_UP).setScale(3, RoundingMode.HALF_UP) + " GHz";
+                widgetText = BigDecimal.valueOf(frequency).divide(BigDecimal.valueOf(1000)).setScale(3, RoundingMode.HALF_UP) + " GHz";
                 widgetColor = isWantedFrequency(context, frequency) ? context.getResources().getColor(android.R.color.holo_green_light, context.getTheme()) :
                         context.getResources().getColor(android.R.color.holo_red_light, context.getTheme());
             } else { // e.g. mission permissionss
