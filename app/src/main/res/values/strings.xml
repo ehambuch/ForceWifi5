@@ -23,10 +23,10 @@
     <string name="title_5ghz">5 GHz</string>
     <string name="title_2ghz">2.4 GHz</string>
     <string name="title_6ghz">6 GHz</string>
-    <string name="prefs_activation">prefs_activation</string>
-    <string name="prefs_2ghz5ghz">prefs_ghz25switch</string>
+    <string name="prefs_activation" translatable="false">prefs_activation</string>
+    <string name="prefs_2ghz5ghz" translatable="false">prefs_ghz25switch</string>
     <string name="title_minimumlevel">Minimum signal level to switch over</string>
-    <string name="prefs_signallevel">prefs_signallevel</string>
+    <string name="prefs_signallevel" translatable="false">prefs_signallevel</string>
     <string name="summary_activation">Activate or de-activate the functionality to switch automatically the frequency of your Wifi</string>
     <string name="summary_2ghz5ghz">Choose your preferred frequency - either 2.4 GHz or 5 GHz if supported</string>
     <string name="summary_signallevel">Define the minimum signal level to switch over to another frequency. This avoids switching to a weaker network.</string>
@@ -35,7 +35,7 @@
     <string name="text_nowififound">You don\’t have any Wifi access points with both 2.4 and 5 GHz band on same SSID nearby. Please find another Wifi access point
 	with multiple frequencies on the same SSID to make use of this app.</string>
     <string name="error_not_android10">Found the following Wifi access points with same SSID and 2.4/5 GHz - trying to switch to preferred one. Please note: Starting with Android 10 you probably have to disable and then re-connect your Wifi manually!</string>
-    <string name="prefs_switchnetwork">prefs_switchnetworkssid</string>
+    <string name="prefs_switchnetwork" translatable="false">prefs_switchnetworkssid</string>
     <string name="title_switchnetwork">Switch to other network</string>
     <string name="summary_switchnetwork">Choose another network (SSID) with the desired frequency instead of staying with the same SSID</string>
     <string name="info_switch_wifi_5ghz_android10">Please re-connect to your Wifi manually or reboot the device to change frequency</string>
@@ -54,10 +54,10 @@
     <string name="title_location_settings">Location settings</string>
     <string name="title_app_settings">App settings</string>
     <string name="summay_app_settings">Open settings of this app. Use to remove Background Restrictions and fix permissions or battery optimization settings.</string>
-    <string name="prefs_location_settings">prefs_location_settings</string>
-    <string name="prefs_permission_settings">prefs_permission_settings</string>
-    <string name="prefs_app_settings">prefs_app_settings</string>
-    <string name="prefs_battery_settings">prefs_battery_settings</string>
+    <string name="prefs_location_settings" translatable="false">prefs_location_settings</string>
+    <string name="prefs_permission_settings" translatable="false">prefs_permission_settings</string>
+    <string name="prefs_app_settings" translatable="false">prefs_app_settings</string>
+    <string name="prefs_battery_settings" translatable="false">prefs_battery_settings</string>
     <string-array name="entries25ghz">
         <item>2.4 GHz</item>
         <item>5 GHz</item>
@@ -73,11 +73,10 @@
     <string name="error_scan_succesful">Wifi scan successful</string>
     <string name="wifi_settings">Wifi settings</string>
     <string name="add_widget">Add widget</string>
-    <string name="appwidget_text">EXAMPLE</string>
     <string name="app_widget_description">ForceWifi5 Widget</string>
     <string name="title_unknown">Unknown</string>
     <string name="error_not_supported">Function not supported on your phone</string>
-    <string name="prefs_widget_settings">prefs_widget_settings</string>
+    <string name="prefs_widget_settings" translatable="false">prefs_widget_settings</string>
     <string name="message_requestpermission_rationale"><![CDATA[<p>This app requires several permissions settings in order to work properly. Please grant them all:</p><ol><li><b> Access to your location</b> - this is mandatory by Android to determinate all Wifi access points nearby</li><li><b> Enabled location services</b> - and your <em>Location Services</em> must be enabled too</li><li><em><b> Battery optimization modes</b></em> should be deactived to keep the app running in background</li><li>… and you may be asked when the app proposes another Wifi. Please say ‘Yes’, because thats the only purpose of this app.</li></ol>]]></string>
     <string name="title_sendfeedback">Provide feedback</string>
     <string name="feedback_subject">Feedback on ForceWifi5</string>
@@ -86,13 +85,31 @@
     <string name="error_no_permissions_notification">Please grant the NOTIFICATION permission in the app settings!</string>
     <string name="message_nosupport">This app requires that your Android device supports multi-band Wifi - so 2.4 GHz as well as 5 or 6 GHz. Obviously this is not the case. Therefore please de-install it.</string>
     <string name="action_about">About</string>
-    <string name="prefs_developer_settings" translatable="false">DeveloperSettings</string>
+    <string name="prefs_developer_settings" translatable="false">prefs_developer_settings</string>
     <string name="title_batt_optimization_settings">Battery optimization settings</string>
     <string name="summary_batt_optimization_settings">Open battery optimization settings to disable all optimizations for this app. This is required for Android 12 and above.</string>
     <string name="title_developer_settings">Developer Settings</string>
     <string name="description_developer_settings">You can switch off the Wifi scanning Throttling in the Developer Options (if activated on your device).</string>
     <string name="message_forcewifi14_activated">Force Wifi 5 activated. Please open to switch to a specific Wifi access point.</string>
-    <string name="prefs_notification_settings" translatable="false">NotificationSettings</string>
+    <string name="prefs_notification_settings" translatable="false">prefs_notification_settings</string>
     <string name="title_notification_settings">Notifications</string>
     <string name="summay_notifications_settings">Allow notifications from this app to be informed about Wifi changes.</string>
+    <string name="prefs_wifichange_settings" translatable="false">prefs_wifichange_settings</string>
+    <string name="title_wifichange_settings" translatable="false">Check Wi-Fi Control</string>
+    <string name="summary_wifichange_settings" translatable="false">Open the \'Special App access\' menu and check the \'Wi-Fi Control\' settings for this app</string>
+    <string name="prefs_wifiband_settings" translatable="false">prefs_wifiband_settings</string>
+    <string name="title_wifiband_settings">Wi-Fi Automatic Band Selection</string>
+    <string name="summary_wifiband_settings">Some phones already provide an automatic band selection. In the feature may replace this app.</string>
+    <string name="text_wifi">Wi-Fi</string>
+    <string name="description_wifi">Select Wi-Fi</string>
+    <string name="text_listsuggestions">Wi-Fi Suggestions</string>
+    <string name="text_reset_suggestions">Reset</string>
+    <string name="message_remove_suggestions">Removed all Wi-Fi suggestions</string>
+    <string name="text_continue">Continue</string>
+    <string name="title_wifi_suggestions">Active Wi-Fi Suggestions</string>
+    <string name="text_cancel">Cancel</string>
+    <string name="text_settings">Settings</string>
+    <string name="text_ok" translatable="false">Ok</string>
+    <string name="message_reset_suggestions">Remove all suggestions for preferred Wi-Fis?</string>
+    <string name="text_preferred">Preferred</string>
 </resources>

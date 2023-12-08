@@ -77,6 +77,7 @@ public class WifiChangeService extends Service {
 								.setContentText(context.getText(R.string.title_activation))
 								.setSmallIcon(R.mipmap.ic_launcher)
 								.setAutoCancel(false)
+								.setSilent(true)
 								.setContentIntent(PendingIntent.getActivity(context, 0,
 										new Intent(Intent.ACTION_VIEW, null, context.getApplicationContext(), MainActivity.class),
 										PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_IMMUTABLE))
@@ -232,7 +233,7 @@ public class WifiChangeService extends Service {
 				final List<WifiNetworkSuggestion> suggestions = new ArrayList<>(5);
 				final StringBuilder suggestionsString = new StringBuilder(256); // wir müssen parallel noch das als String mitführen
 				for (ScanResult result : scanResults) {
-					final int signalLevel = WifiManager.calculateSignalLevel(result.level, 100);
+					final int signalLevel = WifiUtils.calculateWifiLevel(wifiManager, result.level);
 					if (isWantedFrequency(result.frequency)
 							&& (switchToOtherSSID || result.SSID.equals(normalizeSSID(activeWifi.getSSID())))
 							&& signalLevel >= getMinimumLevel()
@@ -288,6 +289,7 @@ public class WifiChangeService extends Service {
 										.setContentText(this.getText(R.string.title_activation))
 										.setSmallIcon(R.mipmap.ic_launcher)
 										.setAutoCancel(true)
+										.setSilent(true)
 										.setContentIntent(PendingIntent.getActivity(getApplicationContext(), 0,
 												new Intent(Intent.ACTION_VIEW, null, getApplicationContext(), MainActivity.class),
 												PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_IMMUTABLE))
@@ -362,7 +364,7 @@ public class WifiChangeService extends Service {
 	}
 
 	@RequiresPermission(ACCESS_WIFI_STATE)
-	private List<WifiNetworkSuggestion> getActualSuggestions(WifiManager wifiManager) {
+	static List<WifiNetworkSuggestion> getActualSuggestions(WifiManager wifiManager) {
 		return (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) ?
 				wifiManager.getNetworkSuggestions() : Collections.emptyList();
 	}
@@ -479,6 +481,7 @@ public class WifiChangeService extends Service {
 						.setContentText(context.getText(resourceId))
 						.setSmallIcon(R.mipmap.ic_launcher)
 						.setAutoCancel(false)
+						.setSilent(true)
 						.setContentIntent(PendingIntent.getActivity(context
 										.getApplicationContext(), 0,
 								new Intent(Intent.ACTION_VIEW, null, context.getApplicationContext(), MainActivity.class),
