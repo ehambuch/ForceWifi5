@@ -1,7 +1,7 @@
 package de.erichambuch.forcewifi5;
 
+import android.graphics.drawable.AnimationDrawable;
 import android.net.wifi.WifiManager;
-import android.os.Build;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -51,6 +51,22 @@ public class CustomWifiListAdapter extends RecyclerView.Adapter<CustomWifiListAd
         public ImageView getImageView2() {
             return image2;
         }
+
+        public void setConnected(boolean connected) {
+            image1.setVisibility(connected ? View.VISIBLE : View.INVISIBLE);
+        }
+
+
+        public void setRecommended(boolean i) {
+            image2.setVisibility(i ? View.VISIBLE : View.INVISIBLE);
+            final boolean connected = image1.getVisibility() == View.VISIBLE;
+            if(connected) {
+                image2.setBackgroundResource(R.drawable.baseline_high_priority_24);
+            } else if (i) { // if recommended, but not connected yet -> flash red/green to indicate open change of network
+                image2.setBackgroundResource(R.drawable.animated_priority);
+                ((AnimationDrawable) image2.getBackground()).start();
+            }
+        }
     }
 
     private final List<MainActivity.AccessPointEntry> networkEntries;
@@ -77,15 +93,12 @@ public class CustomWifiListAdapter extends RecyclerView.Adapter<CustomWifiListAd
     public void onBindViewHolder(@NonNull ViewHolder viewHolder, final int position) {
         MainActivity.AccessPointEntry entry = networkEntries.get(position);
         viewHolder.getTextViewName().setText(entry.name);
-
         final StringBuilder text = new StringBuilder(32);
         text.append(entry.bssid).append(" - ").append(entry.frequency).append(" MHz");
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            text.append(" - ").append(WifiUtils.calculateWifiLevel(wifiManager, entry.signalLevel)).append(" %");
-        }
+        text.append(" - ").append(WifiUtils.calculateWifiLevel(wifiManager, entry.signalLevel)).append(" %");
         viewHolder.getTextViewInformation().setText(text);
-        viewHolder.getImageView1().setVisibility(entry.connected ? View.VISIBLE : View.INVISIBLE);
-        viewHolder.getImageView2().setVisibility(entry.recommended ? View.VISIBLE : View.INVISIBLE);
+        viewHolder.setConnected(entry.connected);
+        viewHolder.setRecommended(entry.recommended);
     }
 
     // Return the size of your dataset (invoked by the layout manager)

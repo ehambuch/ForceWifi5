@@ -43,6 +43,7 @@ package de.erichambuch.forcewifi5;
  *     <li>V1.18.0 (18.08.2023) - Update Android 14</li>
  *     <li>V1.19.0 (02.12.2023) - Android 14 Permission Update (new developer policy, no automatic switch on Android14+ from background), Material 3</li>
  *     <li>V1.19.1 (07.12.2023) - Several bug fixes, new Navigation Bar</li>
+ *     <li>V1.20.0 (09.12.2023) - Improved Layout</li>
  * </ul>
  * <ul>
  *     <li>TODO: disconnect does not work anymore: https://issuetracker.google.com/issues/128554616</li>

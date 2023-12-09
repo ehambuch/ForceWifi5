@@ -305,9 +305,9 @@ public class MainActivity extends AppCompatActivity {
 				// Broadcast von WifiChangeService -> Recommended Wifi anzeigen
 				String recommendation = intent.getStringExtra(EXTRA_WIFICHANGETEXT);
 				if (recommendation != null) {
-					final TextView view = ((TextView) findViewById(R.id.recommandedwifitextview));
-					if (view != null)
-						view.setText(Html.fromHtml(recommendation, Html.FROM_HTML_MODE_COMPACT));
+					//final TextView view = ((TextView) findViewById(R.id.recommandedwifitextview));
+					//if (view != null)
+					//	view.setText(Html.fromHtml(recommendation, Html.FROM_HTML_MODE_COMPACT));
 				}
 			}
 		}
@@ -769,8 +769,8 @@ public class MainActivity extends AppCompatActivity {
 		WifiInfo activeNetwork = wifiManager.getConnectionInfo();
 		// set active and connected wifis
 		final boolean activeWifi = (activeNetwork != null && wifiManager.isWifiEnabled() && activeNetwork.getSSID() != null);
-		((TextView) findViewById(R.id.actualwifitextview)).setText(activeWifi
-				? (activeNetwork.getSSID() + " - " + activeNetwork.getBSSID() + " at " + activeNetwork.getFrequency() + " MHz") : getString(R.string.text_nowifi));
+		//((TextView) findViewById(R.id.actualwifitextview)).setText(activeWifi
+		//		? (activeNetwork.getSSID() + " - " + activeNetwork.getBSSID() + " at " + activeNetwork.getFrequency() + " MHz") : getString(R.string.text_nowifi));
 		// only with Android 11+ we get a list of all suggestions
 		final List<WifiNetworkSuggestion> suggestionList = new ArrayList<>();
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -833,38 +833,8 @@ public class MainActivity extends AppCompatActivity {
 			}
 		}
 
-		// Show recommendations, this actually works due to API restrictions only on latest versions
-		// On OnePlus/Realme we get a strange BadParcelableException/ClassNotFoundException from WifiNetworkSuggestion$1.createFromParcel (com.android.server.wifi.OplusWifiConfiguration)
-		// I cannot determinate a real reason behind it, maybe Chinese changes to the Android standard frameworks?
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-			final TextView recommendationView = ((TextView) findViewById(R.id.recommandedwifitextview));
-			try {
-				if (suggestionList.size() > 0) {
-					StringBuilder builder = new StringBuilder();
-					for (WifiNetworkSuggestion suggestion : suggestionList) {
-						builder.append(suggestion.getSsid()).append(" - ").append(suggestion.getBssid()).append(" recommended at prio ").append(suggestion.getPriority()).append("<br/>");
-					}
-					builder.delete(builder.length() - 5, builder.length()); // br am Ende entfernen
-					if (recommendationView != null)
-						recommendationView.setText(Html.fromHtml(builder.toString(), Html.FROM_HTML_MODE_COMPACT));
-				} else {
-					recommendationView.setText(R.string.text_nowifirecommended);
-				}
-			} catch (BadParcelableException e) { // on OnePlus...
-				Log.e(AppInfo.APP_NAME, "Error on getNetworkSuggestions", e);
-				recommendationView.setText(R.string.error_cannot_display_recommended_wifi);
-			}
-		}
-
-		// color Card if frequency is correct, so feedback to user
-		MaterialCardView recommendationView = findViewById(R.id.recommandedwificard);
-		if (activeWifi) {
-			recommendationView.setCardBackgroundColor(
-					isWantedFrequency(activeNetwork.getFrequency()) ? getResources().getColor(android.R.color.holo_green_dark, getTheme()) :
-							getResources().getColor(android.R.color.holo_orange_dark, getTheme()));
-		} else {
-			recommendationView.setCardBackgroundColor(getResources().getColor(android.R.color.white, getTheme()));
-		}
+		// We omit the old step, as we already show it now in the list of wifis
+		//showCurrentSuggestions(suggestionList, activeWifi);
 	}
 
 	private boolean isInSuggestedWifis(@NonNull ScanResult result, @NonNull List<WifiNetworkSuggestion> suggestionList) {
@@ -882,6 +852,52 @@ public class MainActivity extends AppCompatActivity {
 		Snackbar.make(MainActivity.this.findViewById(R.id.mainFragment), id, Snackbar.LENGTH_LONG).show(); // otherwise use Toast
 	}
 
+	void showMessage(String msg) {
+		Snackbar.make(MainActivity.this.findViewById(R.id.mainFragment), msg, Snackbar.LENGTH_LONG).show(); // otherwise use Toast
+	}
+
+	/**
+	 * Show recommendations, this actually works due to API restrictions only on latest versions
+	 * <p>On OnePlus/Realme we get a strange BadParcelableException/ClassNotFoundException from WifiNetworkSuggestion$1.createFromParcel (com.android.server.wifi.OplusWifiConfiguration)
+	 * I cannot determinate a real reason behind it, maybe Chinese changes to the Android standard frameworks?</p>
+	 *
+	 * @param suggestionList
+	 * @param activeWifi
+	 */
+	private void showCurrentSuggestions(List<WifiNetworkSuggestion> suggestionList, boolean activeWifi) {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+			//final TextView recommendationView = ((TextView) findViewById(R.id.recommandedwifitextview));
+			try {
+				if (suggestionList.size() > 0) {
+					StringBuilder builder = new StringBuilder();
+					for (WifiNetworkSuggestion suggestion : suggestionList) {
+						builder.append(suggestion.getSsid()).append(" - ").append(suggestion.getBssid()).append(" recommended at prio ").append(suggestion.getPriority()).append("<br/>");
+					}
+					builder.delete(builder.length() - 5, builder.length()); // br am Ende entfernen
+					showMessage(builder.toString());
+					//recommendationView.setText(Html.fromHtml(builder.toString(), Html.FROM_HTML_MODE_COMPACT));
+				} else {
+					// omit the message "text_nowifirecommended" as this would result into a loop
+				}
+			} catch (BadParcelableException e) { // on OnePlus...
+				Log.e(AppInfo.APP_NAME, "Error on getNetworkSuggestions", e);
+				showError(R.string.error_cannot_display_recommended_wifi);
+			}
+		}
+
+
+		// color Card if frequency is correct, so feedback to user
+		//MaterialCardView recommendationView = findViewById(R.id.recommandedwificard);
+		// TODO: idea: highlight the Wifi on/off button with a badge or background color
+		if (activeWifi) {
+			//recommendationView.setCardBackgroundColor(
+			//		isWantedFrequency(activeNetwork.getFrequency()) ? getResources().getColor(android.R.color.holo_green_dark, getTheme()) :
+			//				getResources().getColor(android.R.color.holo_orange_dark, getTheme()));
+
+		} else {
+			// recommendationView.setCardBackgroundColor(getResources().getColor(android.R.color.white, getTheme()));
+		}
+	}
 	public static boolean isLocationServicesEnabled(@NonNull Context context) {
 		LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 		return LocationManagerCompat.isLocationEnabled(locationManager);

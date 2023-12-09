@@ -9,126 +9,50 @@
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swiperefresh"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="651dp">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/mainFragment"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        android:layout_margin="5dp"
-        tools:context=".MainActivity">
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/mainFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_margin="5dp"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior"
+            tools:context=".MainActivity">
 
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/nowificardview"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:padding="5dp"
-        android:visibility="visible"
-        app:cardCornerRadius="8dp">
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/nowificardview"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="5dp"
+                android:visibility="visible"
+                app:cardCornerRadius="8dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
 
-        <TextView
-            android:id="@+id/nowifitextview"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/text_nowififound"
-            android:textColor="@android:color/white"
-            android:layout_margin="8dp"
-            />
+                <TextView
+                    android:id="@+id/nowifitextview"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="8dp"
+                    android:text="@string/text_nowififound"
+                    android:textColor="@android:color/white" />
 
-    </com.google.android.material.card.MaterialCardView>
+            </com.google.android.material.card.MaterialCardView>
 
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/listview"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/listview"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
                 android:dividerHeight="2dp"
                 android:orientation="vertical"
                 android:scrollbars="vertical"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintBottom_toTopOf="@id/actualwificard"
-                app:layout_constraintTop_toBottomOf="@id/nowificardview" />
-
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/actualwificard"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="4dp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/listview"
-            app:layout_constraintBottom_toTopOf="@id/recommandedwificard"
-            android:padding="5dp"
-            android:visibility="gone"
-            app:cardElevation="4dp"
-            app:cardCornerRadius="8dp"
-            >
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:layout_margin="4dp"
-                app:srcCompat="@drawable/wifi_24px"
-                android:scaleType="centerCrop"
-                android:contentDescription="@string/text_nowififound"
-                />
-        <TextView
-            android:id="@+id/actualwifitextview"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-
-            android:text="@string/text_nowifi"
-            android:textColor="?android:attr/textColorSecondary"
-            android:layout_margin="8dp"
-            />
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/recommandedwificard"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="4dp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/actualwificard"
-            app:layout_constraintBottom_toBottomOf="parent"
-            android:visibility="gone"
-            android:padding="5dp"
-            app:cardElevation="4dp"
-            app:cardCornerRadius="8dp"
-            >
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_margin="4dp"
-                    app:srcCompat="@drawable/wifi_channel_24px"
-                    android:scaleType="centerCrop"
-                    android:contentDescription="@string/text_nowifirecommended"
-                    />
-            <TextView
-                android:id="@+id/recommandedwifitextview"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:layout_constraintBottom_toBottomOf="parent"
-                android:text="@string/text_nowifirecommended"
-                android:textColor="?android:attr/textColorSecondary"
-                android:layout_margin="8dp"
-                />
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-    </androidx.constraintlayout.widget.ConstraintLayout>
+                app:layout_constraintTop_toBottomOf="@id/nowificardview"
+                app:layout_constraintBottom_toBottomOf="parent"/>
+        </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     <com.google.android.material.bottomappbar.BottomAppBar
@@ -137,9 +61,8 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:gravity="fill_horizontal"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_behavior="com.google.android.material.bottomappbar.BottomAppBar$Behavior"
+        app:hideOnScroll="true"
         app:menuAlignmentMode="start"
         style="@style/Widget.Material3.BottomAppBar"
         app:menu="@menu/bottom_app_bar"

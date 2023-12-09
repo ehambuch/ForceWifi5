@@ -7,7 +7,7 @@
     android:paddingStart="8dp"
     android:paddingEnd="8dp"
     xmlns:android="http://schemas.android.com/apk/res/android">
-    <CheckBox android:id="@+id/networktextviewName"
+    <TextView android:id="@+id/networktextviewName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textColor="?android:attr/textColorPrimary"
@@ -20,7 +20,6 @@
         android:textColor="?android:attr/textColorSecondary"
         android:textIsSelectable="false"
         android:layout_below="@id/networktextviewName"
-        android:layout_marginStart="32dp"
         android:text="bssid"/>
     <ImageView
         android:id="@+id/networkimage1"
