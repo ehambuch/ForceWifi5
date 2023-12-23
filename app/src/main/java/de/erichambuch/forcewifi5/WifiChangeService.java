@@ -291,7 +291,7 @@ public class WifiChangeService extends Service {
 										.setAutoCancel(true)
 										.setSilent(true)
 										.setContentIntent(PendingIntent.getActivity(getApplicationContext(), 0,
-												new Intent(Intent.ACTION_VIEW, null, getApplicationContext(), MainActivity.class),
+												new Intent("android.settings.panel.action.INTERNET_CONNECTIVITY"),
 												PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_IMMUTABLE))
 										.setCategory(Notification.CATEGORY_MESSAGE)
 										.setTicker(this.getText(R.string.info_switch_wifi_5ghz) + " " + suggestionToString(suggestions.get(0)))
@@ -304,7 +304,6 @@ public class WifiChangeService extends Service {
 						if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ) {
 							try {
 								wifiManager.setWifiEnabled(false);
-								wifiManager.setWifiEnabled(true);
 							} catch (Exception e) {
 								Log.w(AppInfo.APP_NAME, "Wifi disabling/enabled failed", e);
 							}
@@ -328,6 +327,25 @@ public class WifiChangeService extends Service {
 								break;
 							case WifiManager.STATUS_NETWORK_SUGGESTIONS_SUCCESS:
 								showError(R.string.info_switch_wifi_5ghz_android10);
+								// Starting with API 33, Android allows to use setWifiEnabled in certain cases (device owner, etc.), so we give a try
+								// disconnect geht nicht mehr: https://issuetracker.google.com/issues/128554616
+								if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ) {
+									boolean changed = false;
+									try {
+										changed = wifiManager.setWifiEnabled(true);
+									} catch (Exception e) {
+										Log.w(AppInfo.APP_NAME, "Wifi disabling/enabled failed", e);
+									} finally {
+										// try another way
+										if(!changed) {
+											try {
+												startActivity(getWifiIntent(getApplicationContext()));
+											} catch(Exception e2) {
+												Log.e(AppInfo.APP_NAME, "Error starting activity to switch wifi", e2);
+											}
+										}
+									}
+								}
 								break;
 							case WifiManager.STATUS_NETWORK_SUGGESTIONS_ERROR_APP_DISALLOWED:
 								showError(R.string.error_permission_missing);
@@ -389,6 +407,18 @@ public class WifiChangeService extends Service {
 		}
 	}
 
+	@RequiresPermission(value = "android.permission.CHANGE_WIFI_STATE")
+	public static int provideSuggestions(@NonNull Context context, @NonNull List<WifiNetworkSuggestion> suggestionList) {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+			WifiManager wifiManager = (WifiManager) context.getSystemService(WIFI_SERVICE);
+			wifiManager.removeNetworkSuggestions(Collections.emptyList());
+			int rc = wifiManager.addNetworkSuggestions(suggestionList);
+			Log.i(AppInfo.APP_NAME, "Provided new network suggestings from app: " + rc);
+			return rc;
+		}
+		return 0;
+	}
+
 	private void showError(int stringId) {
 		showError(getApplicationContext(), stringId, false);
 	}
@@ -397,7 +427,7 @@ public class WifiChangeService extends Service {
 	}
 
 	private static void showError(Context context, int stringId, boolean forceToast) {
-		if (!forceToast && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && NotificationManagerCompat.from(context).areNotificationsEnabled()) {
+		if (!forceToast && NotificationManagerCompat.from(context).areNotificationsEnabled()) {
 			try {
 				NotificationManagerCompat.from(context).notify(ONGOING_NOTIFICATION_ID, createMessageNotification(context, stringId));
 			} catch (SecurityException e) {
@@ -530,5 +560,23 @@ public class WifiChangeService extends Service {
 
 	private boolean isSwitchToOtherSSID() {
 		return PreferenceManager.getDefaultSharedPreferences(this).getBoolean(getString(R.string.prefs_switchnetwork), false);
+	}
+
+	/**
+	 * Returns the best Intent to switch Wifis off and on again.
+	 * <p>Depending on the Android version and device different actions are supported.</p>
+	 * @param context
+	 * @return the intent
+	 * @see <a href="https://stackoverflow.com/questions/63124728/connect-to-wifi-in-android-q-programmatically">Stack Overflow Question</a>
+	 */
+	@NonNull
+	public static Intent getWifiIntent(@NonNull Context context) {
+		Intent intent = new Intent("android.settings.panel.action.INTERNET_CONNECTIVITY");
+		if(intent.resolveActivity(context.getPackageManager()) != null)
+			return intent;
+		intent = new Intent("android.settings.panel.action.WIFI");
+		if(intent.resolveActivity(context.getPackageManager()) != null)
+			return intent;
+		return new Intent(Settings.ACTION_WIFI_SETTINGS);
 	}
 }

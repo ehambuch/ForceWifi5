@@ -5,6 +5,7 @@
     android:icon="@drawable/wifi_24px"
     android:title="@string/text_wifi"
     android:contentDescription="@string/description_wifi"
+        android:tooltipText="@string/description_wifi"
     app:showAsAction="always"/>
 
     <item
@@ -12,6 +13,7 @@
         android:icon="@drawable/baseline_settings_24"
         android:title="@string/action_settings"
         android:contentDescription="@string/action_settings"
+        android:tooltipText="@string/action_settings"
         app:showAsAction="always"/>
 
     <item
@@ -19,6 +21,16 @@
         android:icon="@drawable/baseline_format_list_numbered_24"
         android:title="@string/text_listsuggestions"
         android:contentDescription="@string/text_listsuggestions"
+        android:tooltipText="@string/text_listsuggestions"
+        app:showAsAction="always"/>
+
+    <item
+        android:id="@+id/menu_wifi_save"
+        android:icon="@drawable/baseline_save_alt_24"
+        android:title="@string/text_savesuggestions"
+        android:contentDescription="@string/text_savesuggestions"
+        android:visible="false"
+        android:tooltipText="@string/text_savesuggestions"
         app:showAsAction="always"/>
 
     <item
@@ -26,6 +38,7 @@
         android:icon="@drawable/baseline_delete_24"
         android:title="@string/text_reset_suggestions"
         android:contentDescription="@string/text_reset_suggestions"
+        android:tooltipText="@string/text_reset_suggestions"
         app:showAsAction="always"/>
 
     <item
@@ -37,7 +50,11 @@
     <item
         android:id="@+id/menu_info"
         app:showAsAction="ifRoom"
-        android:contentDescription="@string/action_info"
-        android:title="@string/action_info"/>
-
+        android:contentDescription="@string/action_contact"
+        android:title="@string/action_contact"/>
+    <item
+        android:id="@+id/menu_privacy"
+        app:showAsAction="ifRoom"
+        android:contentDescription="@string/action_privacy"
+        android:title="@string/action_privacy"/>
     </menu>

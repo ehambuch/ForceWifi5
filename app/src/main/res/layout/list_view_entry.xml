@@ -13,21 +13,19 @@
         android:textColor="?android:attr/textColorPrimary"
         android:textIsSelectable="false"
         android:layout_marginBottom="0dp"
-        android:text="test"/>
+        android:text="Dies ist ein Test WIFI"/>
     <TextView android:id="@+id/networktextviewBSSID"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textColor="?android:attr/textColorSecondary"
         android:textIsSelectable="false"
         android:layout_below="@id/networktextviewName"
-        android:text="bssid"/>
+        android:text="Mit SSID und BSSI und Signal"/>
     <ImageView
         android:id="@+id/networkimage1"
         android:layout_width="24dp"
         android:layout_height="24dp"
-        android:paddingLeft="24dp"
-        android:paddingRight="24dp"
-        android:layout_alignParentEnd="true"
+        android:layout_toStartOf="@id/networkcheckbox"
         android:layout_centerVertical="true"
         android:gravity="center_vertical"
         android:background="@drawable/baseline_wifi_24"
@@ -37,11 +35,18 @@
         android:id="@+id/networkimage2"
         android:layout_width="24dp"
         android:layout_height="24dp"
-        android:paddingLeft="24dp"
-        android:paddingRight="24dp"
         android:layout_toStartOf="@id/networkimage1"
         android:layout_centerVertical="true"
         android:gravity="center_vertical"
         android:background="@drawable/baseline_high_priority_24"
         android:contentDescription="priority" />
+    <com.google.android.material.checkbox.MaterialCheckBox
+        android:id="@+id/networkcheckbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:gravity="center_vertical"
+        android:visibility="invisible"
+        android:contentDescription="select" />
 </RelativeLayout>

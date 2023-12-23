@@ -22,7 +22,7 @@
     <string name="title_2ghz">2.4 GHz</string>
     <string name="title_6ghz">6 GHz</string>
     <string name="title_minimumlevel">Minimalny poziom sygnału przełączania</string>
-    <string name="summary_activation">Aktywuj lub dezaktywuj funkcję automatycznego przełączania częstotliwości WiFi</string>
+    <string name="summary_activation">Aktywuj lub dezaktywuj funkcję automatycznego przełączania częstotliwości Wi-Fi. Jeśli jesteś w trybie ręcznym, nadal możesz ręcznie wybrać preferowaną sieć Wi-Fi.</string>
     <string name="summary_2ghz5ghz">Wybierz preferowaną częstotliwość — 2,4 GHz lub 5 GHz, jeżeli jest obsługiwana</string>
     <string name="summary_signallevel">Zdefiniuj minimalny poziom sygnału, przy którym nastąpi przełączenie na inną częstotliwość. Pozwala to uniknąć przełączania do słabszej sieci.</string>
     <string name="title_settings">Ustawienia</string>
@@ -80,6 +80,7 @@
     <string name="message_forcewifi14_activated">Wymuś aktywację Wi-Fi 5. Otwórz, aby przełączyć się na konkretny punkt dostępu Wi-Fi.</string>
     <string name="title_notification_settings">Powiadomienia</string>
     <string name="summay_notifications_settings">Allow notifications from this app to be informed about Wifi changes.</string>
+    <string name="summary_wifichange_settings">Otwórz menu „Dostęp do aplikacji specjalnych” i sprawdź ustawienia „Kontrola Wi-Fi” dla tej aplikacji</string>
     <string name="title_wifiband_settings">Automatyczny wybór pasma Wi-Fi</string>
     <string name="summary_wifiband_settings">Niektóre telefony umożliwiają już automatyczny wybór pasma. W tej funkcji może zastąpić tę aplikację.</string>
     <string name="text_wifi">Wi-Fi</string>
@@ -92,4 +93,18 @@
     <string name="text_cancel">Anulować</string>
     <string name="text_settings">Ustawienia</string>
     <string name="message_reset_suggestions">Usunąć wszystkie sugestie dotyczące preferowanych sieci Wi-Fi?</string>
+    <string name="text_preferred">Preferowane</string>
+    <string name="text_savesuggestions">Ratować</string>
+    <string name="error_save_suggestions">Nie można zapisać sugestii Wi-Fi na tym urządzeniu.</string>
+    <string name="text_save_suggestions">Podaj sugestie</string>
+    <string name="message_save_suggestions">Czy chcesz przekazać systemowi nowe sugestie dotyczące sieci Wi-Fi?</string>
+    <string name="text_suggestions_saved">Zapisano nowe sugestie Wi-Fi. Prosimy o cierpliwość w przypadku Androida…</string>
+    <string name="summary_widget">Dodaj widżet do ekranu głównego. Daje to możliwość szybkiego sprawdzenia aktualnej częstotliwości.</string>
+    <string name="title_widget">Widget</string>
+    <string name="title_general_settings">Ustawienia główne</string>
+    <string name="title_admob">Włącz reklamy</string>
+    <string name="summary_admob">Włącz lub wyłącz reklamy w aplikacji (wymaga ponownego uruchomienia).</string>
+    <string name="action_privacy">Opcje prywatności</string>
+    <string name="error_loading_privacy">Error loading privacy forms for AdMob</string>
+    <string name="action_contact">Kontakt</string>
 </resources>

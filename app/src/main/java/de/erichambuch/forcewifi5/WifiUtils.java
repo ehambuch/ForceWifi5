@@ -3,6 +3,7 @@ package de.erichambuch.forcewifi5;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -20,7 +21,8 @@ public class WifiUtils {
     public static String normalizeSSID(@Nullable String ssid) {
         if (ssid == null )
             return "";
-        if (ssid.startsWith("\"") && ssid.endsWith("\"")){
+        if (ssid.startsWith("\"") && ssid.endsWith("\"")) {
+            Log.d(AppInfo.APP_NAME, "Normlized SSID "+ssid);
             return ssid.substring(1, ssid.length()-1);
         } else
             return ssid;

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Force Wifi 5 GHz</string>
-    <string name="author" translatable="false">erichambuch@googlemail.com</string>
+    <string name="author" translatable="false">erichambuch+apps@googlemail.com</string>
     <string name="action_info">FAQ</string>
     <string name="error_wifi_not_enabled">Wifi is not enabled!</string>
     <string name="error_no_5ghz_found">No networks with both frequencies and same SSID found!</string>
@@ -9,7 +9,7 @@
     <string name="info_switch_wifi_5ghz">Trying to switch frequency &#8230;</string>
     <string name="info_5ghz_active">Wifi already connected with preferred frequency</string>
     <string name="text_listnetworks">Available networks with both 2.4/5 GHz:</string>
-    <string name="title_activation">Force Wifi frequency activated</string>
+    <string name="title_activation">Automatic Force Wifi activated</string>
     <string name="error_5ghz_not_configured">Please try to configure 5 GHz network with current SSID…</string>
     <string name="error_scan_failed_throttle">Wifi scan failed - throttling too many scans</string>
     <string name="error_scan_failed_wifi">Wifi scan failed - Wifi not available</string>
@@ -18,7 +18,7 @@
     <string name="action_settings">Settings</string>
     <string name="action_ignore">Ignore</string>
     <string name="app_url" translatable="false">https://sites.google.com/site/erichambuch/forcewifi5</string>
-    <string name="app_mailto" translatable="false">erichambuch@googlemail.com</string>
+    <string name="app_mailto" translatable="false">erichambuch+apps@googlemail.com</string>
     <string name="title_deacttived">Inactive</string>
     <string name="title_5ghz">5 GHz</string>
     <string name="title_2ghz">2.4 GHz</string>
@@ -27,7 +27,7 @@
     <string name="prefs_2ghz5ghz" translatable="false">prefs_ghz25switch</string>
     <string name="title_minimumlevel">Minimum signal level to switch over</string>
     <string name="prefs_signallevel" translatable="false">prefs_signallevel</string>
-    <string name="summary_activation">Activate or de-activate the functionality to switch automatically the frequency of your Wifi</string>
+    <string name="summary_activation">Activate or de-activate the functionality to switch automatically the frequency of your Wifi. If disabled, you can still select your preferred Wi-Fis manually.</string>
     <string name="summary_2ghz5ghz">Choose your preferred frequency - either 2.4 GHz or 5 GHz if supported</string>
     <string name="summary_signallevel">Define the minimum signal level to switch over to another frequency. This avoids switching to a weaker network.</string>
     <string name="title_settings">Settings</string>
@@ -96,7 +96,7 @@
     <string name="summay_notifications_settings">Allow notifications from this app to be informed about Wifi changes.</string>
     <string name="prefs_wifichange_settings" translatable="false">prefs_wifichange_settings</string>
     <string name="title_wifichange_settings" translatable="false">Check Wi-Fi Control</string>
-    <string name="summary_wifichange_settings" translatable="false">Open the \'Special App access\' menu and check the \'Wi-Fi Control\' settings for this app</string>
+    <string name="summary_wifichange_settings">Open the ‘Special App access’ menu and check the ’Wi-Fi Control’ settings for this app</string>
     <string name="prefs_wifiband_settings" translatable="false">prefs_wifiband_settings</string>
     <string name="title_wifiband_settings">Wi-Fi Automatic Band Selection</string>
     <string name="summary_wifiband_settings">Some phones already provide an automatic band selection. In the feature may replace this app.</string>
@@ -109,7 +109,26 @@
     <string name="title_wifi_suggestions">Active Wi-Fi Suggestions</string>
     <string name="text_cancel">Cancel</string>
     <string name="text_settings">Settings</string>
-    <string name="text_ok" translatable="false">Ok</string>
+    <string name="text_ok" translatable="false">OK</string>
     <string name="message_reset_suggestions">Remove all suggestions for preferred Wi-Fis?</string>
     <string name="text_preferred">Preferred</string>
+    <string name="text_savesuggestions">Save</string>
+    <string name="error_save_suggestions">Cannot save Wi-Fi suggestions on this device.</string>
+    <string name="text_save_suggestions">Provide suggestions</string>
+    <string name="message_save_suggestions">Provide new WiFi suggestions to system?</string>
+    <string name="text_suggestions_saved">New WiFi suggestions saved. Please be patient with Android&#8230;</string>
+    <string name="summary_widget">Add a widget to your home screen. This gives you a chance to quickly check your current frequency.</string>
+    <string name="title_widget">Frequency widget</string>
+    <string name="title_general_settings">General Settings</string>
+    <string name="title_admob">Activate ads with Google AdMob</string>
+    <string name="summary_admob">Activate or de-activate Google Ads (Restart required)</string>
+    <string name="prefs_admob" translatable="false">prefs_admob</string>
+    <string name="admob_debug" translatable="false">ca-app-pub-3940256099942544/6300978111</string>
+    <string name="admob_id" translatable="false">ca-app-pub-6851248802879048/3051018792</string>
+    <string name="action_privacy">Privacy Options</string>
+    <string name="error_loading_privacy">Error loading privacy forms for AdMob</string>
+    <string name="app_faq_url" translatable="false">https://sites.google.com/site/erichambuch/forcewifi5</string>
+    <string name="app_dataprotection_url" translatable="false">https://sites.google.com/site/erichambuch/dataprotection</string>
+    <string name="action_contact">Contact</string>
+    <string name="message_impressum" translatable="false"><![CDATA[<p>Any feedback is welcome by eMail: <a href=\"mailto:erichambuch+apps@googlemail.com\">erichambuch+apps@googlemail.com</a></p><br/><p>Impressum:<br/><br/><address><small>Eric Hambuch, Himmelgeister Str. 45, 40225 Düsseldorf, Germany, Mail: <a href=\"mailto:erichambuch+apps@googlemail.com\">erichambuch+apps@googlemail.com</a>, <a href=\"tel:+49179337366140\">Telefon</a></small></address></p> ]]></string>
 </resources>

@@ -4,12 +4,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:textAlignment="center"
+    android:orientation="vertical"
     tools:context=".MainActivity">
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swiperefresh"
         android:layout_width="match_parent"
-        android:layout_height="651dp">
+        android:layout_height="wrap_content">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/mainFragment"
@@ -25,6 +26,8 @@
                 android:layout_height="wrap_content"
                 android:padding="5dp"
                 android:visibility="visible"
+                android:text="@string/error_no_permissions_provived"
+                app:cardBackgroundColor="@android:color/holo_red_light"
                 app:cardCornerRadius="8dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -43,26 +46,47 @@
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/listview"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:dividerHeight="2dp"
                 android:orientation="vertical"
                 android:scrollbars="vertical"
-                app:layout_constraintEnd_toEndOf="parent"
+                android:contextClickable="true"
+                android:gravity="fill|top"
                 app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/nowificardview"
-                app:layout_constraintBottom_toBottomOf="parent"/>
+                />
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" android:layout_marginBottom="1dp">
+        <!-- required for correct layout of admob, 16dp is from https://m3.material.io/components/bottom-app-bar/specs  -->
+        <androidx.viewpager2.widget.ViewPager2
+            android:id="@+id/pager"
+            android:layout_width="match_parent"
+            android:layout_height="0dp" />
+        <FrameLayout
+            android:id="@+id/ad_view_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_alignParentBottom="true" android:paddingBottom="80dp"/>
+    </RelativeLayout>
+
+    <!--         android:layout_alignParentBottom="true"-->
+    <!--         app:elevation="0dp"-->
     <com.google.android.material.bottomappbar.BottomAppBar
         android:id="@+id/bottomAppBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:gravity="fill_horizontal"
+        android:fitsSystemWindows="true"
         app:layout_behavior="com.google.android.material.bottomappbar.BottomAppBar$Behavior"
-        app:hideOnScroll="true"
+        app:paddingBottomSystemWindowInsets="true"
         app:menuAlignmentMode="start"
         style="@style/Widget.Material3.BottomAppBar"
         app:menu="@menu/bottom_app_bar"

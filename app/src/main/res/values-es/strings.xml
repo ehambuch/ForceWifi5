@@ -42,7 +42,7 @@
 
   <string name="title_minimumlevel">Nivel de señal mínimo para cambiar</string>
 
-  <string name="summary_activation">Activa o desactiva la funcionalidad para cambiar automáticamente la frecuencia de tu Wifi</string>
+  <string name="summary_activation">Activa o desactiva la funcionalidad para cambiar automáticamente la frecuencia de tu Wifi. Si estás en modo manual, aún puedes seleccionar tus Wifis preferidos manualmente.</string>
       
   <string name="summary_2ghz5ghz">Elija su frecuencia preferida: 2,4 GHz o 5 GHz, si es compatible</string>
       
@@ -128,7 +128,7 @@
       
   <string name="error_not_supported">Función no compatible con su teléfono</string>
 
-  <string name="message_requestpermission_rationale">&lt;p&gt;Esta aplicación requiere varias configuraciones de permisos para funcionar correctamente. Concédeles a todos:&lt;/p&gt;&lt;ol&gt;&lt;li&gt;&lt;b&gt; Acceso a tu ubicación&lt;/b&gt;: Android lo requiere para determinar todos los puntos de acceso Wi-Fi cercanos&lt;/li&gt;&lt;li&gt;&lt;b&gt; Habilitado servicios de ubicación&lt;/b&gt;, y sus &lt;em&gt;Servicios de ubicación&lt;/em&gt; también deben estar habilitados&lt;/li&gt;&lt;li&gt;&lt;em&gt;&lt;b&gt; Modos de optimización de batería&lt;/b&gt;&lt;/em&gt; deben estar desactivados para mantén la aplicación ejecutándose en segundo plano&lt;/li&gt;&lt;li&gt;... y es posible que se te pregunte cuándo la aplicación propone otra red Wi-Fi. Di \"Sí\", porque ese es el único propósito de esta aplicación.&lt;/li&gt;&lt;/ol&gt;</string>
+  <string name="message_requestpermission_rationale">&lt;p&gt;Esta aplicación requiere varias configuraciones de permisos para funcionar correctamente. Concédeles a todos:&lt;/p&gt;&lt;ol&gt;&lt;li&gt;&lt;b&gt; Acceso a tu ubicación&lt;/b&gt;: Android lo requiere para determinar todos los puntos de acceso Wi-Fi cercanos&lt;/li&gt;&lt;li&gt;&lt;b&gt; Habilitado servicios de ubicación&lt;/b&gt;, y sus &lt;em&gt;Servicios de ubicación&lt;/em&gt; también deben estar habilitados&lt;/li&gt;&lt;li&gt;&lt;em&gt;&lt;b&gt; Modos de optimización de batería&lt;/b&gt;&lt;/em&gt; deben estar desactivados para mantén la aplicación ejecutándose en segundo plano&lt;/li&gt;&lt;li&gt;&#8230; y es posible que se te pregunte cuándo la aplicación propone otra red Wi-Fi. Di \"Sí\", porque ese es el único propósito de esta aplicación.&lt;/li&gt;&lt;/ol&gt;</string>
       
   <string name="title_sendfeedback">Suministre realimentación</string>
       
@@ -150,6 +150,7 @@
     <string name="message_forcewifi14_activated">Forzar Wifi 5 activado. Ábralo para cambiar a un punto de acceso Wifi específico.</string>
     <string name="title_notification_settings">Notificaciones</string>
   <string name="summay_notifications_settings">Allow notifications from this app to be informed about Wifi changes.</string>
+  <string name="summary_wifichange_settings">Abra el menú \'Acceso a aplicaciones especiales\' y verifique la configuración de \'Control de Wi-Fi\' para esta aplicación</string>
   <string name="title_wifiband_settings">Selección automática de banda Wi-Fi</string>
   <string name="summary_wifiband_settings">Algunos teléfonos ya ofrecen una selección automática de banda. En la función puede reemplazar esta aplicación.</string>
   <string name="text_wifi">Wi-Fi</string>
@@ -162,5 +163,19 @@
   <string name="text_cancel">Cancelar</string>
   <string name="text_settings">Ajustes</string>
     <string name="message_reset_suggestions">¿Eliminar todas las sugerencias de Wi-Fi preferidas?</string>
+    <string name="text_preferred">Privilegiado</string>
+  <string name="text_savesuggestions">Ahorrar</string>
+  <string name="error_save_suggestions">No se pueden guardar sugerencias de Wi-Fi en este dispositivo.</string>
+  <string name="text_save_suggestions">Proporcionar sugerencias</string>
+  <string name="message_save_suggestions">¿Proporcionar nuevas sugerencias de WiFi al sistema?</string>
+  <string name="text_suggestions_saved">Nuevas sugerencias de WiFi guardadas. Tenga paciencia con Android&#8230;</string>
+  <string name="summary_widget">Agregue un widget a su pantalla de inicio. Esto le brinda la oportunidad de verificar rápidamente su frecuencia actual.</string>
+  <string name="title_widget">Widget</string>
+  <string name="title_general_settings">Configuración general</string>
+  <string name="title_admob">Habilitar publicidad</string>
+  <string name="summary_admob">Habilite o deshabilite los anuncios en la aplicación (es necesario reiniciar).</string>
+  <string name="action_privacy">Opciones de privacidad</string>
+  <string name="error_loading_privacy">Error loading privacy forms for AdMob</string>
+    <string name="action_contact">Contacto</string>
 
 </resources>

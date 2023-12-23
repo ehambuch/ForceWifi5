@@ -5,6 +5,8 @@ import android.net.wifi.WifiManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -24,12 +26,15 @@ public class CustomWifiListAdapter extends RecyclerView.Adapter<CustomWifiListAd
         private final ImageView image1;
         private final ImageView image2;
 
+        private final CheckBox checkbox;
+
         public ViewHolder(@NonNull View view) {
             super(view);
             textViewName = (TextView) view.findViewById(R.id.networktextviewName);
             textViewBSSID = (TextView) view.findViewById(R.id.networktextviewBSSID);
             image1 = view.findViewById(R.id.networkimage1);
             image2 = view.findViewById(R.id.networkimage2);
+            checkbox = view.findViewById(R.id.networkcheckbox);
         }
 
         @NonNull
@@ -40,16 +45,6 @@ public class CustomWifiListAdapter extends RecyclerView.Adapter<CustomWifiListAd
         @NonNull
         public TextView getTextViewInformation() {
             return textViewBSSID;
-        }
-
-        @NonNull
-        public ImageView getImageView1() {
-            return image1;
-        }
-
-        @NonNull
-        public ImageView getImageView2() {
-            return image2;
         }
 
         public void setConnected(boolean connected) {
@@ -67,14 +62,38 @@ public class CustomWifiListAdapter extends RecyclerView.Adapter<CustomWifiListAd
                 ((AnimationDrawable) image2.getBackground()).start();
             }
         }
+
+        public void setSelectable(boolean s) {
+            checkbox.setVisibility(s ? View.VISIBLE : View.INVISIBLE);
+        }
+
+        public void setSelected(boolean selected) {
+            checkbox.setSelected(selected);
+        }
+
+        public boolean isSelected() {
+            return checkbox.isSelected();
+        }
+
+        public void connectWithEntry(final @NonNull MainActivity.AccessPointEntry entry) {
+            checkbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    entry.setSelected(isChecked);
+                }
+            });
+        }
     }
 
     private final List<MainActivity.AccessPointEntry> networkEntries;
     private final WifiManager wifiManager;
 
-    public CustomWifiListAdapter(@NonNull List<MainActivity.AccessPointEntry> networkEntries, @NonNull WifiManager wifiManager) {
+    private final boolean selectionMode;
+
+    public CustomWifiListAdapter(@NonNull List<MainActivity.AccessPointEntry> networkEntries, @NonNull WifiManager wifiManager, boolean selectionMode) {
         this.networkEntries = networkEntries;
         this.wifiManager = wifiManager;
+        this.selectionMode = selectionMode;
     }
 
     // Create new views (invoked by the layout manager)
@@ -84,8 +103,8 @@ public class CustomWifiListAdapter extends RecyclerView.Adapter<CustomWifiListAd
         // Create a new view, which defines the UI of the list item
         View view = LayoutInflater.from(viewGroup.getContext())
                 .inflate(R.layout.list_view_entry, viewGroup, false);
-
-        return new ViewHolder(view);
+        final ViewHolder holder = new ViewHolder(view);
+        return holder;
     }
 
     // Replace the contents of a view (invoked by the layout manager)
@@ -99,6 +118,9 @@ public class CustomWifiListAdapter extends RecyclerView.Adapter<CustomWifiListAd
         viewHolder.getTextViewInformation().setText(text);
         viewHolder.setConnected(entry.connected);
         viewHolder.setRecommended(entry.recommended);
+        viewHolder.setSelectable(this.selectionMode);
+        viewHolder.setSelected(entry.selected);
+        viewHolder.connectWithEntry(entry);
     }
 
     // Return the size of your dataset (invoked by the layout manager)

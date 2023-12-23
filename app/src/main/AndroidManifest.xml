@@ -12,6 +12,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" android:maxSdkVersion="33"/>
     <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID"/>
 
     <uses-feature
         android:name="android.hardware.wifi"
@@ -34,6 +35,12 @@
             <action android:name="android.intent.action.VIEW" />
             <data android:scheme="market:" />
         </intent>
+        <intent>
+            <action android:name="android.settings.panel.action.INTERNET_CONNECTIVITY" />
+        </intent>
+        <intent>
+            <action android:name="android.settings.panel.action.WIFI" />
+        </intent>
     </queries>
 
     <application
@@ -45,7 +52,8 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
-        tools:targetApi="s">
+        android:enableOnBackInvokedCallback="true"
+        tools:targetApi="tiramisu">
         <receiver
             android:name=".ForceWifiAppWidget"
             android:exported="true" android:enabled="true">
@@ -61,7 +69,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:label="@string/app_name">
+            android:label="@string/app_name" android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -77,7 +85,8 @@
         <activity
             android:name=".SettingsActivity"
             android:exported="false"
-            android:label="@string/action_settings" >
+            android:label="@string/action_settings"
+            android:theme="@style/AppTheme.ActionBar">
             <intent-filter>
                 <action android:name="de.erichambuch.forcewifi5.VIEW_DATA_PROTECTION" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -86,27 +95,37 @@
                 <action android:name="de.erichambuch.forcewifi5.VIEW_MARKET" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="de.erichambuch.forcewifi5.VIEW_PRIVACY_OPTIONS" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="de.erichambuch.forcewifi5.VIEW_FAQ" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
         </activity>
         <activity
             android:name="com.google.android.gms.oss.licenses.OssLicensesMenuActivity"
             android:exported="false"
-            android:theme="@style/AppTheme" />
+            android:theme="@style/AppTheme.ActionBar" />
         <activity
             android:name="com.google.android.gms.oss.licenses.OssLicensesActivity"
             android:exported="false"
-            android:theme="@style/AppTheme" />
+            android:theme="@style/AppTheme.ActionBar" />
 
         <service
             android:name=".WifiChangeService" android:foregroundServiceType="location"
-            android:exported="false" />
+            android:exported="false"
+            tools:ignore="ForegroundServicePermission" />
         <service
             android:name=".WifiChangeService14"
             android:exported="false" />
 
         <!-- WorkManager, Android 12 https://developer.android.com/guide/background/persistent/how-to/long-running -->
-        <service
+        s<service
             android:name="androidx.work.impl.foreground.SystemForegroundService" android:foregroundServiceType="location"
-            tools:node="merge" />
+            tools:node="merge"
+            tools:ignore="ForegroundServicePermission" />
 
         <!-- works only up to Android 9 -->
         <receiver android:name=".MainActivity$NetworkStateChangedReceiver" android:enabled="true" android:exported="true">
@@ -133,6 +152,14 @@
             android:authorities="${applicationId}.androidx-startup"
             tools:node="remove">
         </provider>
+
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-6851248802879048~9497007640"/>
+        <meta-data
+            android:name="com.google.android.gms.ads.flag.OPTIMIZE_INITIALIZATION"
+            android:value="true"/>
+
     </application>
 
 </manifest>

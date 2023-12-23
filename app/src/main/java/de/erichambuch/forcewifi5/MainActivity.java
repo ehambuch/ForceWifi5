@@ -16,6 +16,7 @@ import android.app.ActivityManager;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.appwidget.AppWidgetManager;
+import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -25,6 +26,7 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
+import android.net.MacAddress;
 import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.net.NetworkInfo;
@@ -41,8 +43,12 @@ import android.os.PowerManager;
 import android.provider.Settings;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Display;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -68,16 +74,29 @@ import androidx.work.OutOfQuotaPolicy;
 import androidx.work.WorkManager;
 import androidx.work.WorkRequest;
 
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.initialization.InitializationStatus;
+import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
 import com.google.android.material.bottomappbar.BottomAppBar;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.divider.MaterialDividerItemDecoration;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.android.ump.ConsentDebugSettings;
+import com.google.android.ump.ConsentForm;
+import com.google.android.ump.ConsentInformation;
+import com.google.android.ump.ConsentRequestParameters;
+import com.google.android.ump.UserMessagingPlatform;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -98,7 +117,10 @@ public class MainActivity extends AppCompatActivity {
 	 * Circuit breaker - shared by different listeners.
 	 */
 	@NonNull
-	protected static AtomicLong lastNetworkCallback = new AtomicLong(0);
+	protected static final AtomicLong lastNetworkCallback = new AtomicLong(0);
+
+	@NonNull
+	protected final List<AccessPointEntry> listNetworks = Collections.synchronizedList(new ArrayList<>());
 
 	/**
 	 * Flag whether to check for battery optimizations or the user dismissed the check.
@@ -109,6 +131,11 @@ public class MainActivity extends AppCompatActivity {
 	 * Flag whether to check for notification enabling or the user dismissed that check.
 	 */
 	protected volatile boolean checkForNotificationsEnabled = true;
+
+	private final AtomicBoolean isMobileAdsInitializeCalled = new AtomicBoolean(false);
+	private final AtomicBoolean initialAdLayoutComplete = new AtomicBoolean(false);
+
+	private AdView adView;
 
 	/**
 	 * Broadcast receiver for WifiManager.NETWORK_STATE_CHANGED_ACTION.
@@ -280,6 +307,8 @@ public class MainActivity extends AppCompatActivity {
 		final boolean connected;
 		final boolean recommended;
 
+		boolean selected;
+
 		AccessPointEntry(String name, String bssid, int freq, int level, boolean connected, boolean suggested) {
 			this.name = name;
 			this.bssid = bssid;
@@ -287,12 +316,15 @@ public class MainActivity extends AppCompatActivity {
 			this.signalLevel = level;
 			this.connected = connected;
 			this.recommended = suggested;
+			this.selected = suggested;
 		}
 
 		public @NonNull
 		String toString() {
 			return this.bssid;
 		}
+
+		void setSelected(boolean s) { this.selected = s; }
 	}
 
 	/**
@@ -305,6 +337,7 @@ public class MainActivity extends AppCompatActivity {
 				// Broadcast von WifiChangeService -> Recommended Wifi anzeigen
 				String recommendation = intent.getStringExtra(EXTRA_WIFICHANGETEXT);
 				if (recommendation != null) {
+					showMessage(recommendation);
 					//final TextView view = ((TextView) findViewById(R.id.recommandedwifitextview));
 					//if (view != null)
 					//	view.setText(Html.fromHtml(recommendation, Html.FROM_HTML_MODE_COMPACT));
@@ -358,13 +391,10 @@ public class MainActivity extends AppCompatActivity {
 	public static class AddWidgetActivity extends Activity {
 		protected void onStart() {
 			super.onStart();
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-				AppWidgetManager mAppWidgetManager = getSystemService(AppWidgetManager.class);
-				ComponentName myProvider = new ComponentName(AddWidgetActivity.this, ForceWifiAppWidget.class);
-				if (mAppWidgetManager.isRequestPinAppWidgetSupported()) {
-					mAppWidgetManager.requestPinAppWidget(myProvider, new Bundle(), null);
-				} else
-					Toast.makeText(this, R.string.error_not_supported, Toast.LENGTH_LONG).show();
+			AppWidgetManager mAppWidgetManager = getSystemService(AppWidgetManager.class);
+			ComponentName myProvider = new ComponentName(AddWidgetActivity.this, ForceWifiAppWidget.class);
+			if (mAppWidgetManager.isRequestPinAppWidgetSupported()) {
+				mAppWidgetManager.requestPinAppWidget(myProvider, new Bundle(), null);
 			} else
 				Toast.makeText(this, R.string.error_not_supported, Toast.LENGTH_LONG).show();
 		}
@@ -431,11 +461,105 @@ public class MainActivity extends AppCompatActivity {
 				requestMyPermissions(true);
 			}
 		}
+
+		setUpAdMob();
+	}
+
+	private void setUpAdMob() {
+		// Code for ads
+		if(isAdMob()) {
+			ConsentRequestParameters params = new ConsentRequestParameters
+					.Builder()
+					.setTagForUnderAgeOfConsent(false)
+					.setConsentDebugSettings(new ConsentDebugSettings.Builder(this).addTestDeviceHashedId("689110FD20F811E9EE0320C70C769D5D").build())
+					.build();
+			final ConsentInformation consentInformation = UserMessagingPlatform.getConsentInformation(this);
+			consentInformation.requestConsentInfoUpdate(
+					this,
+					params,
+					(ConsentInformation.OnConsentInfoUpdateSuccessListener) () -> {
+						UserMessagingPlatform.loadAndShowConsentFormIfRequired(
+								this,
+								(ConsentForm.OnConsentFormDismissedListener) loadAndShowError -> {
+									if (loadAndShowError != null) {
+										// Consent gathering failed.
+										Log.w(AppInfo.APP_NAME, String.format("%s: %s",
+												loadAndShowError.getErrorCode(),
+												loadAndShowError.getMessage()));
+									}
+									// Consent has been gathered.
+									if (consentInformation.canRequestAds()) {
+										initializeMobileAdsSdk();
+									}
+								}
+						);
+					},
+					(ConsentInformation.OnConsentInfoUpdateFailureListener) requestConsentError -> {
+						// Consent gathering failed.
+						Log.w(AppInfo.APP_NAME, String.format("%s: %s",
+								requestConsentError.getErrorCode(),
+								requestConsentError.getMessage()));
+					});
+
+			if(consentInformation.canRequestAds()) {
+				initializeMobileAdsSdk();
+			}
+			// update AdView Container after full layout completed
+			findViewById(R.id.ad_view_container)
+					.getViewTreeObserver()
+					.addOnGlobalLayoutListener(
+							() -> {
+								if (!initialAdLayoutComplete.getAndSet(true) && consentInformation.canRequestAds()) {
+									loadBanner();
+								}
+							});
+
+		} else {
+			findViewById(R.id.ad_view_container).setVisibility(View.GONE);
+		}
+	}
+	private void initializeMobileAdsSdk() {
+		if (isMobileAdsInitializeCalled.getAndSet(true)) {
+			return;
+		}
+		MobileAds.initialize(this, new OnInitializationCompleteListener() {
+			@Override
+			public void onInitializationComplete(@NonNull InitializationStatus initializationStatus) {
+				Log.d(AppInfo.APP_NAME, "Mobile Ads initialized");
+			}
+		});
+		if (initialAdLayoutComplete.get()) {
+			loadBanner();
+		}
+	}
+
+	private void loadBanner() {
+		// Create a new ad view.
+		adView = new AdView(this);
+		adView.setAdUnitId(BuildConfig.DEBUG ? getString(R.string.admob_debug) : getString(R.string.admob_id));
+		adView.setAdSize(getAdSize());
+
+		// Replace ad container with new ad view.
+		ViewGroup adContainerView = findViewById(R.id.ad_view_container);
+		adContainerView.removeAllViews();
+		adContainerView.addView(adView);
+
+		// Start loading the ad in the background.
+		AdRequest adRequest = new AdRequest.Builder().build();
+		adView.loadAd(adRequest);
+	}
+
+
+	private boolean isAdMob() {
+		return PreferenceManager.getDefaultSharedPreferences(this).getBoolean(getString(R.string.prefs_admob), true);
 	}
 
 	@SuppressLint("MissingPermission")
 	protected void onStart() {
 		super.onStart();
+
+		final BottomAppBar appbar = ((BottomAppBar)findViewById(R.id.bottomAppBar));
+		appbar.getMenu().findItem(R.id.menu_wifi_save).setVisible(isManualMode());
 
 		if ((missingPermissions().isEmpty())) {
 			// starting with Android 6, Location services has to be enabled to list all wifis
@@ -447,6 +571,22 @@ public class MainActivity extends AppCompatActivity {
 		} else {
 			showPermissionsError();
 			requestMyPermissions(true);
+		}
+	}
+	@Override
+	public void onPause() {
+		if (adView != null) {
+			adView.pause();
+		}
+		super.onPause();
+	}
+
+	/** Called when returning to the activity */
+	@Override
+	public void onResume() {
+		super.onResume();
+		if (adView != null) {
+			adView.resume();
 		}
 	}
 
@@ -592,20 +732,19 @@ public class MainActivity extends AppCompatActivity {
 				.setNegativeButton(R.string.text_cancel, new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
-						dialog.cancel();
-						finish();
+						dialog.cancel(); // accept das app is not running in full mode
 					}
 				})
 				.setPositiveButton(R.string.text_settings, new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
+						dialog.dismiss();
 						// here we catch the flow that Location settings are not enabled (which blocks the check in onStart())
 						if (!isLocationServicesEnabled(MainActivity.this)) {
 							Intent settingsIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
 							settingsIntent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
 							startActivity(settingsIntent);
 						}
-						dialog.dismiss();
 					}
 				})
 				.setMessage(Html.fromHtml(getString(R.string.message_activate_locationservices), Html.FROM_HTML_MODE_COMPACT))
@@ -620,6 +759,7 @@ public class MainActivity extends AppCompatActivity {
 
 		registerReceiver(scanFinishedListener, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
 		LocalBroadcastManager.getInstance(this).registerReceiver(recommendationListener, new IntentFilter(INTENT_WIFICHANGETEXT));
+
 
 		WifiManager wifiManager = getSystemService(WifiManager.class);
 		try {
@@ -646,6 +786,9 @@ public class MainActivity extends AppCompatActivity {
 
 	protected void onDestroy() {
 		// do not call connManager.unregisterNetworkCallback(myNetworkCallback); as we want to continue receiving events
+		if (adView != null) {
+			adView.destroy();
+		}
 		super.onDestroy();
 	}
 
@@ -690,13 +833,83 @@ public class MainActivity extends AppCompatActivity {
 		} else if (id == R.id.menu_wifi_reset) {
 			removeAllSuggestions();
 			return true;
+		} else if (id == R.id.menu_wifi_save) {
+			saveSuggestions();
+			return true;
 		} else if (id == R.id.menu_info) {
-			Intent intent = new Intent(Intent.ACTION_VIEW);
-			intent.setData(Uri.parse(getString(R.string.app_url)));
-			startActivity(intent);
+			showContact();
+			return true;
+		} else if (id == R.id.menu_privacy) {
+			UserMessagingPlatform.showPrivacyOptionsForm(
+					this,
+					formError -> {
+						if (formError != null) {
+							showError(getString(R.string.error_loading_privacy) + ":" + formError.getMessage());
+						}
+					}
+			);
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
+	}
+
+	private void saveSuggestions() {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+			final List<WifiNetworkSuggestion> suggestionList = new ArrayList<>();
+			for(AccessPointEntry entry : this.listNetworks) {
+				if(entry.selected) {
+					final WifiNetworkSuggestion.Builder builder=
+						new WifiNetworkSuggestion.Builder().
+								setBssid(MacAddress.fromString(entry.bssid)).
+								setSsid(normalizeSSID(entry.name)).
+								setPriority(1);
+					suggestionList.add(builder.build());
+					if(!normalizeSSID(entry.name).equals(entry.name)) {
+						builder.setSsid(entry.name);
+						suggestionList.add(builder.build()); // and add without normalized SSID
+					}
+				}
+			}
+			new MaterialAlertDialogBuilder(this)
+					.setTitle(getString(R.string.text_save_suggestions))
+					.setNegativeButton(R.string.text_cancel, new DialogInterface.OnClickListener() {
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							dialog.cancel();
+						}
+					})
+					.setPositiveButton(R.string.text_ok, new DialogInterface.OnClickListener() {
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							dialog.dismiss();
+							WifiChangeService.provideSuggestions(MainActivity.this, suggestionList);
+							showMessage(R.string.text_suggestions_saved);
+							// TODO try automatically
+							/*
+							ConnectivityManager connectivityManager = getSystemService(ConnectivityManager.class);
+									NetworkSpecifier networkSpecifier  = new WifiNetworkSpecifier.Builder()
+									.setSsid(suggestionList.get(0).getSsid())
+									.build();
+							NetworkRequest networkRequest  = new NetworkRequest.Builder()
+									.addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+									.setNetworkSpecifier(networkSpecifier)
+									.build();
+							connectivityManager.requestNetwork(networkRequest, );
+							*/
+							// Here we try to force a re-connect of the Wifi via Internet connectivity
+							try {
+								startActivity(WifiChangeService.getWifiIntent(getApplicationContext()));
+							} catch(ActivityNotFoundException e) {
+								Log.w(AppInfo.APP_NAME, e);  // TODO: try another setting
+							}
+						}
+					})
+					.setMessage(Html.fromHtml(getString(R.string.message_save_suggestions), Html.FROM_HTML_MODE_COMPACT))
+					.show();
+		} else {
+			showError(R.string.error_save_suggestions);
+		}
+
 	}
 
 	private void removeAllSuggestions() {
@@ -782,7 +995,7 @@ public class MainActivity extends AppCompatActivity {
 		}
 		// build up list with all SSID supporting 2.4 and 5 GHz
 		// we also always add the connected network (even if only on one frequency) to display completeness to user
-		List<AccessPointEntry> listNetworks = new ArrayList<>();
+		listNetworks.clear();
 		Map<String, NetworkEntry> map245Ghz = new HashMap<>();
 		for (ScanResult result : scanResults) {
 			if (result.SSID != null && result.SSID.length() > 0 && result.BSSID != null) {
@@ -812,7 +1025,7 @@ public class MainActivity extends AppCompatActivity {
 			}
 		}
 		final RecyclerView listView = findViewById(R.id.listview);
-		listView.setAdapter(new CustomWifiListAdapter(listNetworks, wifiManager));
+		listView.setAdapter(new CustomWifiListAdapter(listNetworks, wifiManager, isManualMode()));
 		listView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
 		listView.addItemDecoration(new MaterialDividerItemDecoration(this, MaterialDividerItemDecoration.VERTICAL));
 		listView.setHasFixedSize(true);
@@ -927,6 +1140,22 @@ public class MainActivity extends AppCompatActivity {
 		dialog.show();
 	}
 
+	private void showContact() {
+		final AlertDialog dialog = new MaterialAlertDialogBuilder(this)
+				.setTitle(getString(R.string.app_name))
+				.setNeutralButton("Continue", new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						dialog.cancel();
+					}
+				})
+				.setMessage(Html.fromHtml(getString(R.string.message_impressum), Html.FROM_HTML_MODE_COMPACT)).create();
+		TextView view = (TextView) dialog.findViewById(android.R.id.message);
+		if (view != null)
+			view.setMovementMethod(LinkMovementMethod.getInstance()); // make links clickable
+		dialog.show();
+	}
+
 	@RequiresApi(api = Build.VERSION_CODES.P)
 	public void checkBatteryOptimizationsDisabled() {
 		PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
@@ -970,16 +1199,18 @@ public class MainActivity extends AppCompatActivity {
 		Toast.makeText(this, stringId, Toast.LENGTH_LONG).show();
 	}
 
+	void showError(String string) {
+		Toast.makeText(this, string, Toast.LENGTH_LONG).show();
+	}
+
 	static void createNotificationChannel(Context context) {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-			CharSequence name = context.getString(R.string.app_name);
-			String description = context.getString(R.string.app_description);
-			int importance = NotificationManager.IMPORTANCE_DEFAULT;
-			NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
-			channel.setDescription(description);
-			NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
-			notificationManager.createNotificationChannel(channel);
-		}
+		CharSequence name = context.getString(R.string.app_name);
+		String description = context.getString(R.string.app_description);
+		int importance = NotificationManager.IMPORTANCE_DEFAULT;
+		NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
+		channel.setDescription(description);
+		NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
+		notificationManager.createNotificationChannel(channel);
 	}
 
 	/**
@@ -1052,6 +1283,15 @@ public class MainActivity extends AppCompatActivity {
 		return ("2".equals(PreferenceManager.getDefaultSharedPreferences(this).getString(getString(R.string.prefs_2ghz5ghz), "1")));
 	}
 
+	/**
+	 * Check if manual network suggestion mode is a) enabled and b) supported by Android version
+	 * @return true if manual mode
+	 */
+	private boolean isManualMode() {
+		return !PreferenceManager.getDefaultSharedPreferences(this).getBoolean(getString(R.string.prefs_activation), false)
+				&& (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q);
+	}
+
 	public boolean isWantedFrequency(int freq) {
 		if (is6GHzPreferred()) {
 			return (freq >= 5925);
@@ -1059,5 +1299,25 @@ public class MainActivity extends AppCompatActivity {
 			return (freq >= 5000 && freq <= 5920);
 		else
 			return (freq < 3000);
+	}
+
+
+	private AdSize getAdSize() {
+		// Determine the screen width (less decorations) to use for the ad width.
+		Display display = getWindowManager().getDefaultDisplay();
+		DisplayMetrics outMetrics = new DisplayMetrics();
+		display.getMetrics(outMetrics);
+
+		float density = outMetrics.density;
+
+		float adWidthPixels = adView.getWidth();
+
+		// If the ad hasn't been laid out, default to the full screen width.
+		if (adWidthPixels == 0) {
+			adWidthPixels = outMetrics.widthPixels;
+		}
+
+		int adWidth = (int) (adWidthPixels / density);
+		return AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(this, adWidth);
 	}
 }

@@ -26,6 +26,8 @@ import androidx.preference.ListPreference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
 
+import com.google.android.ump.UserMessagingPlatform;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,7 +51,21 @@ public class SettingsActivity extends AppCompatActivity {
 		if(AppInfo.INTENT_SHOW_DATAPROCTECTION.equals(getIntent().getAction())) {
 			try {
 				final Intent emailIntent = new Intent(Intent.ACTION_VIEW);
-				emailIntent.setData(Uri.parse(getString(R.string.app_url)));
+				emailIntent.setData(Uri.parse(getString(R.string.app_dataprotection_url)));
+				if (emailIntent.resolveActivity(getPackageManager()) != null) {
+					Bundle bundle = new Bundle();
+					startActivity(Intent.createChooser(emailIntent, getString(R.string.action_privacy)), bundle);
+				} else
+					Toast.makeText(this, R.string.error_not_supported, Toast.LENGTH_LONG).show();
+				finish();
+			} catch (ActivityNotFoundException e) {
+				Log.e(AppInfo.APP_NAME, "Error opening browser", e);
+				Toast.makeText(this, R.string.error_not_supported, Toast.LENGTH_LONG).show();
+			}
+		} else if(AppInfo.INTENT_SHOW_FAQ.equals(getIntent().getAction())) {
+			try {
+				final Intent emailIntent = new Intent(Intent.ACTION_VIEW);
+				emailIntent.setData(Uri.parse(getString(R.string.app_faq_url)));
 				if (emailIntent.resolveActivity(getPackageManager()) != null) {
 					Bundle bundle = new Bundle();
 					startActivity(Intent.createChooser(emailIntent, getString(R.string.action_info)), bundle);
@@ -63,31 +79,40 @@ public class SettingsActivity extends AppCompatActivity {
 		} else if (AppInfo.INTENT_SHOW_MARKET.equals(getIntent().getAction())) {
 			try {
 				final Intent emailIntent = new Intent(Intent.ACTION_VIEW);
-				emailIntent.setData(Uri.parse("market://details?id="+getPackageName()));
+				emailIntent.setData(Uri.parse("market://details?id=" + getPackageName()));
 				if (emailIntent.resolveActivity(getPackageManager()) != null) {
 					Bundle bundle = new Bundle();
 					startActivity(Intent.createChooser(emailIntent, getString(R.string.feedback_subject)), bundle);
 				} else
 					Toast.makeText(this, R.string.error_not_supported, Toast.LENGTH_LONG).show();
 				finish();
-			} catch(ActivityNotFoundException e) {
+			} catch (ActivityNotFoundException e) {
 				Log.e(AppInfo.APP_NAME, "Error opening browser", e);
 				Toast.makeText(this, R.string.error_not_supported, Toast.LENGTH_LONG).show();
 			}
-
-		} else {
-			getSupportFragmentManager()
-					.beginTransaction()
-					.replace(android.R.id.content, settingsFragment = new MySettingsFragment())
-					.commit();
+		} else if (AppInfo.INTENT_VIEW_PRIVACY_OPTIONS.equals(getIntent().getAction())) {
+			UserMessagingPlatform.showPrivacyOptionsForm(
+					this,
+					formError -> {
+						if (formError != null) {
+							Toast.makeText(this, getString(R.string.error_loading_privacy) + ":" + formError.getMessage(), Toast.LENGTH_LONG).show();
+						}
+					}
+			);
 		}
+		getSupportFragmentManager()
+				.beginTransaction()
+				.replace(android.R.id.content, settingsFragment = new MySettingsFragment())
+				.commit();
 	}
 
 	protected void onStart() {
 		super.onStart();
-		enableValidGhz();
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-			setWarningIcons();
+		if(settingsFragment != null) { // if null, then we handle the different other actions
+			enableValidGhz();
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+				setWarningIcons();
+			}
 		}
 	}
 
@@ -175,7 +200,6 @@ public class SettingsActivity extends AppCompatActivity {
 			WifiChangeService.removeSuggestions(this); // automatically reset
 			MainActivity.startWifiService(this);
 		} else {
-			WifiChangeService.removeSuggestions(this);
 			MainActivity.stopWifiService(this);
 		}
 	}

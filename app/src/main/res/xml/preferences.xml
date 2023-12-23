@@ -1,7 +1,7 @@
 <PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android"
     >
-    <PreferenceCategory android:title="General settings">
+    <PreferenceCategory android:title="@string/title_general_settings">
     <SwitchPreferenceCompat
         app:key="@string/prefs_activation"
         app:defaultValue="true"
@@ -37,8 +37,8 @@
 
         <Preference
             app:key="@string/prefs_widget_settings"
-            app:title="Frequency widget"
-            app:summary="Add a widget to your home screen. This gives you a chance to quickly check your current frequency.">
+            app:title="@string/title_widget"
+            app:summary="@string/summary_widget">
             <intent android:targetPackage="de.erichambuch.forcewifi5"
                 android:targetClass="de.erichambuch.forcewifi5.MainActivity$AddWidgetActivity" />
         </Preference>
@@ -110,18 +110,42 @@
                 />
         </Preference>
     </PreferenceCategory>
+    <PreferenceCategory android:title="Ads">
+        <SwitchPreferenceCompat
+            app:key="@string/prefs_admob"
+            app:defaultValue="true"
+            app:title="@string/title_admob"
+            app:widgetLayout="@layout/preference_material_switch"
+            app:summary="@string/summary_admob"/>
+        <Preference
+            app:title="@string/action_privacy"
+            app:summary="@string/action_privacy">
+            <intent
+                android:action="de.erichambuch.forcewifi5.VIEW_PRIVACY_OPTIONS"
+                android:targetPackage="de.erichambuch.forcewifi5"
+                android:targetClass="de.erichambuch.forcewifi5.SettingsActivity" />
+        </Preference>
+    </PreferenceCategory>
     <PreferenceCategory android:title="Information">
     <Preference
         app:title="Data privacy &amp; FAQ"
-        app:summary="Read data privacy and FAQ">
+        app:summary="Read data privacy &amp; protection">
         <intent
             android:action="de.erichambuch.forcewifi5.VIEW_DATA_PROTECTION"
             android:targetPackage="de.erichambuch.forcewifi5"
             android:targetClass="de.erichambuch.forcewifi5.SettingsActivity" />
     </Preference>
         <Preference
-            app:title="Licenses"
-            app:summary="Open Source Licenses">
+            app:title="FAQ"
+            app:summary="In case of questions or you think the app is not working properly...">
+            <intent
+                android:action="de.erichambuch.forcewifi5.VIEW_FAQ"
+                android:targetPackage="de.erichambuch.forcewifi5"
+                android:targetClass="de.erichambuch.forcewifi5.SettingsActivity" />
+        </Preference>
+        <Preference
+            app:title="Licences"
+            app:summary="Open Source Licences">
             <intent android:targetPackage="de.erichambuch.forcewifi5"
                 android:targetClass="com.google.android.gms.oss.licenses.OssLicensesMenuActivity" />
         </Preference>

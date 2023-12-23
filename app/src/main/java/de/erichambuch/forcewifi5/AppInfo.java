@@ -44,6 +44,7 @@ package de.erichambuch.forcewifi5;
  *     <li>V1.19.0 (02.12.2023) - Android 14 Permission Update (new developer policy, no automatic switch on Android14+ from background), Material 3</li>
  *     <li>V1.19.1 (07.12.2023) - Several bug fixes, new Navigation Bar</li>
  *     <li>V1.20.0 (09.12.2023) - Improved Layout</li>
+ *     <li>V1.21.0 (10.12.2023) - AdMob integration, Manual suggestion mode</li>
  * </ul>
  * <ul>
  *     <li>TODO: disconnect does not work anymore: https://issuetracker.google.com/issues/128554616</li>
@@ -51,6 +52,7 @@ package de.erichambuch.forcewifi5;
  *     <li>https://developer.android.com/training/location/permissions#background - Problems with Foreground/Background</li>
  *     <li>https://issuetracker.google.com/issues/192032398?pli=1#comment6/li>
  *     <li>https://stackoverflow.com/questions/44425584/context-startforegroundservice-did-not-then-call-service-startforeground/46449975#46449975</li>
+ *     <li>https://stackoverflow.com/questions/63124728/connect-to-wifi-in-android-q-programmatically</li>
  * </ul>
  */
 public final class AppInfo {
@@ -58,4 +60,6 @@ public final class AppInfo {
     public static final String APP_NAME = "ForceWifi5";
     public static final String INTENT_SHOW_DATAPROCTECTION = "de.erichambuch.forcewifi5.VIEW_DATA_PROTECTION";
     public static final String INTENT_SHOW_MARKET = "de.erichambuch.forcewifi5.VIEW_MARKET";
+    public static final String INTENT_VIEW_PRIVACY_OPTIONS = "de.erichambuch.forcewifi5.VIEW_PRIVACY_OPTIONS";
+    public static final String INTENT_SHOW_FAQ = "de.erichambuch.forcewifi5.VIEW_FAQ";
 }

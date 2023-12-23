@@ -42,7 +42,7 @@
 
   <string name="title_minimumlevel">Niveau de signal minimum pour commuter</string>
 
-  <string name="summary_activation">Activez ou désactivez la fonctionnalité pour changer automatiquement la fréquence de votre Wifi</string>
+  <string name="summary_activation">Activez ou désactivez la fonctionnalité pour changer automatiquement la fréquence de votre Wifi. Si vous êtes en mode manuel, vous pouvez toujours sélectionner manuellement vos Wifi préférés.</string>
       
   <string name="summary_2ghz5ghz">Choisissez votre fréquence préférée - soit 2,4 GHz ou 5 GHz si pris en charge</string>
       
@@ -150,6 +150,7 @@
     <string name="message_forcewifi14_activated">Forcer l\'activation du Wifi 5. Veuillez l\'ouvrir pour passer à un point d\'accès Wifi spécifique.</string>
     <string name="title_notification_settings">Notifications</string>
   <string name="summay_notifications_settings">Allow notifications from this app to be informed about Wifi changes.</string>
+  <string name="summary_wifichange_settings">Ouvrez le menu \"Accès spécial à l\'application\" et vérifiez les paramètres \"Contrôle Wi-Fi\" pour cette application.</string>
   <string name="title_wifiband_settings">Sélection automatique de bande Wi-Fi</string>
   <string name="summary_wifiband_settings">Certains téléphones proposent déjà une sélection automatique de bande. Dans la fonctionnalité peut remplacer cette application.</string>
   <string name="text_wifi">Wi-Fi</string>
@@ -162,5 +163,19 @@
   <string name="text_cancel">Annuler</string>
   <string name="text_settings">Paramètres</string>
     <string name="message_reset_suggestions">Supprimer toutes les suggestions de réseaux Wi-Fi préférés ?</string>
+    <string name="text_preferred">Préféré</string>
+  <string name="text_savesuggestions">Sauvegarder</string>
+  <string name="error_save_suggestions">Impossible d\'enregistrer les suggestions Wi-Fi sur cet appareil.</string>
+  <string name="text_save_suggestions">Fournir des suggestions</string>
+  <string name="message_save_suggestions">Fournir de nouvelles suggestions WiFi au système ?</string>
+  <string name="text_suggestions_saved">Nouvelles suggestions WiFi enregistrées. Soyez patient avec Android&#8230;</string>
+  <string name="summary_widget">Ajoutez un widget à votre écran d\'accueil. Cela vous donne la possibilité de vérifier rapidement votre fréquence actuelle.</string>
+  <string name="title_widget">Widget</string>
+  <string name="title_general_settings">Réglages généraux</string>
+  <string name="title_admob">Activer la publicité</string>
+  <string name="summary_admob">Activez ou désactivez les publicités dans l\'application (nécessite un redémarrage).</string>
+  <string name="action_privacy">Options de confidentialité</string>
+  <string name="error_loading_privacy">Error loading privacy forms for AdMob</string>
+  <string name="action_contact">Contact</string>
 
 </resources>

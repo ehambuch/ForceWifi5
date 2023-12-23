@@ -11,6 +11,12 @@
         <item name="android:windowDisablePreview">true</item>
     </style>
 
+    <style name="AppTheme.ActionBar" parent="Theme.Material3.DayNight">
+        <item name="windowActionBar">true</item>
+        <item name="windowNoTitle">false</item>
+        <item name="android:windowDisablePreview">true</item>
+    </style>
+
     <!-- workaround MAterial 3 for Preferences -->
     <style name="AppPreferenceThemeOverlay" parent="@style/PreferenceThemeOverlay">
         <item name="switchPreferenceCompatStyle">@style/AppSwitchPreference</item>
