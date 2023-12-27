@@ -1,104 +1,107 @@
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:textAlignment="center"
+    android:layout_alignParentStart="true"
+    android:layout_alignParentTop="true"
+    android:layout_alignParentEnd="true"
     android:orientation="vertical"
+    android:textAlignment="center"
     tools:context=".MainActivity">
 
-    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-        android:id="@+id/swiperefresh"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/mainFragment"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="match_parent"
+        android:layout_marginStart="5dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginEnd="5dp"
+        android:paddingBottom="@dimen/appbar_height">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/mainFragment"
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/nowificardview"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_margin="5dp"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior"
-            tools:context=".MainActivity">
+            android:layout_height="wrap_content"
+            android:padding="5dp"
+            android:text="@string/error_no_permissions_provived"
+            android:visibility="visible"
+            app:cardBackgroundColor="@android:color/holo_red_light"
+            app:cardCornerRadius="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/nowificardview"
-                android:layout_width="match_parent"
+            <TextView
+                android:id="@+id/nowifitextview"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:padding="5dp"
-                android:visibility="visible"
-                android:text="@string/error_no_permissions_provived"
-                app:cardBackgroundColor="@android:color/holo_red_light"
-                app:cardCornerRadius="8dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent">
+                android:layout_margin="8dp"
+                android:text="@string/text_nowififound"
+                android:textColor="@android:color/white" />
 
-                <TextView
-                    android:id="@+id/nowifitextview"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="8dp"
-                    android:text="@string/text_nowififound"
-                    android:textColor="@android:color/white" />
-
-            </com.google.android.material.card.MaterialCardView>
+        </com.google.android.material.card.MaterialCardView>
 
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/listview"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:dividerHeight="2dp"
-                android:orientation="vertical"
-                android:scrollbars="vertical"
-                android:contextClickable="true"
-                android:gravity="fill|top"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/nowificardview"
-                />
-        </androidx.constraintlayout.widget.ConstraintLayout>
-    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
-
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" android:layout_marginBottom="1dp">
-        <!-- required for correct layout of admob, 16dp is from https://m3.material.io/components/bottom-app-bar/specs  -->
-        <androidx.viewpager2.widget.ViewPager2
-            android:id="@+id/pager"
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/listview"
             android:layout_width="match_parent"
-            android:layout_height="0dp" />
+            android:layout_height="0dp"
+            android:contextClickable="true"
+            android:dividerHeight="2dp"
+            android:gravity="fill|top"
+            android:orientation="vertical"
+            android:scrollbars="vertical"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/nowificardview"
+            app:layout_constraintBottom_toBottomOf="parent"/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Here we need a hack: The CoordinatorLayout makes all children overlapping each other, so we embed the CoordinatorLayout with the AppBar
+    into a RelativeLayout and set the margins fixed to 80dp, which is the height of the Material3 AppBar... -->
+
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:id="@+id/coordinator_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginTop="@dimen/appbar_height"
+        android:orientation="vertical"
+        android:textAlignment="center">
+
+        <com.google.android.material.bottomappbar.BottomAppBar
+            android:id="@+id/bottomAppBar"
+            style="@style/Widget.Material3.BottomAppBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:fitsSystemWindows="true"
+            android:gravity="fill_horizontal"
+            app:fabAlignmentMode="end"
+            app:layout_behavior="com.google.android.material.bottomappbar.BottomAppBar$Behavior"
+            app:menu="@menu/bottom_app_bar"
+            app:menuAlignmentMode="start"
+            app:paddingBottomSystemWindowInsets="true" />
+
         <FrameLayout
             android:id="@+id/ad_view_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_alignParentBottom="true" android:paddingBottom="80dp"/>
-    </RelativeLayout>
+            android:layout_above="@id/bottomAppBar"
+            android:layout_marginBottom="@dimen/appbar_height"
+            android:orientation="horizontal" />
 
-    <!--         android:layout_alignParentBottom="true"-->
-    <!--         app:elevation="0dp"-->
-    <com.google.android.material.bottomappbar.BottomAppBar
-        android:id="@+id/bottomAppBar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        android:gravity="fill_horizontal"
-        android:fitsSystemWindows="true"
-        app:layout_behavior="com.google.android.material.bottomappbar.BottomAppBar$Behavior"
-        app:paddingBottomSystemWindowInsets="true"
-        app:menuAlignmentMode="start"
-        style="@style/Widget.Material3.BottomAppBar"
-        app:menu="@menu/bottom_app_bar"
-        app:fabAlignmentMode="end"
-        />
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/floatingButtonReload"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:clickable="true"
-        app:layout_anchor="@id/bottomAppBar"
-        app:srcCompat="@drawable/baseline_autorenew_24"
-        android:contentDescription="Reload"
-        android:focusable="true" />
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/floatingButtonReload"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:contentDescription="@string/action_reload"
+            android:focusable="true"
+            app:layout_anchor="@id/bottomAppBar"
+            app:srcCompat="@drawable/baseline_autorenew_24" />
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+
+</RelativeLayout>

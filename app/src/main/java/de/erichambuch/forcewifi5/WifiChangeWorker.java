@@ -11,7 +11,6 @@ import android.os.Build;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 import androidx.work.ForegroundInfo;
 import androidx.work.Worker;
@@ -20,7 +19,6 @@ import androidx.work.WorkerParameters;
 /**
  * Wrapper around {@link WifiChangeService}.
  */
-@RequiresApi(api = Build.VERSION_CODES.O)
 public class WifiChangeWorker extends Worker {
 
     public WifiChangeWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
@@ -40,11 +38,11 @@ public class WifiChangeWorker extends Worker {
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             service = new WifiChangeService(getApplicationContext());
             setForegroundAsync(new ForegroundInfo(
-                    WifiChangeService.ONGOING_NOTIFICATION_ID, service.createMessageNotification(getApplicationContext(), R.string.title_activation), FOREGROUND_SERVICE_TYPE_LOCATION ));
+                    WifiChangeService.ONGOING_NOTIFICATION_ID, WifiChangeService.createMessageNotification(getApplicationContext(), R.string.title_activation), FOREGROUND_SERVICE_TYPE_LOCATION ));
         } else {
             service = new WifiChangeService(getApplicationContext());
             setForegroundAsync(new ForegroundInfo(
-                    WifiChangeService.ONGOING_NOTIFICATION_ID, service.createMessageNotification(getApplicationContext(), R.string.title_activation)));
+                    WifiChangeService.ONGOING_NOTIFICATION_ID, WifiChangeService.createMessageNotification(getApplicationContext(), R.string.title_activation)));
         }
         boolean success = true;
         if(service.isActivated()) {

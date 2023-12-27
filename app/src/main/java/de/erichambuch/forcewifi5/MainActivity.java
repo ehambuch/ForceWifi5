@@ -66,7 +66,6 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.work.Constraints;
 import androidx.work.NetworkType;
 import androidx.work.OneTimeWorkRequest;
@@ -123,11 +122,6 @@ public class MainActivity extends AppCompatActivity {
 	protected final List<AccessPointEntry> listNetworks = Collections.synchronizedList(new ArrayList<>());
 
 	/**
-	 * Flag whether to check for battery optimizations or the user dismissed the check.
-	 */
-	protected volatile boolean checkForBatteryOptimization = true;
-
-	/**
 	 * Flag whether to check for notification enabling or the user dismissed that check.
 	 */
 	protected volatile boolean checkForNotificationsEnabled = true;
@@ -136,6 +130,8 @@ public class MainActivity extends AppCompatActivity {
 	private final AtomicBoolean initialAdLayoutComplete = new AtomicBoolean(false);
 
 	private AdView adView;
+
+	private ConsentInformation consentInformation;
 
 	/**
 	 * Broadcast receiver for WifiManager.NETWORK_STATE_CHANGED_ACTION.
@@ -412,24 +408,9 @@ public class MainActivity extends AppCompatActivity {
 
 		final BottomAppBar appbar = ((BottomAppBar)findViewById(R.id.bottomAppBar));
 		appbar.setOnMenuItemClickListener(this::onOptionsItemSelected);
-		appbar.getMenu().findItem(R.id.menu_wifi_suggestions).setEnabled((Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q));
-		appbar.getMenu().findItem(R.id.menu_wifi_reset).setEnabled((Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q));
 
 		createNotificationChannel(this);
 
-		// Reload Wifi List by swipe and button
-		final SwipeRefreshLayout swipeRefreshLayout = ((SwipeRefreshLayout) findViewById(R.id.swiperefresh));
-		swipeRefreshLayout.setOnRefreshListener(
-				() -> {
-					WifiManager wifiManager = getSystemService(WifiManager.class);
-					if (wifiManager != null) {
-						boolean scanSuccessful = wifiManager.startScan(); // listNetworks is called by ScanFinishedListener
-						if (!scanSuccessful)
-							showError(R.string.error_scan_failed_throttle);
-					}
-					swipeRefreshLayout.setRefreshing(false);
-				}
-		);
 		findViewById(R.id.floatingButtonReload).setOnClickListener(v -> {
 			WifiManager wifiManager = getSystemService(WifiManager.class);
 			if (wifiManager != null) {
@@ -437,7 +418,6 @@ public class MainActivity extends AppCompatActivity {
 				if (!scanSuccessful)
 					showError(R.string.error_scan_failed_throttle);
 			}
-			swipeRefreshLayout.setRefreshing(false);
 		}
 		);
 
@@ -473,7 +453,7 @@ public class MainActivity extends AppCompatActivity {
 					.setTagForUnderAgeOfConsent(false)
 					.setConsentDebugSettings(new ConsentDebugSettings.Builder(this).addTestDeviceHashedId("689110FD20F811E9EE0320C70C769D5D").build())
 					.build();
-			final ConsentInformation consentInformation = UserMessagingPlatform.getConsentInformation(this);
+			consentInformation = UserMessagingPlatform.getConsentInformation(this);
 			consentInformation.requestConsentInfoUpdate(
 					this,
 					params,
@@ -551,7 +531,7 @@ public class MainActivity extends AppCompatActivity {
 
 
 	private boolean isAdMob() {
-		return PreferenceManager.getDefaultSharedPreferences(this).getBoolean(getString(R.string.prefs_admob), true);
+		return PreferenceManager.getDefaultSharedPreferences(this).getBoolean(getString(R.string.prefs_admob2), true);
 	}
 
 	@SuppressLint("MissingPermission")
@@ -559,7 +539,10 @@ public class MainActivity extends AppCompatActivity {
 		super.onStart();
 
 		final BottomAppBar appbar = ((BottomAppBar)findViewById(R.id.bottomAppBar));
+		appbar.getMenu().findItem(R.id.menu_wifi_suggestions).setEnabled((Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q));
+		appbar.getMenu().findItem(R.id.menu_wifi_reset).setEnabled((Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q));
 		appbar.getMenu().findItem(R.id.menu_wifi_save).setVisible(isManualMode());
+		appbar.getMenu().findItem(R.id.menu_privacy).setEnabled(isPrivacyOptionsRequired());
 
 		if ((missingPermissions().isEmpty())) {
 			// starting with Android 6, Location services has to be enabled to list all wifis
@@ -769,7 +752,7 @@ public class MainActivity extends AppCompatActivity {
 		} catch (SecurityException e) {
 			Log.w(AppInfo.APP_NAME, "startScan failed", e);
 		}
-		findViewById(R.id.mainFragment).post(() -> listNetworks());
+		findViewById(R.id.mainFragment).post(this::listNetworks);
 		// and start service for the first time
 		startWifiService(this);
 	}
@@ -1017,13 +1000,21 @@ public class MainActivity extends AppCompatActivity {
 								suggested));
 			}
 		}
-		// filter out all networks that are qualified for switch
+		// filter out all networks that are qualified for switch (ALL if in manual mode)
+		final boolean manualMode = isManualMode();
 		for (NetworkEntry entry : map245Ghz.values()) {
 			if ((entry.is24ghz && (entry.is5ghz || entry.is6ghz))
-					|| entry.connected || entry.isSuggested()) {
+					|| entry.connected || entry.isSuggested() || manualMode) {
 				listNetworks.addAll(entry.accessPoints);
 			}
 		}
+		// for testing on Emulator
+		if(BuildConfig.DEBUG) {
+			for(int i =1;i<=20;i++) {
+				listNetworks.add(new AccessPointEntry("SSID "+i, "BSSID"+i, 999, 50, false, false));
+			}
+		}
+
 		final RecyclerView listView = findViewById(R.id.listview);
 		listView.setAdapter(new CustomWifiListAdapter(listNetworks, wifiManager, isManualMode()));
 		listView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
@@ -1031,10 +1022,15 @@ public class MainActivity extends AppCompatActivity {
 		listView.setHasFixedSize(true);
 		if (listNetworks.size() > 0) {
 			((MaterialCardView)findViewById(R.id.nowificardview)).setCardBackgroundColor(getResources().getColor(android.R.color.holo_green_dark, getTheme()));
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-				((TextView) findViewById(R.id.nowifitextview)).setText(R.string.error_not_android10);
+			final TextView noWifiTextview = findViewById(R.id.nowifitextview);
+			if(isManualMode()) {
+				noWifiTextview.setText(R.string.text_wifimanualmode);
 			} else {
-				((TextView) findViewById(R.id.nowifitextview)).setText(R.string.text_wififound);
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+					noWifiTextview.setText(R.string.error_not_android10);
+				} else {
+					noWifiTextview.setText(R.string.text_wififound);
+				}
 			}
 		} else {
 			// we did not get a result: probably permission missing?
@@ -1045,9 +1041,6 @@ public class MainActivity extends AppCompatActivity {
 				((TextView) findViewById(R.id.nowifitextview)).setText(R.string.text_nowififound);
 			}
 		}
-
-		// We omit the old step, as we already show it now in the list of wifis
-		//showCurrentSuggestions(suggestionList, activeWifi);
 	}
 
 	private boolean isInSuggestedWifis(@NonNull ScanResult result, @NonNull List<WifiNetworkSuggestion> suggestionList) {
@@ -1076,6 +1069,7 @@ public class MainActivity extends AppCompatActivity {
 	 *
 	 * @param suggestionList
 	 * @param activeWifi
+	 * @deprecated remove soon
 	 */
 	private void showCurrentSuggestions(List<WifiNetworkSuggestion> suggestionList, boolean activeWifi) {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -1096,19 +1090,6 @@ public class MainActivity extends AppCompatActivity {
 				Log.e(AppInfo.APP_NAME, "Error on getNetworkSuggestions", e);
 				showError(R.string.error_cannot_display_recommended_wifi);
 			}
-		}
-
-
-		// color Card if frequency is correct, so feedback to user
-		//MaterialCardView recommendationView = findViewById(R.id.recommandedwificard);
-		// TODO: idea: highlight the Wifi on/off button with a badge or background color
-		if (activeWifi) {
-			//recommendationView.setCardBackgroundColor(
-			//		isWantedFrequency(activeNetwork.getFrequency()) ? getResources().getColor(android.R.color.holo_green_dark, getTheme()) :
-			//				getResources().getColor(android.R.color.holo_orange_dark, getTheme()));
-
-		} else {
-			// recommendationView.setCardBackgroundColor(getResources().getColor(android.R.color.white, getTheme()));
 		}
 	}
 	public static boolean isLocationServicesEnabled(@NonNull Context context) {
@@ -1141,7 +1122,7 @@ public class MainActivity extends AppCompatActivity {
 	}
 
 	private void showContact() {
-		final AlertDialog dialog = new MaterialAlertDialogBuilder(this)
+		final MaterialAlertDialogBuilder dialogBuilder = new MaterialAlertDialogBuilder(this)
 				.setTitle(getString(R.string.app_name))
 				.setNeutralButton("Continue", new DialogInterface.OnClickListener() {
 					@Override
@@ -1149,7 +1130,8 @@ public class MainActivity extends AppCompatActivity {
 						dialog.cancel();
 					}
 				})
-				.setMessage(Html.fromHtml(getString(R.string.message_impressum), Html.FROM_HTML_MODE_COMPACT)).create();
+				.setMessage(Html.fromHtml(BuildConfig.IMPRESSUM, Html.FROM_HTML_MODE_COMPACT)); // Impressum is taken from local.properties
+		final AlertDialog dialog = dialogBuilder.create();
 		TextView view = (TextView) dialog.findViewById(android.R.id.message);
 		if (view != null)
 			view.setMovementMethod(LinkMovementMethod.getInstance()); // make links clickable
@@ -1162,13 +1144,16 @@ public class MainActivity extends AppCompatActivity {
 		ActivityManager am = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
 		final boolean batteryOptimizationIgnored = pm.isIgnoringBatteryOptimizations(getPackageName());
 		final boolean backgroundRestricted = am.isBackgroundRestricted();
+		boolean checkForBatteryOptimization = PreferenceManager.getDefaultSharedPreferences(this).
+				getBoolean(getString(R.string.prefs_check_battery_optims), true);
 		if (checkForBatteryOptimization && (!batteryOptimizationIgnored || backgroundRestricted)) {
 			new MaterialAlertDialogBuilder(this)
 					.setTitle(getString(R.string.app_name))
 					.setPositiveButton(R.string.action_ignore, new DialogInterface.OnClickListener() {
 								@Override
-								public void onClick(DialogInterface dialog, int which) {
-									checkForBatteryOptimization = false; // user does not want
+								public void onClick(DialogInterface dialog, int which) { // user does not want
+									PreferenceManager.getDefaultSharedPreferences(MainActivity.this).edit().
+											putBoolean(getString(R.string.prefs_check_battery_optims), false).apply();
 									dialog.cancel();
 								}
 							}
@@ -1201,6 +1186,11 @@ public class MainActivity extends AppCompatActivity {
 
 	void showError(String string) {
 		Toast.makeText(this, string, Toast.LENGTH_LONG).show();
+	}
+
+	protected boolean isPrivacyOptionsRequired() {
+		return consentInformation != null && consentInformation.getPrivacyOptionsRequirementStatus()
+				== ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED;
 	}
 
 	static void createNotificationChannel(Context context) {
@@ -1274,15 +1264,6 @@ public class MainActivity extends AppCompatActivity {
 		}
 	}
 
-	// TODO: duplicated code!!!
-	private boolean is5GHzPreferred() {
-		return ("1".equals(PreferenceManager.getDefaultSharedPreferences(this).getString(getString(R.string.prefs_2ghz5ghz), "1")));
-	}
-
-	private boolean is6GHzPreferred() {
-		return ("2".equals(PreferenceManager.getDefaultSharedPreferences(this).getString(getString(R.string.prefs_2ghz5ghz), "1")));
-	}
-
 	/**
 	 * Check if manual network suggestion mode is a) enabled and b) supported by Android version
 	 * @return true if manual mode
@@ -1291,16 +1272,6 @@ public class MainActivity extends AppCompatActivity {
 		return !PreferenceManager.getDefaultSharedPreferences(this).getBoolean(getString(R.string.prefs_activation), false)
 				&& (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q);
 	}
-
-	public boolean isWantedFrequency(int freq) {
-		if (is6GHzPreferred()) {
-			return (freq >= 5925);
-		} else if (is5GHzPreferred())
-			return (freq >= 5000 && freq <= 5920);
-		else
-			return (freq < 3000);
-	}
-
 
 	private AdSize getAdSize() {
 		// Determine the screen width (less decorations) to use for the ad width.

@@ -122,7 +122,7 @@
     <string name="title_general_settings">General Settings</string>
     <string name="title_admob">Activate ads with Google AdMob</string>
     <string name="summary_admob">Activate or de-activate Google Ads (Restart required)</string>
-    <string name="prefs_admob" translatable="false">prefs_admob</string>
+    <string name="prefs_admob2" translatable="false">prefs_admob2</string>
     <string name="admob_debug" translatable="false">ca-app-pub-3940256099942544/6300978111</string>
     <string name="admob_id" translatable="false">ca-app-pub-6851248802879048/3051018792</string>
     <string name="action_privacy">Privacy Options</string>
@@ -130,5 +130,7 @@
     <string name="app_faq_url" translatable="false">https://sites.google.com/site/erichambuch/forcewifi5</string>
     <string name="app_dataprotection_url" translatable="false">https://sites.google.com/site/erichambuch/dataprotection</string>
     <string name="action_contact">Contact</string>
-    <string name="message_impressum" translatable="false"><![CDATA[<p>Any feedback is welcome by eMail: <a href=\"mailto:erichambuch+apps@googlemail.com\">erichambuch+apps@googlemail.com</a></p><br/><p>Impressum:<br/><br/><address><small>Eric Hambuch, Himmelgeister Str. 45, 40225 Düsseldorf, Germany, Mail: <a href=\"mailto:erichambuch+apps@googlemail.com\">erichambuch+apps@googlemail.com</a>, <a href=\"tel:+49179337366140\">Telefon</a></small></address></p> ]]></string>
+    <string name="action_reload">Reload</string>
+    <string name="text_wifimanualmode">Manual mode: Please choose your preferred Wifi Access Points and click \'Save\'</string>
+    <string name="prefs_check_battery_optims" translatable="false">prefs_check_battery_optims</string>
 </resources>

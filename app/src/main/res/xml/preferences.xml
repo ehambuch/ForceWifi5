@@ -112,7 +112,7 @@
     </PreferenceCategory>
     <PreferenceCategory android:title="Ads">
         <SwitchPreferenceCompat
-            app:key="@string/prefs_admob"
+            app:key="@string/prefs_admob2"
             app:defaultValue="true"
             app:title="@string/title_admob"
             app:widgetLayout="@layout/preference_material_switch"

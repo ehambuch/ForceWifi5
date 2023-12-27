@@ -45,6 +45,8 @@ package de.erichambuch.forcewifi5;
  *     <li>V1.19.1 (07.12.2023) - Several bug fixes, new Navigation Bar</li>
  *     <li>V1.20.0 (09.12.2023) - Improved Layout</li>
  *     <li>V1.21.0 (10.12.2023) - AdMob integration, Manual suggestion mode</li>
+ *     <li>V1.21.1 (24.12.2023) - AdMob deactivated by default to comply with Google policies</li>
+ *     <li>V1.21.2(50) (26.12.2023) - Bugfix: main layout issues, activated AdMob</li>
  * </ul>
  * <ul>
  *     <li>TODO: disconnect does not work anymore: https://issuetracker.google.com/issues/128554616</li>

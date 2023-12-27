@@ -1,5 +1,6 @@
 package de.erichambuch.forcewifi5;
 
+import android.content.Context;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
@@ -7,6 +8,7 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.preference.PreferenceManager;
 
 public class WifiUtils {
 
@@ -48,5 +50,22 @@ public class WifiUtils {
             else
                 return 2 * (signalRssi + 100);
         }
+    }
+
+    public static boolean is5GHzPreferred(@NonNull Context context) {
+        return ("1".equals(PreferenceManager.getDefaultSharedPreferences(context).getString(context.getString(R.string.prefs_2ghz5ghz), "1")));
+    }
+
+    public static boolean is6GHzPreferred(@NonNull Context context) {
+        return ("2".equals(PreferenceManager.getDefaultSharedPreferences(context).getString(context.getString(R.string.prefs_2ghz5ghz), "1")));
+    }
+
+    public static boolean isWantedFrequency(@NonNull Context context, int freq) {
+        if (is6GHzPreferred(context)) {
+            return (freq >= 5925);
+        } else if (is5GHzPreferred(context))
+            return (freq >= 5000 && freq <= 5920);
+        else
+            return (freq < 3000);
     }
 }

@@ -13,7 +13,6 @@ import android.util.Log;
 import android.widget.RemoteViews;
 
 import androidx.annotation.NonNull;
-import androidx.preference.PreferenceManager;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -51,7 +50,7 @@ public class ForceWifiAppWidget extends AppWidgetProvider {
             int frequency = wifiManager.getConnectionInfo().getFrequency();
             if (frequency > 0) {
                 widgetText = BigDecimal.valueOf(frequency).divide(BigDecimal.valueOf(1000),3, RoundingMode.HALF_UP) + " GHz";
-                widgetColor = isWantedFrequency(context, frequency) ? context.getResources().getColor(android.R.color.holo_green_light, context.getTheme()) :
+                widgetColor = WifiUtils.isWantedFrequency(context, frequency) ? context.getResources().getColor(android.R.color.holo_green_light, context.getTheme()) :
                         context.getResources().getColor(android.R.color.holo_red_light, context.getTheme());
             } else { // e.g. mission permissionss
                 widgetText = context.getString(R.string.title_unknown);
@@ -76,23 +75,5 @@ public class ForceWifiAppWidget extends AppWidgetProvider {
         for (int appWidgetId : appWidgetIds) {
             updateAppWidget(context, appWidgetManager, appWidgetId);
         }
-    }
-
-    // TODO duplicate code
-    private boolean is5GHzPreferred(Context context) {
-        return ("1".equals(PreferenceManager.getDefaultSharedPreferences(context).getString(context.getString(R.string.prefs_2ghz5ghz), "1")));
-    }
-
-    private boolean is6GHzPreferred(Context context) {
-        return ("2".equals(PreferenceManager.getDefaultSharedPreferences(context).getString(context.getString(R.string.prefs_2ghz5ghz), "1")));
-    }
-
-    public boolean isWantedFrequency(@NonNull Context context, int freq) {
-        if (is6GHzPreferred(context)) {
-            return (freq >= 5925);
-        } else if (is5GHzPreferred(context))
-            return (freq >= 5000 && freq <= 5920);
-        else
-            return (freq < 3000);
     }
 }

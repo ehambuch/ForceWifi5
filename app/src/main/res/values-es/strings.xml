@@ -177,5 +177,6 @@
   <string name="action_privacy">Opciones de privacidad</string>
   <string name="error_loading_privacy">Error loading privacy forms for AdMob</string>
     <string name="action_contact">Contacto</string>
-
+  <string name="action_reload">Reload</string>
+  <string name="text_wifimanualmode">Modo manual: elija sus puntos de acceso Wifi preferidos y haga clic en \‘Guardar\’.</string>
 </resources>
