@@ -29,11 +29,11 @@
         </intent>
         <intent>
             <action android:name="android.intent.action.SENDTO" />
-            <data android:scheme="mailto:" />
+            <data android:scheme="mailto" />
         </intent>
         <intent>
             <action android:name="android.intent.action.VIEW" />
-            <data android:scheme="market:" />
+            <data android:scheme="market" />
         </intent>
         <intent>
             <action android:name="android.settings.panel.action.INTERNET_CONNECTIVITY" />
@@ -101,6 +101,10 @@
             </intent-filter>
             <intent-filter>
                 <action android:name="de.erichambuch.forcewifi5.VIEW_FAQ" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="de.erichambuch.forcewifi5.SHOW_OVERLAY" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>

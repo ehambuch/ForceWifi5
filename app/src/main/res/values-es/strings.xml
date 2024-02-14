@@ -179,4 +179,6 @@
     <string name="action_contact">Contacto</string>
   <string name="action_reload">Reload</string>
   <string name="text_wifimanualmode">Modo manual: elija sus puntos de acceso Wifi preferidos y haga clic en \‘Guardar\’.</string>
+    <string name="description_device_overlay">En caso de que la aplicación no funcione como se esperaba, consulte la personalización del proveedor (solo para expertos).</string>
+  <string name="title_device_overlay">Mostrar personalización del dispositivo</string>
 </resources>

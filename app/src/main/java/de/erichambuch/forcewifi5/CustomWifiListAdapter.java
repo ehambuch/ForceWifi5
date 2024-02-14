@@ -103,8 +103,7 @@ public class CustomWifiListAdapter extends RecyclerView.Adapter<CustomWifiListAd
         // Create a new view, which defines the UI of the list item
         View view = LayoutInflater.from(viewGroup.getContext())
                 .inflate(R.layout.list_view_entry, viewGroup, false);
-        final ViewHolder holder = new ViewHolder(view);
-        return holder;
+        return new ViewHolder(view);
     }
 
     // Replace the contents of a view (invoked by the layout manager)

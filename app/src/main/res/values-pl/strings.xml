@@ -109,4 +109,6 @@
     <string name="action_contact">Kontakt</string>
     <string name="action_reload">Reload</string>
     <string name="text_wifimanualmode">Tryb ręczny: wybierz preferowane punkty dostępu Wi-Fi i kliknij „Zapisz”</string>
+    <string name="description_device_overlay">Jeśli aplikacja nie działa zgodnie z oczekiwaniami, zapoznaj się z dostosowaniem dostawcy (tylko dla ekspertów).</string>
+    <string name="title_device_overlay">Pokaż dostosowanie urządzenia</string>
 </resources>

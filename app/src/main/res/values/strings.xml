@@ -131,6 +131,9 @@
     <string name="app_dataprotection_url" translatable="false">https://sites.google.com/site/erichambuch/dataprotection</string>
     <string name="action_contact">Contact</string>
     <string name="action_reload">Reload</string>
-    <string name="text_wifimanualmode">Manual mode: Please choose your preferred Wifi Access Points and click \'Save\'</string>
+    <string name="text_wifimanualmode">Manual mode: Please choose your preferred Wifi Access Points and click ‘Save’</string>
     <string name="prefs_check_battery_optims" translatable="false">prefs_check_battery_optims</string>
+    <string name="text_show_overlay_params" translatable="false"><![CDATA[<p>The following parameters are set internally to configure your device:</p>]]></string>
+    <string name="description_device_overlay">In case the app is not working as expected, please have a look at the vendor customization (only for experts).</string>
+    <string name="title_device_overlay">Show Device Customization</string>
 </resources>

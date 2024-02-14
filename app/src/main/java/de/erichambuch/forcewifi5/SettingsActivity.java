@@ -5,20 +5,29 @@ import static android.Manifest.permission.ACCESS_WIFI_STATE;
 import static android.Manifest.permission.CHANGE_WIFI_STATE;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.ActivityManager;
 import android.content.ActivityNotFoundException;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
+import android.text.Html;
+import android.text.method.LinkMovementMethod;
 import android.util.Log;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationManagerCompat;
@@ -26,6 +35,7 @@ import androidx.preference.ListPreference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.ump.UserMessagingPlatform;
 
 import java.util.ArrayList;
@@ -99,11 +109,37 @@ public class SettingsActivity extends AppCompatActivity {
 						}
 					}
 			);
-		}
-		getSupportFragmentManager()
-				.beginTransaction()
-				.replace(android.R.id.content, settingsFragment = new MySettingsFragment())
-				.commit();
+		} else if (AppInfo.INTENT_SHOW_OVERLAY.equals(getIntent().getAction())) {
+			StringBuilder overlayParams = logOverlayParameters();
+			overlayParams.append("<p>Vendor: ").append(Build.MANUFACTURER).append("/").append(Build.MODEL).append("/").append(Build.VERSION.SDK_INT).append("</p>");
+			final MaterialAlertDialogBuilder dialogBuilder = new MaterialAlertDialogBuilder(this)
+					.setTitle(getString(R.string.app_name))
+					.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							dialog.cancel();							finish();
+						}
+					})
+					.setNeutralButton(android.R.string.copy, new DialogInterface.OnClickListener() {
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							ClipboardManager clipboardManager = getSystemService(ClipboardManager.class);
+							clipboardManager.setPrimaryClip(ClipData.newPlainText(getString(R.string.app_name), overlayParams.toString()));
+							dialog.cancel();
+							finish();
+						}
+					})
+					.setMessage(Html.fromHtml(overlayParams.toString(), Html.FROM_HTML_MODE_COMPACT));
+			final AlertDialog dialog = dialogBuilder.create();
+			TextView view = (TextView) dialog.findViewById(android.R.id.message);
+			if (view != null)
+				view.setMovementMethod(LinkMovementMethod.getInstance());
+			dialog.show();
+		} else
+			getSupportFragmentManager()
+					.beginTransaction()
+					.replace(android.R.id.content, settingsFragment = new MySettingsFragment())
+					.commit();
 	}
 
 	protected void onStart() {
@@ -202,6 +238,101 @@ public class SettingsActivity extends AppCompatActivity {
 		} else {
 			MainActivity.stopWifiService(this);
 		}
+	}
+
+	/**
+	 * Log out overlay parameters set by vendor.
+	 * @see <a href="https://source.android.com/docs/core/connect/wifi-network-selection?hl=de">Android Plattform Wifi Selection</a>
+	 * @see <a href="https://android.googlesource.com/platform/frameworks/base/+/refs/heads/main/core/res/res/values/config.xml">Android Open Source Git</a>
+	 * @see <a href="https://github.com/aosp/wifi/blob/master/service/java/com/android/server/wifi/WifiConfigStore.java">WifiConfigStore</a>
+	 * @see <a href="https://android.googlesource.com/platform/frameworks">WifiNetworkSelector</a>
+	 */
+	private StringBuilder logOverlayParameters() {
+		WifiManager wf = getSystemService(WifiManager.class);
+		StringBuilder builder = new StringBuilder(4096);
+		builder.append(getString(R.string.text_show_overlay_params));
+		try {
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+				builder.append("Scan Throttling: ").append(wf.isScanThrottleEnabled()).append("<br/>");
+			}
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+				builder.append("Dual Band Simultaneous Support: ").append(wf.isDualBandSimultaneousSupported()).append("<br/>");
+			}
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+				builder.append("Make Before Break Switching Support: ").append(wf.isMakeBeforeBreakWifiSwitchingSupported()).append("<br/>");
+			}
+			logOverlayInt("config_networkAvoidBadWifi", builder);
+			logOverlayBoolean("config_wifi_dual_band_support", builder);
+			logOverlayBoolean("config_wifi_enable_5GHz_preference", builder); //  Boolean indicating autojoin will prefer 5GHz and choose 5GHz BSSIDs
+			logOverlayInt("config_wifi_framework_5GHz_preference_boost_factor", builder);
+			logOverlayInt("config_wifi_framework_5GHz_preference_penalty_factor", builder);
+			logOverlayInt("config_wifi_framework_5GHz_preference_penalty_threshold", builder);
+			logOverlayInt("config_wifi_framework_5GHz_preference_boost_threshold", builder);
+			logOverlayInt("config_wifi_framework_wifi_score_bad_rssi_threshold_5GHz", builder);
+			logOverlayInt("config_wifi_framework_wifi_score_low_rssi_threshold_5GHz", builder); //  or -70 dBm for the 5 GHz and 6
+			logOverlayInt("config_wifi_framework_wifi_score_good_rssi_threshold_5GHz", builder);
+			logOverlayInt("config_wifi_framework_wifi_score_bad_rssi_threshold_24GHz", builder);
+			logOverlayInt("config_wifi_framework_wifi_score_low_rssi_threshold_24GHz", builder); // RSSI is above -73 dBm
+			logOverlayInt("config_wifi_framework_wifi_score_good_rssi_threshold_24GHz", builder);
+			logOverlayBoolean("config_wifi_framework_enable_associated_network_selection", builder);
+			logOverlayBoolean("config_wifi_framework_enable_associated_autojoin_scan", builder);
+			logOverlayInt("config_wifi_framework_scan_interval", builder);
+			logOverlayInt("config_wifiSufficientDurationAfterUserSelectionMilliseconds", builder);
+			logOverlayInt("config_wifi_framework_wifi_score_entry_rssi_threshold_24GHz", builder); // minimale RSSI beträgt -80 dBm für das 2,4-GHz-Band
+			logOverlayInt("config_wifi_framework_wifi_score_entry_rssi_threshold_5GHz", builder); // und -77 dBm für die 5-GHz- und 6-GHz-
+			logOverlayInt("config_wifiFrameworkScoreEntryRssiThreshold6ghz", builder);
+			logOverlayBoolean("config_wifiHighMovementNetworkSelectionOptimizationEnabled", builder);
+			logOverlayInt("config_wifiHighMovementNetworkSelectionOptimizationScanDelayMs", builder);
+			logOverlayInt("config_wifiHighMovementNetworkSelectionOptimizationRssiDelta", builder);
+			logOverlayInt("config_wifiPollRssiIntervalMilliseconds", builder);
+			logOverlayBoolean("config_wifiAdjustPollRssiIntervalEnabled", builder);
+			logOverlayInt("config_wifiPollRssiIntervalMilliseconds", builder);
+			logOverlayInt("config_wifi_framework_wifi_score_low_rssi_threshold_24GHz", builder);
+			logOverlayInt("config_wifi_framework_wifi_score_low_rssi_threshold_5GHz", builder);
+			logOverlayInt("config_wifiFrameworkScoreLowRssiThreshold6ghz", builder);
+			logOverlayInt("config_wifiFrameworkThroughputBonusNumerator", builder);
+			logOverlayInt("config_wifiFrameworkThroughputBonusDenominator", builder);
+			logOverlayInt("config_wifiFrameworkThroughputBonusLimit", builder);
+			logOverlayInt("config_wifiFrameworkLastSelectionMinutes", builder);
+			logOverlayInt("config_wifiFrameworkCurrentNetworkBonusMin", builder);
+			logOverlayInt("config_wifiFrameworkCurrentNetworkBonusPercent", builder);
+			logOverlayInt("config_wifiFrameworkSecureNetworkBonus", builder);
+			logOverlayInt("config_wifiFrameworkUnmeteredNetworkBonus", builder);
+			logOverlayInt("config_wifiFrameworkSavedNetworkBonus", builder);
+			logOverlayInt("config_wifiEstimateRssiErrorMarginDb", builder);
+			return builder;
+		}
+		catch(Exception e) {
+			Log.w(AppInfo.APP_NAME, e);
+			return builder;
+		}
+	}
+
+	private void logOverlayBoolean(String parameter, StringBuilder builder) {
+		// this is the preferred way to get the identifier from com.android.internal.R$bool
+		@SuppressLint("DiscouragedApi") int identifer = Resources.getSystem().getIdentifier(parameter, "bool", "android");
+		if(identifer != 0) {
+			logParameter(builder, parameter).append(": ").append(Resources.getSystem().getBoolean(identifer)).append("<br/>");
+		}
+	}
+
+	private void logOverlayInt(String parameter, StringBuilder builder) {
+		@SuppressLint("DiscouragedApi") int identifer = Resources.getSystem().getIdentifier(parameter, "integer", "android");
+		if(identifer != 0) {
+			logParameter(builder, parameter).append(": ").append(Resources.getSystem().getInteger(identifer)).append("<br/>");
+		}
+	}
+
+	private StringBuilder logParameter(StringBuilder builder, String param) {
+		String text = param.replace("config", "");
+		for(int i=0;i<text.length();i++) {
+			if (text.charAt(i) == '_') { // convert to Camel Case
+				builder.append(' ');
+				builder.append(Character.toTitleCase(text.charAt(++i)));
+			} else
+				builder.append(text.charAt(i));
+		}
+		return builder;
 	}
 
 }

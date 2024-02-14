@@ -46,15 +46,18 @@ package de.erichambuch.forcewifi5;
  *     <li>V1.20.0 (09.12.2023) - Improved Layout</li>
  *     <li>V1.21.0 (10.12.2023) - AdMob integration, Manual suggestion mode</li>
  *     <li>V1.21.1 (24.12.2023) - AdMob deactivated by default to comply with Google policies</li>
- *     <li>V1.21.2(50) (26.12.2023) - Bugfix: main layout issues, activated AdMob</li>
+ *     <li>V1.21.2(50/51) (26.12.2023) - Bugfix: main layout issues, activated AdMob</li>
+ *     <li>V1.22.0(52) (13.02.2023) - Added Overview for Vendor Overlay Configuration of Wifi Manager</li>
  * </ul>
+ * Open Issues to be fixed:
  * <ul>
- *     <li>TODO: disconnect does not work anymore: https://issuetracker.google.com/issues/128554616</li>
+ *     <li>TODO: disconnect does not work anymore: <a href="https://issuetracker.google.com/issues/128554616">Issue 128554616</a></li>
  *     <li>TODO: make a guided setup process for all the settings</li>
- *     <li>https://developer.android.com/training/location/permissions#background - Problems with Foreground/Background</li>
- *     <li>https://issuetracker.google.com/issues/192032398?pli=1#comment6/li>
- *     <li>https://stackoverflow.com/questions/44425584/context-startforegroundservice-did-not-then-call-service-startforeground/46449975#46449975</li>
- *     <li>https://stackoverflow.com/questions/63124728/connect-to-wifi-in-android-q-programmatically</li>
+ *     <li><a href="https://developer.android.com/training/location/permissions#background">Problems with Foreground/Background</a></li>
+ *     <li><a href="https://issuetracker.google.com/issues/192032398?pli=1#comment6">Issue 192032398</a></li>
+ *     <li><a href="https://stackoverflow.com/questions/44425584/context-startforegroundservice-did-not-then-call-service-startforeground/46449975#46449975">Stackoverflow</a></li>
+ *     <li><a href="https://stackoverflow.com/questions/63124728/connect-to-wifi-in-android-q-programmatically">Stackoverflow</a></li>
+ *     <li><a href="https://source.android.com/docs/core/connect/wifi-network-selection">Google Android Source</a></li>
  * </ul>
  */
 public final class AppInfo {
@@ -64,4 +67,8 @@ public final class AppInfo {
     public static final String INTENT_SHOW_MARKET = "de.erichambuch.forcewifi5.VIEW_MARKET";
     public static final String INTENT_VIEW_PRIVACY_OPTIONS = "de.erichambuch.forcewifi5.VIEW_PRIVACY_OPTIONS";
     public static final String INTENT_SHOW_FAQ = "de.erichambuch.forcewifi5.VIEW_FAQ";
+
+    public static final String INTENT_SHOW_OVERLAY = "de.erichambuch.forcewifi5.SHOW_OVERLAY";
+
+    public static final String TEST = "";
 }

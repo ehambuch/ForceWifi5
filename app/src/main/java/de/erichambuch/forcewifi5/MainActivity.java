@@ -923,7 +923,7 @@ public class MainActivity extends AppCompatActivity {
 			if( list != null && list.size() > 0 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
 				builder.append("<ol>");
 				for(WifiNetworkSuggestion s : list) {
-						builder.append("<li> ").append(s.getPriority()).append(": ").append(s.getSsid()).append(" [").append(s.getBssid()).append("]").append("</li>");
+						builder.append("<li> Prio ").append(s.getPriority()).append(": ").append(s.getSsid()).append(" [").append(s.getBssid()).append("]").append("</li>");
 				}
 				builder.append("</ol>");
 			} else {

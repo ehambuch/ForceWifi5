@@ -109,6 +109,14 @@
                 android:action="android.settings.APPLICATION_DEVELOPMENT_SETTINGS"
                 />
         </Preference>
+        <Preference
+            app:title="@string/title_device_overlay"
+            app:summary="@string/description_device_overlay">
+            <intent
+                android:action="de.erichambuch.forcewifi5.SHOW_OVERLAY"
+                android:targetPackage="de.erichambuch.forcewifi5"
+                android:targetClass="de.erichambuch.forcewifi5.SettingsActivity" />
+        </Preference>
     </PreferenceCategory>
     <PreferenceCategory android:title="Ads">
         <SwitchPreferenceCompat

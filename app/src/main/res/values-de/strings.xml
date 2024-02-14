@@ -108,4 +108,6 @@
     <string name="action_contact">Kontakt</string>
     <string name="action_reload">Reload</string>
     <string name="text_wifimanualmode">Manueller Modus: Bitte wählen Sie Ihre bevorzugten WLAN-Zugangspunkte aus und klicken Sie auf „Speichern“</string>
+    <string name="description_device_overlay">Falls die App nicht wie erwartet funktioniert, schauen Sie sich bitte die Herstelleranpassung an (nur für Experten).</string>
+    <string name="title_device_overlay">Geräteanpassung anzeigen</string>
 </resources>
