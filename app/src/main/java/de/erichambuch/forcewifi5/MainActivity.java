@@ -920,7 +920,7 @@ public class MainActivity extends AppCompatActivity {
 		if(wifiManager != null) {
 			List<WifiNetworkSuggestion> list = WifiChangeService.getActualSuggestions(wifiManager);
 			StringBuilder builder = new StringBuilder();
-			if( list != null && list.size() > 0 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+			if( list != null && !list.isEmpty() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
 				builder.append("<ol>");
 				for(WifiNetworkSuggestion s : list) {
 						builder.append("<li> Prio ").append(s.getPriority()).append(": ").append(s.getSsid()).append(" [").append(s.getBssid()).append("]").append("</li>");
@@ -1020,7 +1020,7 @@ public class MainActivity extends AppCompatActivity {
 		listView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
 		listView.addItemDecoration(new MaterialDividerItemDecoration(this, MaterialDividerItemDecoration.VERTICAL));
 		listView.setHasFixedSize(true);
-		if (listNetworks.size() > 0) {
+		if (!listNetworks.isEmpty()) {
 			((MaterialCardView)findViewById(R.id.nowificardview)).setCardBackgroundColor(getResources().getColor(android.R.color.holo_green_dark, getTheme()));
 			final TextView noWifiTextview = findViewById(R.id.nowifitextview);
 			if(isManualMode()) {
@@ -1047,7 +1047,7 @@ public class MainActivity extends AppCompatActivity {
 		final String ssid = normalizeSSID(result.SSID);
 		for (WifiNetworkSuggestion suggestion : suggestionList) {
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-				if (ssid.equals(normalizeSSID(suggestion.getSsid())) && result.BSSID.equals(suggestion.getBssid().toString())) // TODO: stimmt das Format immer ueberein?
+				if (ssid.equals(normalizeSSID(suggestion.getSsid())) && result.BSSID.equals(String.valueOf(suggestion.getBssid()))) // TODO: stimmt das Format immer ueberein?
 					return true;
 			}
 		}
@@ -1075,7 +1075,7 @@ public class MainActivity extends AppCompatActivity {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
 			//final TextView recommendationView = ((TextView) findViewById(R.id.recommandedwifitextview));
 			try {
-				if (suggestionList.size() > 0) {
+				if (!suggestionList.isEmpty()) {
 					StringBuilder builder = new StringBuilder();
 					for (WifiNetworkSuggestion suggestion : suggestionList) {
 						builder.append(suggestion.getSsid()).append(" - ").append(suggestion.getBssid()).append(" recommended at prio ").append(suggestion.getPriority()).append("<br/>");

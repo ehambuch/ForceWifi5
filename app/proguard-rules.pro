@@ -24,3 +24,6 @@
 -keepclassmembers class * implements android.os.Parcelable {
   public static final android.os.Parcelable$Creator CREATOR;
 }
+-dontwarn java.awt.event.ActionListener
+-dontwarn javax.swing.SwingUtilities
+-dontwarn javax.swing.Timer

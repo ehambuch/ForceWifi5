@@ -14,6 +14,7 @@
         app:defaultValue="1"
         android:entries="@array/entries25ghz"
         android:entryValues="@array/values25ghz"
+        android:dependency="@string/prefs_activation"
         app:title="@string/title_2ghz5ghz"
         app:summary="@string/summary_2ghz5ghz"
         />
@@ -24,6 +25,7 @@
         app:showSeekBarValue="true"
         app:min="0"
         android:max="100"
+        android:dependency="@string/prefs_activation"
         app:title="@string/title_minimumlevel"
         app:summary="@string/summary_signallevel"
         />
@@ -32,6 +34,7 @@
             app:key="@string/prefs_switchnetwork"
             app:defaultValue="false"
             app:title="@string/title_switchnetwork"
+            android:dependency="@string/prefs_activation"
             app:widgetLayout="@layout/preference_material_switch"
             app:summary="@string/summary_switchnetwork"/>
 

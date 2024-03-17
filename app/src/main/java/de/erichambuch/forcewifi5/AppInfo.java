@@ -1,9 +1,9 @@
 package de.erichambuch.forcewifi5;
 
 /**
- * ForceWifi5.
- * <p>Author: Eric Hambuch (erichambuch@googlemail.com)
- * Licence: Apache 2.0 (https://www.apache.org/licenses/LICENSE-2.0)
+ * <b>ForceWifi5</b>
+ * <p>Author: Eric Hambuch (<a href="mailto:erichambuch+apps@googlemail.com">erichambuch+apps@googlemail.com</a>)
+ * Licence: <a href="https://www.apache.org/licenses/LICENSE-2.0">Apache 2.0</a>
  * Uses: Material Design
  * </p>
  * <ul>
@@ -48,6 +48,7 @@ package de.erichambuch.forcewifi5;
  *     <li>V1.21.1 (24.12.2023) - AdMob deactivated by default to comply with Google policies</li>
  *     <li>V1.21.2(50/51) (26.12.2023) - Bugfix: main layout issues, activated AdMob</li>
  *     <li>V1.22.0(52) (13.02.2023) - Added Overview for Vendor Overlay Configuration of Wifi Manager</li>
+ *     <li>V1.22.1(53) (17.03.2023) - Bugfixes</li>
  * </ul>
  * Open Issues to be fixed:
  * <ul>
