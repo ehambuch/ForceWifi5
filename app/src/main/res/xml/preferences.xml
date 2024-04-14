@@ -19,7 +19,7 @@
         app:summary="@string/summary_2ghz5ghz"
         />
 
-    <SeekBarPreference
+        <SeekBarPreference
         app:key="@string/prefs_signallevel"
         app:defaultValue="30"
         app:showSeekBarValue="true"
@@ -28,7 +28,7 @@
         android:dependency="@string/prefs_activation"
         app:title="@string/title_minimumlevel"
         app:summary="@string/summary_signallevel"
-        />
+            />
 
         <SwitchPreferenceCompat
             app:key="@string/prefs_switchnetwork"
@@ -37,6 +37,14 @@
             android:dependency="@string/prefs_activation"
             app:widgetLayout="@layout/preference_material_switch"
             app:summary="@string/summary_switchnetwork"/>
+
+        <SwitchPreferenceCompat
+            app:key="@string/prefs_aggressive_change"
+            app:defaultValue="true"
+            app:widgetLayout="@layout/preference_material_switch"
+            app:title="@string/title_aggressive_change"
+            app:summary="@string/summary_aggressive_change"
+            />
 
         <Preference
             app:key="@string/prefs_widget_settings"
@@ -128,6 +136,12 @@
             app:title="@string/title_admob"
             app:widgetLayout="@layout/preference_material_switch"
             app:summary="@string/summary_admob"/>
+        <SwitchPreferenceCompat
+            app:key="@string/prefs_crashlytics"
+            app:defaultValue="true"
+            app:title="@string/title_crashlytics"
+            app:widgetLayout="@layout/preference_material_switch"
+            app:summary="@string/summary_crashlytics"/>
         <Preference
             app:title="@string/action_privacy"
             app:summary="@string/action_privacy">

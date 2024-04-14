@@ -89,6 +89,8 @@ import com.google.android.ump.ConsentForm;
 import com.google.android.ump.ConsentInformation;
 import com.google.android.ump.ConsentRequestParameters;
 import com.google.android.ump.UserMessagingPlatform;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -399,6 +401,8 @@ public class MainActivity extends AppCompatActivity {
 	private final ScanFinishedListener scanFinishedListener = new ScanFinishedListener();
 	private final RecommendationListener recommendationListener = new RecommendationListener();
 
+	private NetworkCallback networkCallback;
+
 	@SuppressLint("MissingPermission")
 	@Override
 	protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -425,7 +429,7 @@ public class MainActivity extends AppCompatActivity {
 		ConnectivityManager connManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
 		connManager.registerNetworkCallback(
 				new NetworkRequest.Builder().addTransportType(NetworkCapabilities.TRANSPORT_WIFI).build(),
-				new NetworkCallback(getApplicationContext()));
+				networkCallback = new NetworkCallback(getApplicationContext()));
 
 		if (Intent.ACTION_MAIN.equals(getIntent().getAction())) // show info dialog only on first start
 		{
@@ -440,6 +444,15 @@ public class MainActivity extends AppCompatActivity {
 			} else {
 				requestMyPermissions(true);
 			}
+		}
+
+		// onyl activate Crashlytics if enabled
+		try {
+			FirebaseApp.initializeApp(this);
+			if (isCrashlyticsEnabled())
+				FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(true);
+		} catch (Exception e) {
+			Log.e(AppInfo.APP_NAME, "Error init Firebase", e);
 		}
 
 		setUpAdMob();
@@ -867,23 +880,15 @@ public class MainActivity extends AppCompatActivity {
 							dialog.dismiss();
 							WifiChangeService.provideSuggestions(MainActivity.this, suggestionList);
 							showMessage(R.string.text_suggestions_saved);
-							// TODO try automatically
-							/*
-							ConnectivityManager connectivityManager = getSystemService(ConnectivityManager.class);
-									NetworkSpecifier networkSpecifier  = new WifiNetworkSpecifier.Builder()
-									.setSsid(suggestionList.get(0).getSsid())
-									.build();
-							NetworkRequest networkRequest  = new NetworkRequest.Builder()
-									.addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
-									.setNetworkSpecifier(networkSpecifier)
-									.build();
-							connectivityManager.requestNetwork(networkRequest, );
-							*/
-							// Here we try to force a re-connect of the Wifi via Internet connectivity
-							try {
-								startActivity(WifiChangeService.getWifiIntent(getApplicationContext()));
-							} catch(ActivityNotFoundException e) {
-								Log.w(AppInfo.APP_NAME, e);  // TODO: try another setting
+							if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && isAggressive() && !suggestionList.isEmpty()) {
+								WifiChangeService.aggressiveNetworkChange(MainActivity.this, suggestionList.get(0));
+							} else {
+								// Here we try to force a re-connect of the Wifi via Internet connectivity
+								try {
+									startActivity(WifiChangeService.getWifiIntent(getApplicationContext()));
+								} catch (ActivityNotFoundException e) {
+									Log.w(AppInfo.APP_NAME, e);
+								}
 							}
 						}
 					})
@@ -1193,6 +1198,10 @@ public class MainActivity extends AppCompatActivity {
 				== ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED;
 	}
 
+	private boolean isAggressive() {
+		return PreferenceManager.getDefaultSharedPreferences(this).getBoolean(getString(R.string.prefs_aggressive_change), true);
+	}
+
 	static void createNotificationChannel(Context context) {
 		CharSequence name = context.getString(R.string.app_name);
 		String description = context.getString(R.string.app_description);
@@ -1271,6 +1280,10 @@ public class MainActivity extends AppCompatActivity {
 	private boolean isManualMode() {
 		return !PreferenceManager.getDefaultSharedPreferences(this).getBoolean(getString(R.string.prefs_activation), false)
 				&& (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q);
+	}
+
+	private boolean isCrashlyticsEnabled() {
+		return PreferenceManager.getDefaultSharedPreferences(this).getBoolean(getString(R.string.prefs_crashlytics), true);
 	}
 
 	private AdSize getAdSize() {

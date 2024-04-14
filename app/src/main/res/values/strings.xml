@@ -5,7 +5,7 @@
     <string name="action_info">FAQ</string>
     <string name="error_wifi_not_enabled">Wifi is not enabled!</string>
     <string name="error_no_5ghz_found">No networks with both frequencies and same SSID found!</string>
-    <string name="error_no_location_enabled">Location services need to be enabled!</string>
+    <string name="error_no_location_enabled">Location services must be enabled!</string>
     <string name="info_switch_wifi_5ghz">Trying to switch frequency &#8230;</string>
     <string name="info_5ghz_active">Wifi already connected with preferred frequency</string>
     <string name="text_listnetworks">Available networks with both 2.4/5 GHz:</string>
@@ -62,11 +62,13 @@
         <item>2.4 GHz</item>
         <item>5 GHz</item>
         <item>6 GHz</item>
+        <item>60 GHz</item>
     </string-array>
     <string-array name="values25ghz">
         <item>0</item>
         <item>1</item>
         <item>2</item>
+        <item>3</item>
     </string-array>
     <string name="text_nowifi">No Wifi access point connected</string>
     <string name="text_nowifirecommended">No Wifi access point recommended</string>
@@ -136,4 +138,11 @@
     <string name="text_show_overlay_params" translatable="false"><![CDATA[<p>The following parameters are set internally to configure your device:</p>]]></string>
     <string name="description_device_overlay">In case the app is not working as expected, please have a look at the vendor customization (only for experts).</string>
     <string name="title_device_overlay">Show Device Customization</string>
+    <string name="prefs_aggressive_change" translatable="false">prefs_aggressive_change</string>
+    <string name="text_wifichange_successful">Successful automatic change to preferred Wifi</string>
+    <string name="title_aggressive_change">Aggressively request new Wifi</string>
+    <string name="summary_aggressive_change">Activation may help on some devices to enforce the recommendations</string>
+    <string name="title_crashlytics" translatable="false">Activate Google Crashlytics</string>
+    <string name="summary_crashlytics" translatable="false">Sends statistical data to the developer to analyze any errors in the app</string>
+    <string name="prefs_crashlytics" translatable="false">prefs_crashlytics</string>
 </resources>

@@ -54,7 +54,7 @@ public class WifiChangeWorker extends Worker {
                     service.updateNetworks();
                     success = true;
                 } catch(Exception e) {
-                    Log.e(AppInfo.APP_NAME, "Worker: updateNetworks", e);
+                    Crashlytics.recordException(e);
                     service.showPermissionError();
                 }
             } else {

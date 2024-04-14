@@ -50,11 +50,13 @@
         <item>2.4 GHz</item>
         <item>5 GHz</item>
         <item>6 GHz</item>
+        <item>60 GHz</item>
     </string-array>
     <string-array name="values25ghz">
         <item>0</item>
         <item>1</item>
         <item>2</item>
+        <item>3</item>
     </string-array>
     <string name="text_nowifi">Kein Wifi verbunden</string>
     <string name="text_nowifirecommended">Kein Wifi empfohlen</string>
@@ -110,4 +112,7 @@
     <string name="text_wifimanualmode">Manueller Modus: Bitte wählen Sie Ihre bevorzugten WLAN-Zugangspunkte aus und klicken Sie auf „Speichern“</string>
     <string name="description_device_overlay">Falls die App nicht wie erwartet funktioniert, schauen Sie sich bitte die Herstelleranpassung an (nur für Experten).</string>
     <string name="title_device_overlay">Geräteanpassung anzeigen</string>
+    <string name="text_wifichange_successful">Erfolgreicher automatischer Wechsel zum bevorzugten WLAN</string>
+    <string name="title_aggressive_change">Mehr aggressive Anforderung des neuen WLANs</string>
+    <string name="summary_aggressive_change">Auf einigen Geräten kann die Aktivierung hilfreich sein, um die Empfehlungen durchzusetzen</string>
 </resources>

@@ -51,11 +51,13 @@
         <item>2.4 GHz</item>
         <item>5 GHz</item>
         <item>6 GHz</item>
+        <item>60 GHz</item>
     </string-array>
     <string-array name="values25ghz">
         <item>0</item>
         <item>1</item>
         <item>2</item>
+        <item>3</item>
     </string-array>
     <string name="text_nowifi">Brak połączenia z punktem dostępu WiFi</string>
     <string name="text_nowifirecommended">Brak zalecanego punktu dostępu do sieci WiFi</string>
@@ -111,4 +113,7 @@
     <string name="text_wifimanualmode">Tryb ręczny: wybierz preferowane punkty dostępu Wi-Fi i kliknij „Zapisz”</string>
     <string name="description_device_overlay">Jeśli aplikacja nie działa zgodnie z oczekiwaniami, zapoznaj się z dostosowaniem dostawcy (tylko dla ekspertów).</string>
     <string name="title_device_overlay">Pokaż dostosowanie urządzenia</string>
+    <string name="text_wifichange_successful">Pomyślna automatyczna zmiana na preferowaną sieć Wi-Fi</string>
+    <string name="title_aggressive_change">Agresywnie żądaj nowego Wi-Fi</string>
+    <string name="summary_aggressive_change">Aktywacja może pomóc na niektórych urządzeniach w egzekwowaniu zaleceń</string>
 </resources>

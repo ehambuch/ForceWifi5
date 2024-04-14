@@ -1,7 +1,6 @@
 package de.erichambuch.forcewifi5;
 
 import android.app.Application;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.work.Configuration;
@@ -20,7 +19,7 @@ public class ForceApplication extends Application implements Configuration.Provi
         try {
             WorkManager.initialize(this, getWorkManagerConfiguration());
         } catch(Exception e) {
-            Log.w(AppInfo.APP_NAME, e);
+            Crashlytics.recordException(e);
         }
         DynamicColors.applyToActivitiesIfAvailable(this); // for setup of Material 3
     }

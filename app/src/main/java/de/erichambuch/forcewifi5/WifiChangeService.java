@@ -2,25 +2,31 @@ package de.erichambuch.forcewifi5;
 
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.Manifest.permission.ACCESS_WIFI_STATE;
+import static android.Manifest.permission.CHANGE_NETWORK_STATE;
 import static android.Manifest.permission.CHANGE_WIFI_STATE;
 import static android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION;
 import static de.erichambuch.forcewifi5.WifiUtils.hasNormalizedSSID;
+import static de.erichambuch.forcewifi5.WifiUtils.is5GHzPreferred;
 import static de.erichambuch.forcewifi5.WifiUtils.normalizeSSID;
 
 import android.app.Notification;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.ConnectivityManager;
 import android.net.MacAddress;
+import android.net.Network;
+import android.net.NetworkCapabilities;
+import android.net.NetworkRequest;
 import android.net.Uri;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.net.wifi.WifiNetworkSpecifier;
 import android.net.wifi.WifiNetworkSuggestion;
 import android.os.Binder;
 import android.os.Build;
@@ -126,6 +132,24 @@ public class WifiChangeService extends Service {
 		}
 	}
 
+	static class ChangeNetworkCallback extends ConnectivityManager.NetworkCallback {
+
+		private final Context ctx;
+		ChangeNetworkCallback(@NonNull Context context) {
+			this.ctx = context;
+		}
+		@Override
+		public void onAvailable(@NonNull Network network) {
+			Log.i(AppInfo.APP_NAME, "Available requested network: "+network);
+			showNotificationMessage(ctx, ctx.getString(R.string.text_wifichange_successful));
+		}
+		@Override
+		public void onUnavailable() {
+			Log.w(AppInfo.APP_NAME, "Unavailabled requested network");
+			showNotificationMessage(ctx, ctx.getString(R.string.error_suggestion_not_taken));
+		}
+	}
+
 	public static final int ONGOING_NOTIFICATION_ID = 123;
 
 	public class LocalBinder extends Binder {
@@ -212,13 +236,13 @@ public class WifiChangeService extends Service {
 	 * on 5 Ghz, then try to re-connect. Another option is to switch completely as long as
 	 * @throws SecurityException on errors
 	 */
-	@RequiresPermission(allOf = {ACCESS_FINE_LOCATION, CHANGE_WIFI_STATE, ACCESS_WIFI_STATE})
+	@RequiresPermission(allOf = {ACCESS_FINE_LOCATION, CHANGE_WIFI_STATE, ACCESS_WIFI_STATE, CHANGE_NETWORK_STATE})
 	protected void updateNetworks() throws SecurityException {
 		Log.d(AppInfo.APP_NAME, "Started updateNetworks...");
 		final WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
 		if (isActivated() && wifiManager.isWifiEnabled()) {
-			WifiInfo activeWifi = wifiManager.getConnectionInfo();
-			if (activeWifi != null && isWrongFrequency(activeWifi.getFrequency())) {
+			final WifiInfo activeWifi = wifiManager.getConnectionInfo();
+			if (activeWifi != null && WifiUtils.isWrongFrequency(this, activeWifi.getFrequency())) {
 				// at latest here we need enabled location services to get proper results of Wifi data.
 				// otherwise getScanResults() and WifiInfo would not contain the sufficient information
 				if (!checkLocationServices())
@@ -234,12 +258,12 @@ public class WifiChangeService extends Service {
 				final StringBuilder suggestionsString = new StringBuilder(256); // wir müssen parallel noch das als String mitführen
 				for (ScanResult result : scanResults) {
 					final int signalLevel = WifiUtils.calculateWifiLevel(wifiManager, result.level);
-					if (isWantedFrequency(result.frequency)
+					if (WifiUtils.isWantedFrequency(this, result.frequency)
 							&& (switchToOtherSSID || result.SSID.equals(normalizeSSID(activeWifi.getSSID())))
 							&& signalLevel >= getMinimumLevel()
 							&& signalLevel > minimumSignalLevel) {
 						// found Wifi -> try to connect to it
-						if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+						if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
 							final WifiNetworkSuggestion.Builder suggestionBuilder = new WifiNetworkSuggestion.Builder();
 							suggestionBuilder.setSsid(normalizeSSID(result.SSID));
 							suggestionsString.append(normalizeSSID(result.SSID)).append(" - ");
@@ -253,6 +277,7 @@ public class WifiChangeService extends Service {
 							suggestions.add(suggestionBuilder.build());
 							// special case: wir haben ein Netzwerk mit normalisierter SSID, versuchen wir dazuzufügen
 							if (hasNormalizedSSID(result.SSID)) {
+								Log.d(AppInfo.APP_NAME, "Adding normalized SSID "+result.SSID);
 								suggestionBuilder.setSsid(result.SSID); // mit ""
 								suggestions.add(suggestionBuilder.build()); // und zweite Suggestion
 							}
@@ -281,27 +306,12 @@ public class WifiChangeService extends Service {
 				}
 				if (reconnected) {
 					Log.d(AppInfo.APP_NAME, "Try to reconnect");
-					if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && suggestions.size() > 0) {
+					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && !suggestions.isEmpty()) {
 						// show suggestion in Notification
-						final Notification notification =
-								new NotificationCompat.Builder(this, MainActivity.CHANNEL_ID)
-										.setContentTitle(this.getText(R.string.app_name))
-										.setContentText(this.getText(R.string.title_activation))
-										.setSmallIcon(R.mipmap.ic_launcher)
-										.setAutoCancel(true)
-										.setSilent(true)
-										.setContentIntent(PendingIntent.getActivity(getApplicationContext(), 0,
-												new Intent("android.settings.panel.action.INTERNET_CONNECTIVITY"),
-												PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_IMMUTABLE))
-										.setCategory(Notification.CATEGORY_MESSAGE)
-										.setTicker(this.getText(R.string.info_switch_wifi_5ghz) + " " + suggestionToString(suggestions.get(0)))
-										.build();
-						NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-						notificationManager.notify(ONGOING_NOTIFICATION_ID, notification);
-
+						showNotificationMessage(getApplicationContext(), this.getText(R.string.info_switch_wifi_5ghz) + " " + suggestionToString(suggestions.get(0)));
 						// Starting with API 33, Android allows to use setWifiEnabled in certain cases (device owner, etc.), so we give a try
 						// disconnect geht nicht mehr: https://issuetracker.google.com/issues/128554616
-						if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ) {
+						if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ) {
 							try {
 								wifiManager.setWifiEnabled(false);
 							} catch (Exception e) {
@@ -329,19 +339,19 @@ public class WifiChangeService extends Service {
 								showError(R.string.info_switch_wifi_5ghz_android10);
 								// Starting with API 33, Android allows to use setWifiEnabled in certain cases (device owner, etc.), so we give a try
 								// disconnect geht nicht mehr: https://issuetracker.google.com/issues/128554616
-								if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ) {
+								if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ) {
 									boolean changed = false;
 									try {
 										changed = wifiManager.setWifiEnabled(true);
 									} catch (Exception e) {
 										Log.w(AppInfo.APP_NAME, "Wifi disabling/enabled failed", e);
 									} finally {
-										// try another way
-										if(!changed) {
+										// try another way, for Android Q+ the flag changed is always "false" as per spec
+										if(!changed && !isAggressive()) {
 											try {
 												startActivity(getWifiIntent(getApplicationContext()));
 											} catch(Exception e2) {
-												Log.e(AppInfo.APP_NAME, "Error starting activity to switch wifi", e2);
+												Crashlytics.recordException(e2);
 											}
 										}
 									}
@@ -359,6 +369,10 @@ public class WifiChangeService extends Service {
 							default:
 								showError(R.string.error_switch_wifi_android10);
 								break;
+						}
+						// Aggressive request of a specific network (from Android 12)
+						if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && isAggressive() && !suggestions.isEmpty()) {
+							aggressiveNetworkChange(this, suggestions.get(0));
 						}
 					} else if (networkId >= 0) {
 						// Check auf networkId != activeWifi.getNetworkId() bringt nichts, weil Android unter derselben networkId
@@ -381,6 +395,32 @@ public class WifiChangeService extends Service {
 		}
 	}
 
+	/**
+	 * Force an aggressive network change by requesting a specific network.
+	 * @param context my context
+	 * @param suggestion the wifi suggestion
+	 */
+	static void aggressiveNetworkChange(@NonNull Context context, @NonNull WifiNetworkSuggestion suggestion) {
+		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+			try {
+				final WifiNetworkSpecifier.Builder specificerBuild = new WifiNetworkSpecifier.Builder();
+				specificerBuild.setSsid(suggestion.getSsid());
+				if(suggestion.getBssid() != null) // only one setter is allowed for WifiSpecifier
+					specificerBuild.setBssid(suggestion.getBssid());
+				else
+					specificerBuild.setBand(getBand(context));
+				final NetworkRequest request = new NetworkRequest.Builder().
+						addTransportType(NetworkCapabilities.TRANSPORT_WIFI).
+						setIncludeOtherUidNetworks(true).  // we also want the system Wifis
+						setNetworkSpecifier(specificerBuild.build()).
+						build();
+				Log.i(AppInfo.APP_NAME, "Requesting "+request);
+				context.getSystemService(ConnectivityManager.class).requestNetwork(request, new ChangeNetworkCallback(context.getApplicationContext()));
+			} catch(Exception e) {
+				Crashlytics.recordException(e);
+			}
+		}
+	}
 	@RequiresPermission(ACCESS_WIFI_STATE)
 	static List<WifiNetworkSuggestion> getActualSuggestions(WifiManager wifiManager) {
 		return (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) ?
@@ -503,7 +543,6 @@ public class WifiChangeService extends Service {
 	}
 
 	@NonNull
-	@RequiresApi(api = Build.VERSION_CODES.O)
 	protected static Notification createMessageNotification(Context context, int resourceId) {
 		NotificationCompat.Builder builder =
 				new NotificationCompat.Builder(context, MainActivity.CHANNEL_ID)
@@ -525,29 +564,47 @@ public class WifiChangeService extends Service {
 		return builder.build();
 	}
 
+	static void showNotificationMessage(Context context, String msg) {
+		final Notification notification =
+				new NotificationCompat.Builder(context, MainActivity.CHANNEL_ID)
+						.setContentTitle(context.getText(R.string.app_name))
+						.setContentText(msg)
+						.setSmallIcon(R.mipmap.ic_launcher)
+						.setAutoCancel(true)
+						.setSilent(true)
+						.setContentIntent(PendingIntent.getActivity(context.getApplicationContext(), 0,
+								new Intent("android.settings.panel.action.INTERNET_CONNECTIVITY"),
+								PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_IMMUTABLE))
+						.setCategory(Notification.CATEGORY_MESSAGE)
+						.setTicker(msg)
+						.build();
+		if(NotificationManagerCompat.from(context).areNotificationsEnabled()) {
+			try {
+				NotificationManagerCompat.from(context).notify(ONGOING_NOTIFICATION_ID, notification);
+			} catch(SecurityException e) {
+				Log.e(AppInfo.APP_NAME, context.getString(R.string.error_no_permissions_notification), e);
+			}
+		}
+	}
+
 	protected boolean isActivated() {
 		return PreferenceManager.getDefaultSharedPreferences(this).getBoolean(getString(R.string.prefs_activation), true);
 	}
 
-	private boolean is5GHzPreferred() {
-		return ("1".equals(PreferenceManager.getDefaultSharedPreferences(this).getString(getString(R.string.prefs_2ghz5ghz), "1")));
+	private boolean isAggressive() {
+		return PreferenceManager.getDefaultSharedPreferences(this).getBoolean(getString(R.string.prefs_aggressive_change), true);
 	}
 
-	private boolean is6GHzPreferred() {
-		return ("2".equals(PreferenceManager.getDefaultSharedPreferences(this).getString(getString(R.string.prefs_2ghz5ghz), "1")));
-	}
-
-	private boolean isWrongFrequency(int freq) {
-		return !isWantedFrequency(freq);
-	}
-
-	public boolean isWantedFrequency(int freq) {
-		if (is6GHzPreferred()) {
-			return (freq >= 5925);
-		} else if (is5GHzPreferred())
-			return (freq >= 5000 && freq <= 5920);
+	@RequiresApi(api = Build.VERSION_CODES.S)
+	public static int getBand(@NonNull Context context) {
+		if(WifiUtils.is60GHzPreferred(context))
+			return ScanResult.WIFI_BAND_60_GHZ;
+		else if(WifiUtils.is6GHzPreferred(context))
+			return ScanResult.WIFI_BAND_6_GHZ;
+		else if(is5GHzPreferred(context))
+			return ScanResult.WIFI_BAND_5_GHZ;
 		else
-			return (freq < 3000);
+			return ScanResult.WIFI_BAND_24_GHZ;
 	}
 
 	/**

@@ -49,6 +49,7 @@ package de.erichambuch.forcewifi5;
  *     <li>V1.21.2(50/51) (26.12.2023) - Bugfix: main layout issues, activated AdMob</li>
  *     <li>V1.22.0(52) (13.02.2023) - Added Overview for Vendor Overlay Configuration of Wifi Manager</li>
  *     <li>V1.22.1(53) (17.03.2023) - Bugfixes</li>
+ *     <li>V1.23.0(54) (13.04.2023) - RequestNetwork for more aggressive network change, Google Crashlytics, 60 GHz Support</li>
  * </ul>
  * Open Issues to be fixed:
  * <ul>

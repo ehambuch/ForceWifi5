@@ -146,6 +146,7 @@ public class SettingsActivity extends AppCompatActivity {
 		super.onStart();
 		if(settingsFragment != null) { // if null, then we handle the different other actions
 			enableValidGhz();
+			settingsFragment.findPreference(getString(R.string.prefs_aggressive_change)).setEnabled(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S);
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
 				setWarningIcons();
 			}
@@ -157,6 +158,7 @@ public class SettingsActivity extends AppCompatActivity {
 		final boolean is24Ghz = (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) || wifiManager.is24GHzBandSupported();
 		final boolean is50Ghz = wifiManager.is5GHzBandSupported();
 		final boolean is60Ghz = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) && wifiManager.is6GHzBandSupported();
+		final boolean is600Ghz = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) && wifiManager.is60GHzBandSupported();
 
 		final ListPreference listPreference = settingsFragment.findPreference(getString(R.string.prefs_2ghz5ghz));
 		final List<String> entries = new ArrayList<>();
@@ -174,6 +176,10 @@ public class SettingsActivity extends AppCompatActivity {
 		if(is60Ghz) {
 			entries.add(entriesDefault[2]);
 			entryValues.add(entryValuesDefault[2]);
+		}
+		if(is600Ghz) {
+			entries.add(entriesDefault[3]);
+			entryValues.add(entryValuesDefault[3]);
 		}
 		listPreference.setEntries(entries.toArray(new String[0]));
 		listPreference.setEntryValues(entryValues.toArray(new String[0]));

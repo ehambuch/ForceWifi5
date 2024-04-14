@@ -93,23 +93,16 @@
   <string name="summay_app_settings">Ouvrez les paramètres de cette application. Utilisez-le pour supprimer les restrictions d\'arrière-plan et corriger les autorisations ou les paramètres d\'optimisation de la batterie.</string>
 
   <string-array name="entries25ghz">
-            
-    <item>2,4 GHz</item>
-            
+    <item>2.4 GHz</item>
     <item>5 GHz</item>
-            
     <item>6 GHz</item>
-        
+    <item>60 GHz</item>
   </string-array>
-      
   <string-array name="values25ghz">
-            
     <item>0</item>
-            
     <item>1</item>
-            
     <item>2</item>
-        
+    <item>3</item>
   </string-array>
       
   <string name="text_nowifi">Aucun point d\'accès Wifi connecté</string>
@@ -181,5 +174,8 @@
   <string name="text_wifimanualmode">Manueller Modus: Bitte wählen Sie Ihre bevorzugten WLAN-Zugangspunkte aus und klicken Sie auf ‘Speichern’</string>
     <string name="description_device_overlay">Si l\'application ne fonctionne pas comme prévu, veuillez consulter la personnalisation du fournisseur (uniquement pour les experts).</string>
   <string name="title_device_overlay">Afficher la personnalisation de l\'appareil</string>
+    <string name="text_wifichange_successful">Changement automatique réussi vers le Wifi préféré</string>
+  <string name="title_aggressive_change">Demander agressivement un nouveau Wifi</string>
+  <string name="summary_aggressive_change">L\'activation peut aider sur certains appareils à appliquer les recommandations</string>
 
 </resources>

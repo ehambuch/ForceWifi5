@@ -59,13 +59,23 @@ public class WifiUtils {
     public static boolean is6GHzPreferred(@NonNull Context context) {
         return ("2".equals(PreferenceManager.getDefaultSharedPreferences(context).getString(context.getString(R.string.prefs_2ghz5ghz), "1")));
     }
+    public static boolean is60GHzPreferred(@NonNull Context context) {
+        return ("3".equals(PreferenceManager.getDefaultSharedPreferences(context).getString(context.getString(R.string.prefs_2ghz5ghz), "1")));
+    }
 
     public static boolean isWantedFrequency(@NonNull Context context, int freq) {
-        if (is6GHzPreferred(context)) {
-            return (freq >= 5925);
+        if(is60GHzPreferred(context)) {
+            return (freq >= 57000); //  57 bis 66 GHz
+        }
+        else if (is6GHzPreferred(context)) {
+            return (freq >= 5925 && freq <= 6999);
         } else if (is5GHzPreferred(context))
             return (freq >= 5000 && freq <= 5920);
         else
             return (freq < 3000);
+    }
+
+    public static boolean isWrongFrequency(@NonNull Context context, int freq) {
+        return !isWantedFrequency(context, freq);
     }
 }
