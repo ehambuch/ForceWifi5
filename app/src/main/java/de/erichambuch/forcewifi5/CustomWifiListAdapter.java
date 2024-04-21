@@ -110,9 +110,9 @@ public class CustomWifiListAdapter extends RecyclerView.Adapter<CustomWifiListAd
     @Override
     public void onBindViewHolder(@NonNull ViewHolder viewHolder, final int position) {
         MainActivity.AccessPointEntry entry = networkEntries.get(position);
-        viewHolder.getTextViewName().setText(entry.name);
+        viewHolder.getTextViewName().setText(entry.name+" - "+entry.bssid);
         final StringBuilder text = new StringBuilder(32);
-        text.append(entry.bssid).append(" - ").append(entry.frequency).append(" MHz");
+        text.append(entry.frequencies);
         text.append(" - ").append(WifiUtils.calculateWifiLevel(wifiManager, entry.signalLevel)).append(" %");
         viewHolder.getTextViewInformation().setText(text);
         viewHolder.setConnected(entry.connected);

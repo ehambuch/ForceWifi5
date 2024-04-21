@@ -177,4 +177,6 @@
     <string name="text_wifichange_successful">Cambio automático exitoso a Wifi preferido</string>
   <string name="title_aggressive_change">Solicitar agresivamente nuevo Wifi</string>
   <string name="summary_aggressive_change">La activación puede ayudar en algunos dispositivos a hacer cumplir las recomendaciones.</string>
+    <string name="title_crashlytics">Google Crashlytics</string>
+  <string name="summary_crashlytics">Envía datos estadísticos al desarrollador para analizar cualquier error en la aplicación.</string>
 </resources>

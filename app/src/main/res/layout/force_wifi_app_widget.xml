@@ -15,6 +15,6 @@
         android:layout_margin="4dp"
         android:contentDescription="@string/app_description"
         android:text="@string/title_deacttived"
-        android:textSize="14sp"
+        android:textSize="18sp"
         android:textStyle="bold" />
 </RelativeLayout>

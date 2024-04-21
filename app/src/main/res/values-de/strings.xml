@@ -115,4 +115,6 @@
     <string name="text_wifichange_successful">Erfolgreicher automatischer Wechsel zum bevorzugten WLAN</string>
     <string name="title_aggressive_change">Mehr aggressive Anforderung des neuen WLANs</string>
     <string name="summary_aggressive_change">Auf einigen Geräten kann die Aktivierung hilfreich sein, um die Empfehlungen durchzusetzen</string>
+    <string name="title_crashlytics">Aktiviere Google Crashlytics</string>
+    <string name="summary_crashlytics">Sendet statistische Daten zur Auswertung von Fehlern an den Entwickler.</string>
 </resources>

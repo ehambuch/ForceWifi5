@@ -276,8 +276,8 @@ public class MainActivity extends AppCompatActivity {
 					text.append(" * ");
 				text.append(entry.bssid);
 				text.append(" - ");
-				text.append(entry.frequency);
-				text.append(" GHz</small>");
+				text.append(entry.frequencies);
+				text.append("</small>");
 				text.append("<br/>");
 			}
 			// letztes br löschen
@@ -297,20 +297,55 @@ public class MainActivity extends AppCompatActivity {
 		}
 	}
 
+	public static class AccessPointFrequencies {
+
+		private static final Map<Integer, String> CHANNELWIDTH = new HashMap<>();
+
+		static {
+			CHANNELWIDTH.put(ScanResult.CHANNEL_WIDTH_20MHZ, "20 MHz");
+			CHANNELWIDTH.put(ScanResult.CHANNEL_WIDTH_40MHZ, "40 MHz");
+			CHANNELWIDTH.put(ScanResult.CHANNEL_WIDTH_80MHZ, "80 MHz");
+			CHANNELWIDTH.put(ScanResult.CHANNEL_WIDTH_80MHZ_PLUS_MHZ, "80+80 MHz");
+			CHANNELWIDTH.put(ScanResult.CHANNEL_WIDTH_160MHZ, "160 MHz");
+			CHANNELWIDTH.put(5, "320 MHz"); // ScanResult.CHANNEL_WIDTH_320MHZ
+		}
+
+		final int frequency;
+
+		final int center0;
+
+		final int center1;
+
+		final int channelwidth;
+
+		public AccessPointFrequencies(int frequency, int center0, int center1, int bandwidth) {
+			this.frequency = frequency;
+			this.center0 = center0;
+			this.center1 = center1;
+			this.channelwidth = bandwidth;
+		}
+
+		@NonNull
+		public String toString() {
+			final StringBuilder builder = new StringBuilder(32);
+			return builder.append(frequency).append(" MHz ").append((char)0x00B1).append(" ").append(CHANNELWIDTH.getOrDefault(channelwidth, "0")).toString();
+		}
+	}
+
 	public static class AccessPointEntry {
 		final String name;
 		final String bssid;
-		final int frequency;
+		final AccessPointFrequencies frequencies;
 		final int signalLevel;
 		final boolean connected;
 		final boolean recommended;
 
 		boolean selected;
 
-		AccessPointEntry(String name, String bssid, int freq, int level, boolean connected, boolean suggested) {
+		AccessPointEntry(String name, String bssid, AccessPointFrequencies frequencies, int level, boolean connected, boolean suggested) {
 			this.name = name;
 			this.bssid = bssid;
-			this.frequency = freq;
+			this.frequencies = frequencies;
 			this.signalLevel = level;
 			this.connected = connected;
 			this.recommended = suggested;
@@ -1000,7 +1035,9 @@ public class MainActivity extends AppCompatActivity {
 				final boolean suggested = isInSuggestedWifis(result, suggestionList);
 				isThere.addAccessPoint(
 						new AccessPointEntry(
-								result.SSID, result.BSSID, result.frequency, result.level,
+								result.SSID, result.BSSID,
+								new AccessPointFrequencies(result.frequency, result.centerFreq0, result.centerFreq1, result.channelWidth),
+								result.level,
 								connected && result.BSSID.equals(activeNetwork.getBSSID()),
 								suggested));
 			}
@@ -1016,7 +1053,8 @@ public class MainActivity extends AppCompatActivity {
 		// for testing on Emulator
 		if(BuildConfig.DEBUG) {
 			for(int i =1;i<=20;i++) {
-				listNetworks.add(new AccessPointEntry("SSID "+i, "BSSID"+i, 999, 50, false, false));
+				listNetworks.add(new AccessPointEntry("SSID "+i, "BSSID"+i,
+						new AccessPointFrequencies(999, 999,999,ScanResult.CHANNEL_WIDTH_20MHZ), 50, false, false));
 			}
 		}
 

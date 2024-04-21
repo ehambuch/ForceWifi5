@@ -46,7 +46,7 @@
     <string name="error_permission_missing">Permission to access Wifis state has been revoked!</string>
     <string name="message_batteryoptimizations"><![CDATA[<p>Under Android 12+ you will have to disable the <em>Battery Optimizations</em> for this app.</p><br/><p>Please open the Settings and grant an exception to this app by selecting the app and choosing <em>Don\'t optimize</em> as well as removing any <em>Background restrictions</em>.</p><p>Not disabling battery optimizations may result a forced stop of this app by Android.</p>]]></string>
     <string name="error_permission_duplicate">Error while setting duplication suggestion for Wifi - try to start app again.</string>
-    <string name="error_suggestion_not_taken">Android did not follow suggestion for Wifi - try to dis-connect and reconnect manually</string>
+    <string name="error_suggestion_not_taken">Android did not follow suggestion for Wifi - try to dis-connect, wait for at least 60 secs and reconnect manually</string>
     <string name="error_no_permissions_provived">This app lacks of the required permissions for Location Services and Wifi access. Please open the Settings and grant the necessary permissions.</string>
     <string name="summay_permission_settings">Open permission settings of app. This app needs permissions for Wifi, Location and Notifications in order to work.</string>
     <string name="summary_location_settings">Open location services settings. This app needs location services enabled in order to retrieve a list of all Wifi access points.</string>
@@ -142,7 +142,7 @@
     <string name="text_wifichange_successful">Successful automatic change to preferred Wifi</string>
     <string name="title_aggressive_change">Aggressively request new Wifi</string>
     <string name="summary_aggressive_change">Activation may help on some devices to enforce the recommendations</string>
-    <string name="title_crashlytics" translatable="false">Activate Google Crashlytics</string>
-    <string name="summary_crashlytics" translatable="false">Sends statistical data to the developer to analyze any errors in the app</string>
+    <string name="title_crashlytics">Activate Google Crashlytics</string>
+    <string name="summary_crashlytics">Sends statistical data to the developer to analyze any errors in the app</string>
     <string name="prefs_crashlytics" translatable="false">prefs_crashlytics</string>
 </resources>

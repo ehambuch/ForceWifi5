@@ -175,6 +175,10 @@
         <meta-data android:name="android.adservices.AD_SERVICES_CONFIG"
             android:resource="@xml/gma_ad_services_config"
             tools:replace="android:resource" />
+        <!-- not necessary yet, maybe in future releases
+        <property android:name="android.net.PROPERTY_SELF_CERTIFIED_NETWORK_CAPABILITIES"
+            android:resource="@xml/networkcapas"/>
+            -->
     </application>
 
 </manifest>

@@ -116,4 +116,6 @@
     <string name="text_wifichange_successful">Pomyślna automatyczna zmiana na preferowaną sieć Wi-Fi</string>
     <string name="title_aggressive_change">Agresywnie żądaj nowego Wi-Fi</string>
     <string name="summary_aggressive_change">Aktywacja może pomóc na niektórych urządzeniach w egzekwowaniu zaleceń</string>
+    <string name="title_crashlytics">Google Crashlytics</string>
+    <string name="summary_crashlytics">Wysyła dane statystyczne do programisty w celu analizy ewentualnych błędów w aplikacji</string>
 </resources>
