@@ -179,5 +179,7 @@
   <string name="summary_aggressive_change">L\'activation peut aider sur certains appareils à appliquer les recommandations</string>
   <string name="title_crashlytics">Google Crashlytics</string>
   <string name="summary_crashlytics">Envoie des données statistiques au développeur pour analyser les erreurs éventuelles dans l\'application</string>
+    <string name="title_selectpreferredchannels">Select Preferred Wifi Channels</string>
+  <string name="summary_selectpreferredchannels">Select dedicated channels set to optimize the scan and connection (may not work on all devices)</string>
 
 </resources>

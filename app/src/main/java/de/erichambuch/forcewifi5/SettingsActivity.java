@@ -15,6 +15,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.net.Uri;
+import android.net.wifi.WifiAvailableChannel;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -27,11 +28,13 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.annotation.RequiresPermission;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.preference.ListPreference;
+import androidx.preference.MultiSelectListPreference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
 
@@ -49,16 +52,16 @@ public class SettingsActivity extends AppCompatActivity {
 	private MySettingsFragment settingsFragment;
 
 	public static class MySettingsFragment extends PreferenceFragmentCompat {
-	    @Override
-	    public void onCreatePreferences(@Nullable Bundle savedInstanceState, @Nullable String rootKey) {
-	        setPreferencesFromResource(R.xml.preferences, rootKey);
+		@Override
+		public void onCreatePreferences(@Nullable Bundle savedInstanceState, @Nullable String rootKey) {
+			setPreferencesFromResource(R.xml.preferences, rootKey);
 		}
 	}
-	
-    @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-		if(AppInfo.INTENT_SHOW_DATAPROCTECTION.equals(getIntent().getAction())) {
+
+	@Override
+	protected void onCreate(@Nullable Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		if (AppInfo.INTENT_SHOW_DATAPROCTECTION.equals(getIntent().getAction())) {
 			try {
 				final Intent emailIntent = new Intent(Intent.ACTION_VIEW);
 				emailIntent.setData(Uri.parse(getString(R.string.app_dataprotection_url)));
@@ -72,7 +75,7 @@ public class SettingsActivity extends AppCompatActivity {
 				Log.e(AppInfo.APP_NAME, "Error opening browser", e);
 				Toast.makeText(this, R.string.error_not_supported, Toast.LENGTH_LONG).show();
 			}
-		} else if(AppInfo.INTENT_SHOW_FAQ.equals(getIntent().getAction())) {
+		} else if (AppInfo.INTENT_SHOW_FAQ.equals(getIntent().getAction())) {
 			try {
 				final Intent emailIntent = new Intent(Intent.ACTION_VIEW);
 				emailIntent.setData(Uri.parse(getString(R.string.app_faq_url)));
@@ -82,7 +85,7 @@ public class SettingsActivity extends AppCompatActivity {
 				} else
 					Toast.makeText(this, R.string.error_not_supported, Toast.LENGTH_LONG).show();
 				finish();
-			} catch(ActivityNotFoundException e) {
+			} catch (ActivityNotFoundException e) {
 				Log.e(AppInfo.APP_NAME, "Error opening browser", e);
 				Toast.makeText(this, R.string.error_not_supported, Toast.LENGTH_LONG).show();
 			}
@@ -117,7 +120,8 @@ public class SettingsActivity extends AppCompatActivity {
 					.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
 						@Override
 						public void onClick(DialogInterface dialog, int which) {
-							dialog.cancel();							finish();
+							dialog.cancel();
+							finish();
 						}
 					})
 					.setNeutralButton(android.R.string.copy, new DialogInterface.OnClickListener() {
@@ -144,12 +148,19 @@ public class SettingsActivity extends AppCompatActivity {
 
 	protected void onStart() {
 		super.onStart();
-		if(settingsFragment != null) { // if null, then we handle the different other actions
+		if (settingsFragment != null) { // if null, then we handle the different other actions
 			enableValidGhz();
 			settingsFragment.findPreference(getString(R.string.prefs_aggressive_change)).setEnabled(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S);
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
 				setWarningIcons();
 			}
+
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE &&
+					ActivityCompat.checkSelfPermission(this, Manifest.permission.NEARBY_WIFI_DEVICES) == PackageManager.PERMISSION_GRANTED) {
+				settingsFragment.findPreference(getString(R.string.prefs_selectchannels)).setEnabled(true);
+				setListOfAvailableChannels();
+			} else
+				settingsFragment.findPreference(getString(R.string.prefs_selectchannels)).setEnabled(false);
 		}
 	}
 
@@ -165,24 +176,60 @@ public class SettingsActivity extends AppCompatActivity {
 		final List<String> entryValues = new ArrayList<>();
 		final String[] entriesDefault = getResources().getStringArray(R.array.entries25ghz);
 		final String[] entryValuesDefault = getResources().getStringArray(R.array.values25ghz);
-		if(is24Ghz) {
+		if (is24Ghz) {
 			entries.add(entriesDefault[0]);
 			entryValues.add(entryValuesDefault[0]);
 		}
-		if(is50Ghz) {
+		if (is50Ghz) {
 			entries.add(entriesDefault[1]);
 			entryValues.add(entryValuesDefault[1]);
 		}
-		if(is60Ghz) {
+		if (is60Ghz) {
 			entries.add(entriesDefault[2]);
 			entryValues.add(entryValuesDefault[2]);
 		}
-		if(is600Ghz) {
+		if (is600Ghz) {
 			entries.add(entriesDefault[3]);
 			entryValues.add(entryValuesDefault[3]);
 		}
 		listPreference.setEntries(entries.toArray(new String[0]));
 		listPreference.setEntryValues(entryValues.toArray(new String[0]));
+	}
+
+	/**
+	 * Set list of available channels (frequency) for the experimental feature.
+	 * <p>No not supported, deactivates setting.</p>
+	 */
+	@RequiresPermission(value = "android.permission.NEARBY_WIFI_DEVICES")
+	protected void setListOfAvailableChannels() {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+			final WifiManager wifiManager = getSystemService(WifiManager.class);
+			int freqSelector = 0;
+			if (WifiUtils.is24GHzPreferred(this))
+				freqSelector = 1; // WifiScanner.WIFI_BAND_24_GHZ;
+			else if (WifiUtils.is5GHzPreferred(this))
+				freqSelector = 6; // WIFI_BAND_5_GHZ_WITH_DFS
+			else if (WifiUtils.is6GHzPreferred(this))
+				freqSelector = 8; // WIFI_BAND_6_GHZ=8
+			else if (WifiUtils.is60GHzPreferred(this))
+				freqSelector = 16;
+			final MultiSelectListPreference multiSelectListPreference = settingsFragment.findPreference(getString(R.string.prefs_selectchannels));
+			try {
+				final List<WifiAvailableChannel> channels = wifiManager.getAllowedChannels(freqSelector, 0);
+				final List<String> entries = new ArrayList<>();
+				final List<String> entriesValues = new ArrayList<>();
+				for(WifiAvailableChannel c : channels) {
+					entries.add(c.getFrequencyMhz() + " MHz");
+					entriesValues.add(String.valueOf(c.getFrequencyMhz()));
+				}
+
+				multiSelectListPreference.setEntries(entries.toArray(new String[0]));
+				multiSelectListPreference.setEntryValues(entriesValues.toArray(new String[0]));
+			} catch(Exception e) {
+				Crashlytics.recordException(e);
+				multiSelectListPreference.setEnabled(false);
+			}
+		}
 	}
 
 	/**

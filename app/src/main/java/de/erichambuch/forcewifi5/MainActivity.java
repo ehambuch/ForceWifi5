@@ -2,9 +2,6 @@ package de.erichambuch.forcewifi5;
 
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.Manifest.permission.ACCESS_WIFI_STATE;
-import static android.Manifest.permission.CHANGE_NETWORK_STATE;
-import static android.Manifest.permission.CHANGE_WIFI_STATE;
-import static android.Manifest.permission.POST_NOTIFICATIONS;
 import static android.content.Intent.ACTION_UNINSTALL_PACKAGE;
 import static android.text.Html.FROM_HTML_MODE_LEGACY;
 import static de.erichambuch.forcewifi5.WifiChangeService.ONGOING_NOTIFICATION_ID;
@@ -472,13 +469,14 @@ public class MainActivity extends AppCompatActivity {
 				checkPermissionDialogs(true);
 		} else {
 			// Get Permissions right away from the start
-			if ((checkSelfPermission(ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) &&
-					(checkSelfPermission(ACCESS_WIFI_STATE) == PackageManager.PERMISSION_GRANTED) &&
-					(checkSelfPermission(CHANGE_NETWORK_STATE) == PackageManager.PERMISSION_GRANTED)) {
-				// everything okay
-			} else {
-				requestMyPermissions(true);
+			String[] permissions = WifiUtils.getRequiredAppPermissions();
+			boolean haveAll = true;
+			for(String p : permissions) {
+				if(checkSelfPermission(p) != PackageManager.PERMISSION_GRANTED)
+					haveAll = false;
 			}
+			if(!haveAll)
+				requestMyPermissions(true);
 		}
 
 		// onyl activate Crashlytics if enabled
@@ -650,12 +648,7 @@ public class MainActivity extends AppCompatActivity {
 	 * @return list of missing
 	 */
 	List<String> missingPermissions() {
-		List<String> permissions = new ArrayList<>();
-		permissions.add(ACCESS_FINE_LOCATION);
-		permissions.add(ACCESS_WIFI_STATE);
-		permissions.add(CHANGE_WIFI_STATE);
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) // with Android 13: new permission
-			permissions.add(POST_NOTIFICATIONS);
+		String[] permissions = WifiUtils.getRequiredAppPermissions();
 		List<String> missing = new ArrayList<>();
 		for (String p : permissions) {
 			if (checkSelfPermission(p) != PackageManager.PERMISSION_GRANTED)
@@ -1021,7 +1014,7 @@ public class MainActivity extends AppCompatActivity {
 		listNetworks.clear();
 		Map<String, NetworkEntry> map245Ghz = new HashMap<>();
 		for (ScanResult result : scanResults) {
-			if (result.SSID != null && result.SSID.length() > 0 && result.BSSID != null) {
+			if (result.SSID != null && !result.SSID.isEmpty() && result.BSSID != null) {
 				boolean connected = activeNetwork != null && normalizeSSID(result.SSID).equals(normalizeSSID(activeNetwork.getSSID()));
 				NetworkEntry isThere = map245Ghz.get(result.SSID);
 				if (isThere == null)

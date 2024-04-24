@@ -5,6 +5,7 @@ import static android.Manifest.permission.ACCESS_WIFI_STATE;
 import static android.Manifest.permission.CHANGE_NETWORK_STATE;
 import static android.Manifest.permission.CHANGE_WIFI_STATE;
 import static android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION;
+import static de.erichambuch.forcewifi5.WifiUtils.getPreferredNetworkFrequencies;
 import static de.erichambuch.forcewifi5.WifiUtils.hasNormalizedSSID;
 import static de.erichambuch.forcewifi5.WifiUtils.is5GHzPreferred;
 import static de.erichambuch.forcewifi5.WifiUtils.normalizeSSID;
@@ -409,6 +410,12 @@ public class WifiChangeService extends Service {
 					specificerBuild.setBssid(suggestion.getBssid());
 				else
 					specificerBuild.setBand(getBand(context));
+				// experimental feature to define dedicated channels, not available on all devices
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+					int[] freqs = getPreferredNetworkFrequencies(context);
+					if(freqs.length > 0)
+						specificerBuild.setPreferredChannelsFrequenciesMhz(freqs);
+				}
 				final NetworkRequest request = new NetworkRequest.Builder().
 						addTransportType(NetworkCapabilities.TRANSPORT_WIFI).
 						setIncludeOtherUidNetworks(true).  // we also want the system Wifis
@@ -434,6 +441,29 @@ public class WifiChangeService extends Service {
 						build();
 				Log.i(AppInfo.APP_NAME, "Requesting (second try) "+request);
 				context.getSystemService(ConnectivityManager.class).requestNetwork(request, new ChangeNetworkCallback(context.getApplicationContext()));
+				return;
+			} catch(Exception e) {
+				Crashlytics.recordException(e);
+			}
+			// third try - depending on device
+			try {
+				final WifiNetworkSpecifier.Builder specificerBuild = new WifiNetworkSpecifier.Builder();
+				specificerBuild.setSsid(suggestion.getSsid());
+				specificerBuild.setBand(getBand(context));
+				// experimental feature to define dedicated channels, not available on all devices
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+					int[] freqs = getPreferredNetworkFrequencies(context);
+					if(freqs.length > 0)
+						specificerBuild.setPreferredChannelsFrequenciesMhz(freqs);
+				}
+				final NetworkRequest request = new NetworkRequest.Builder().
+						addTransportType(NetworkCapabilities.TRANSPORT_WIFI).
+						setIncludeOtherUidNetworks(true).  // we also want the system Wifis
+						setNetworkSpecifier(specificerBuild.build()).
+						build();
+				Log.i(AppInfo.APP_NAME, "Requesting "+request);
+				context.getSystemService(ConnectivityManager.class).requestNetwork(request, new ChangeNetworkCallback(context.getApplicationContext()));
+				return;
 			} catch(Exception e) {
 				Crashlytics.recordException(e);
 			}

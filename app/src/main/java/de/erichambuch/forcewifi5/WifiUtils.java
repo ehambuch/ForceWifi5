@@ -1,5 +1,11 @@
 package de.erichambuch.forcewifi5;
 
+import static android.Manifest.permission.ACCESS_FINE_LOCATION;
+import static android.Manifest.permission.ACCESS_WIFI_STATE;
+import static android.Manifest.permission.CHANGE_NETWORK_STATE;
+import static android.Manifest.permission.NEARBY_WIFI_DEVICES;
+import static android.Manifest.permission.POST_NOTIFICATIONS;
+
 import android.content.Context;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
@@ -9,6 +15,9 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.preference.PreferenceManager;
+
+import java.util.Collections;
+import java.util.Set;
 
 public class WifiUtils {
 
@@ -52,6 +61,10 @@ public class WifiUtils {
         }
     }
 
+    public static boolean is24GHzPreferred(@NonNull Context context) {
+        return ("0".equals(PreferenceManager.getDefaultSharedPreferences(context).getString(context.getString(R.string.prefs_2ghz5ghz), "0")));
+    }
+
     public static boolean is5GHzPreferred(@NonNull Context context) {
         return ("1".equals(PreferenceManager.getDefaultSharedPreferences(context).getString(context.getString(R.string.prefs_2ghz5ghz), "1")));
     }
@@ -77,5 +90,41 @@ public class WifiUtils {
 
     public static boolean isWrongFrequency(@NonNull Context context, int freq) {
         return !isWantedFrequency(context, freq);
+    }
+
+    @NonNull
+    public static int[] getPreferredNetworkFrequencies(@NonNull Context context) {
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) { // feature only available Android14+ and on some devices
+            try {
+                Set<String> selectedFreqsSet =
+                        PreferenceManager.getDefaultSharedPreferences(context).getStringSet(context.getString(R.string.prefs_selectchannels),
+                                Collections.emptySet());
+                int[] freq = new int[selectedFreqsSet.size()];
+                int i = 0;
+                for(String s : selectedFreqsSet) {
+                    freq[i++] = Integer.parseInt(s);
+                }
+                return freq;
+            } catch (Exception e) {
+                Crashlytics.recordException(e);
+            }
+        }
+        return new int[0];
+    }
+    /**
+     * Get list of required Wifi permissions for app.
+     * @return the list of required permissions
+     * @see <a href="https://developer.android.com/develop/connectivity/wifi/wifi-permissions?hl=de">...</a>
+     */
+    public static String[] getRequiredAppPermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            return new String[]{
+                    ACCESS_WIFI_STATE, CHANGE_NETWORK_STATE, NEARBY_WIFI_DEVICES, ACCESS_FINE_LOCATION, POST_NOTIFICATIONS
+            };
+        } else {
+            return new String[]{
+                    ACCESS_WIFI_STATE, CHANGE_NETWORK_STATE, ACCESS_FINE_LOCATION
+            };
+        }
     }
 }

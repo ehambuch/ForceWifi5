@@ -70,6 +70,9 @@
         <item>2</item>
         <item>3</item>
     </string-array>
+    <string-array name="emptyarray">
+        <item>none</item>
+    </string-array>
     <string name="text_nowifi">No Wifi access point connected</string>
     <string name="text_nowifirecommended">No Wifi access point recommended</string>
     <string name="error_scan_succesful">Wifi scan successful</string>
@@ -145,4 +148,7 @@
     <string name="title_crashlytics">Activate Google Crashlytics</string>
     <string name="summary_crashlytics">Sends statistical data to the developer to analyze any errors in the app</string>
     <string name="prefs_crashlytics" translatable="false">prefs_crashlytics</string>
+    <string name="title_selectpreferredchannels">Select Preferred Wifi Channels</string>
+    <string name="summary_selectpreferredchannels">Select dedicated channels set to optimize the scan and connection (may not work on all devices)</string>
+    <string name="prefs_selectchannels" translatable="false">prefs_selectchannels</string>
 </resources>

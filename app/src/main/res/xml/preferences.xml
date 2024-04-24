@@ -151,6 +151,13 @@
                 android:targetClass="de.erichambuch.forcewifi5.SettingsActivity" />
         </Preference>
     </PreferenceCategory>
+    <PreferenceCategory android:title="Experimental">
+        <MultiSelectListPreference
+            app:key="@string/prefs_selectchannels"
+            app:title="@string/title_selectpreferredchannels"
+            app:summary="@string/summary_selectpreferredchannels"
+            app:entries="@array/emptyarray" app:entryValues="@array/emptyarray"/>
+    </PreferenceCategory>
     <PreferenceCategory android:title="Information">
     <Preference
         app:title="Data privacy &amp; FAQ"

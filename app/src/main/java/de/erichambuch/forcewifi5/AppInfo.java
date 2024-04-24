@@ -51,6 +51,8 @@ package de.erichambuch.forcewifi5;
  *     <li>V1.22.1(53) (17.03.2023) - Bugfixes</li>
  *     <li>V1.23.0(54) (13.04.2023) - RequestNetwork for more aggressive network change, Google Crashlytics, 60 GHz Support</li>
  *     <li>V1.24.0(55) (21.04.2023) - added channel width, fixed first crashes for aggressiveNetworkChange()</li>
+ *     <li>V1.25.0(56) (21.04.2023) - Reworked permissions for Android13+, added experimental option to define channels</li>
+ *     <li>V1.25.1(57) (24.04.2023) - fixed crashes reported by Crashlytics</li>
  * </ul>
  * Open Issues to be fixed:
  * <ul>
