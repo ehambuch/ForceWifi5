@@ -4,6 +4,7 @@ import android.net.MacAddress;
 import android.net.wifi.WifiNetworkSuggestion;
 
 import androidx.annotation.RequiresApi;
+import androidx.test.filters.SdkSuppress;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -16,7 +17,7 @@ public class NetworkAPITests {
      * Check if equals works on WifiSuggestions.
      */
     @Test
-    @RequiresApi(30)
+    @SdkSuppress(minSdkVersion = 30)
     public void testNetworkSuggestionEquals() {
         final WifiNetworkSuggestion.Builder suggestionBuilder = new WifiNetworkSuggestion.Builder();
         suggestionBuilder.setSsid("WLAN-TEST");

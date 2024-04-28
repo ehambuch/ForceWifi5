@@ -537,6 +537,7 @@ public class WifiChangeService extends Service {
 				.setContentTitle(getString(R.string.app_name))
 				.setContentText(getString(R.string.error_permission_missing))
 				.setPriority(NotificationCompat.PRIORITY_DEFAULT)
+				.setCategory(Notification.CATEGORY_ERROR)
 				.setAutoCancel(true)
 				.setContentIntent(pendingIntent);
 		if(NotificationManagerCompat.from(this).areNotificationsEnabled()) {
@@ -550,6 +551,12 @@ public class WifiChangeService extends Service {
 		}
 	}
 
+	/**
+	 * Create a generic message notification, intent to open the app.
+	 * @param context my context
+	 * @param resourceId text to show
+	 * @return notification to display
+	 */
 	@NonNull
 	protected static Notification createMessageNotification(Context context, int resourceId) {
 		NotificationCompat.Builder builder =
@@ -563,8 +570,10 @@ public class WifiChangeService extends Service {
 										.getApplicationContext(), 0,
 								new Intent(Intent.ACTION_VIEW, null, context.getApplicationContext(), MainActivity.class),
 								PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_IMMUTABLE))
-						.setCategory(Notification.CATEGORY_MESSAGE)
-						.setTicker(context.getText(resourceId));
+						.setCategory(Notification.CATEGORY_SERVICE)
+						.setTicker(context.getText(resourceId))
+						.setStyle(new NotificationCompat.BigTextStyle()
+								.bigText(context.getText(resourceId)));
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
 			builder.setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE);
 			builder.setOngoing(true);
@@ -572,6 +581,11 @@ public class WifiChangeService extends Service {
 		return builder.build();
 	}
 
+	/**
+	 * Show a notification for a changed Wifi, with an Intent to open the Wifi settings.
+	 * @param context my context
+	 * @param msg message to show
+	 */
 	static void showNotificationMessage(Context context, String msg) {
 		final Notification notification =
 				new NotificationCompat.Builder(context, MainActivity.CHANNEL_ID)
@@ -583,8 +597,10 @@ public class WifiChangeService extends Service {
 						.setContentIntent(PendingIntent.getActivity(context.getApplicationContext(), 0,
 								new Intent("android.settings.panel.action.INTERNET_CONNECTIVITY"),
 								PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_IMMUTABLE))
-						.setCategory(Notification.CATEGORY_MESSAGE)
+						.setCategory(Notification.CATEGORY_SERVICE)
 						.setTicker(msg)
+						.setStyle(new NotificationCompat.BigTextStyle()
+								.bigText(msg))
 						.build();
 		if(NotificationManagerCompat.from(context).areNotificationsEnabled()) {
 			try {

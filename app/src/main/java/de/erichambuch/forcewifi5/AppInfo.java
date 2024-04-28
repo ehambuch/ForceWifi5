@@ -54,6 +54,7 @@ package de.erichambuch.forcewifi5;
  *     <li>V1.25.0(56) (21.04.2023) - Reworked permissions for Android13+, added experimental option to define channels</li>
  *     <li>V1.25.1(57) (24.04.2023) - fixed crashes reported by Crashlytics</li>
  *     <li>V1.25.2(58) (26.04.2023) - fixed crashes reported by Crashlytics</li>
+ *     <li>V1.25.3(59) (26.04.2023) - fixed crashes reported by Crashlytics, Improved Notifications</li>
  * </ul>
  * Open Issues to be fixed:
  * <ul>

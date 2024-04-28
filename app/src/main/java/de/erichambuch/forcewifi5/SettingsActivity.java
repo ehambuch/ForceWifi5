@@ -203,18 +203,18 @@ public class SettingsActivity extends AppCompatActivity {
 	@RequiresPermission(value = "android.permission.NEARBY_WIFI_DEVICES")
 	protected void setListOfAvailableChannels() {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-			final WifiManager wifiManager = getSystemService(WifiManager.class);
-			int freqSelector = 0;
-			if (WifiUtils.is24GHzPreferred(this))
-				freqSelector = 1; // WifiScanner.WIFI_BAND_24_GHZ;
-			else if (WifiUtils.is5GHzPreferred(this))
-				freqSelector = 6; // WIFI_BAND_5_GHZ_WITH_DFS
-			else if (WifiUtils.is6GHzPreferred(this))
-				freqSelector = 8; // WIFI_BAND_6_GHZ=8
-			else if (WifiUtils.is60GHzPreferred(this))
-				freqSelector = 16;
 			final MultiSelectListPreference multiSelectListPreference = settingsFragment.findPreference(getString(R.string.prefs_selectchannels));
 			try {
+				final WifiManager wifiManager = getSystemService(WifiManager.class);
+				int freqSelector = 0;
+				if (WifiUtils.is24GHzPreferred(this))
+					freqSelector = 1; // WifiScanner.WIFI_BAND_24_GHZ;
+				else if (WifiUtils.is5GHzPreferred(this))
+					freqSelector = 6; // WIFI_BAND_5_GHZ_WITH_DFS
+				else if (WifiUtils.is6GHzPreferred(this))
+					freqSelector = 8; // WIFI_BAND_6_GHZ=8
+				else if (WifiUtils.is60GHzPreferred(this))
+					freqSelector = 16;
 				final List<WifiAvailableChannel> channels = wifiManager.getAllowedChannels(freqSelector, 0);
 				final List<String> entries = new ArrayList<>();
 				final List<String> entriesValues = new ArrayList<>();
@@ -226,7 +226,7 @@ public class SettingsActivity extends AppCompatActivity {
 				multiSelectListPreference.setEntries(entries.toArray(new String[0]));
 				multiSelectListPreference.setEntryValues(entriesValues.toArray(new String[0]));
 			} catch(Exception e) {
-				Crashlytics.recordException(e);
+				Log.w(AppInfo.APP_NAME, e);
 				multiSelectListPreference.setEnabled(false);
 			}
 		}
