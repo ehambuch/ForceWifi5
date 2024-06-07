@@ -45,6 +45,7 @@ import androidx.annotation.RequiresPermission;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.core.app.ServiceCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.preference.PreferenceManager;
 
@@ -77,7 +78,7 @@ public class WifiChangeService extends Service {
 			final WifiChangeService myService = binder.getService();
 			myService.connection = this;
 
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
 				NotificationCompat.Builder builder =
 						new NotificationCompat.Builder(context, MainActivity.CHANNEL_ID)
 								.setContentTitle(context.getText(R.string.app_name))
@@ -103,9 +104,9 @@ public class WifiChangeService extends Service {
 						// With Android 12+ we could get an android.app.ForegroundServiceStartNotAllowedException due to new restrictions
 						builder.setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE);
 						builder.setOngoing(true);
-						myService.startForeground(ONGOING_NOTIFICATION_ID, builder.build(), FOREGROUND_SERVICE_TYPE_LOCATION);
+						ServiceCompat.startForeground(myService, ONGOING_NOTIFICATION_ID, builder.build(), FOREGROUND_SERVICE_TYPE_LOCATION);
 					} else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-						myService.startForeground(ONGOING_NOTIFICATION_ID, builder.build(), FOREGROUND_SERVICE_TYPE_LOCATION);
+						ServiceCompat.startForeground(myService, ONGOING_NOTIFICATION_ID, builder.build(), FOREGROUND_SERVICE_TYPE_LOCATION);
 					} else {
 						myService.startForeground(ONGOING_NOTIFICATION_ID, builder.build());
 					}
@@ -113,6 +114,7 @@ public class WifiChangeService extends Service {
 					context.unbindService(this);
 				} catch (Exception e) {
 					Log.i(AppInfo.APP_NAME, "startForeground or unBind failed.", e);
+					Crashlytics.recordException(e);
 				}
 			}
 		}
@@ -203,31 +205,35 @@ public class WifiChangeService extends Service {
 		// As of Android 12+ foreground service start is not possible in many cases. We try another way to display a Notification
 		// in case we are still in background. We can perform a test by using adb with:
 		// adb shell device_config put activity_manager default_fgs_starts_restriction_notification_enabled true
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE &&
-				this.getForegroundServiceType() != FOREGROUND_SERVICE_TYPE_LOCATION) {
-			startForeground(ONGOING_NOTIFICATION_ID, createMessageNotification(this, R.string.title_activation), FOREGROUND_SERVICE_TYPE_LOCATION);
-		}
-
-		if (isActivated()) {
-			if (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-					&& ActivityCompat.checkSelfPermission(this, CHANGE_WIFI_STATE) == PackageManager.PERMISSION_GRANTED
-					&& ActivityCompat.checkSelfPermission(this, ACCESS_WIFI_STATE) == PackageManager.PERMISSION_GRANTED) {
-				try {
-					// Android 9 and above forces handling of foreground services, esp. if using location services
-					// we create the foreground service during ServiceConnection creating due to scheduling bugs in Android
-					// Workaround from Stackoverflow https://stackoverflow.com/questions/44425584/context-startforegroundservice-did-not-then-call-service-startforegrounds
-					updateNetworks();
-				} catch (Exception e) {
-					Log.e(AppInfo.APP_NAME, "updateNetworks", e);
-					showPermissionError();
-				} finally {
-					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-						stopForeground(true);  // Notification and Service ended
-				}
-			} else {
-				Log.e(AppInfo.APP_NAME, "Permissions missing");
-				showPermissionError();
+		try {
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE &&
+					this.getForegroundServiceType() != FOREGROUND_SERVICE_TYPE_LOCATION) {
+				startForeground(ONGOING_NOTIFICATION_ID, createMessageNotification(this, R.string.title_activation), FOREGROUND_SERVICE_TYPE_LOCATION);
 			}
+			if (isActivated()) {
+				if (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+						&& ActivityCompat.checkSelfPermission(this, CHANGE_WIFI_STATE) == PackageManager.PERMISSION_GRANTED
+						&& ActivityCompat.checkSelfPermission(this, ACCESS_WIFI_STATE) == PackageManager.PERMISSION_GRANTED) {
+					try {
+						// Android 9 and above forces handling of foreground services, esp. if using location services
+						// we create the foreground service during ServiceConnection creating due to scheduling bugs in Android
+						// Workaround from Stackoverflow https://stackoverflow.com/questions/44425584/context-startforegroundservice-did-not-then-call-service-startforegrounds
+						updateNetworks();
+					} catch (Exception e) {
+						Log.e(AppInfo.APP_NAME, "updateNetworks", e);
+						Crashlytics.recordException(e);
+						showPermissionError();
+					} finally {
+						if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+							stopForeground(true);  // Notification and Service ended
+					}
+				} else {
+					Log.e(AppInfo.APP_NAME, "Permissions missing");
+					showPermissionError();
+				}
+			}
+		} catch(Exception e) {
+			Crashlytics.recordException(e);
 		}
 		return START_NOT_STICKY;
 	}
@@ -653,11 +659,13 @@ public class WifiChangeService extends Service {
 	@NonNull
 	public static Intent getWifiIntent(@NonNull Context context) {
 		Intent intent = new Intent("android.settings.panel.action.INTERNET_CONNECTIVITY");
+		intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		if(intent.resolveActivity(context.getPackageManager()) != null)
 			return intent;
 		intent = new Intent("android.settings.panel.action.WIFI");
+		intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		if(intent.resolveActivity(context.getPackageManager()) != null)
 			return intent;
-		return new Intent(Settings.ACTION_WIFI_SETTINGS);
+		return new Intent(Settings.ACTION_WIFI_SETTINGS).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 	}
 }

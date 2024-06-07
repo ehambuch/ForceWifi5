@@ -15,6 +15,9 @@ public class WifiChangeService14 extends WifiChangeService {
         super(context);
     }
 
+    /**
+     * Required default constructor.
+     */
     public WifiChangeService14() {
         super();
     }

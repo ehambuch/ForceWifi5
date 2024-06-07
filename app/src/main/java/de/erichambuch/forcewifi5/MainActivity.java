@@ -942,7 +942,7 @@ public class MainActivity extends AppCompatActivity {
 					public void onClick(DialogInterface dialog, int which) {
 						dialog.dismiss();
 						WifiChangeService.removeSuggestions(getApplicationContext());
-						Snackbar.make(MainActivity.this.findViewById(R.id.mainFragment), R.string.message_remove_suggestions, Snackbar.LENGTH_LONG).show();
+						Snackbar.make(MainActivity.this.findViewById(R.id.mainFragment), R.string.message_remove_suggestions, Snackbar.LENGTH_LONG).setTextMaxLines(3).show();
 					}
 				})
 				.setMessage(Html.fromHtml(getString(R.string.message_reset_suggestions), Html.FROM_HTML_MODE_COMPACT))
@@ -1091,11 +1091,11 @@ public class MainActivity extends AppCompatActivity {
 	}
 
 	void showMessage(@StringRes int id) {
-		Snackbar.make(MainActivity.this.findViewById(R.id.mainFragment), id, Snackbar.LENGTH_LONG).show(); // otherwise use Toast
+		Snackbar.make(MainActivity.this.findViewById(R.id.mainFragment), id, Snackbar.LENGTH_LONG).setTextMaxLines(3).show(); // otherwise use Toast
 	}
 
 	void showMessage(String msg) {
-		Snackbar.make(MainActivity.this.findViewById(R.id.mainFragment), msg, Snackbar.LENGTH_LONG).show(); // otherwise use Toast
+		Snackbar.make(MainActivity.this.findViewById(R.id.mainFragment), msg, Snackbar.LENGTH_LONG).setTextMaxLines(3).show(); // otherwise use Toast
 	}
 
 	/**
