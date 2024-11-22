@@ -33,12 +33,6 @@
   <string name="action_ignore">Ignorar</string>
 
   <string name="title_deacttived">Inactivo</string>
-      
-  <string name="title_5ghz">5 GHz</string>
-      
-  <string name="title_2ghz">2,4 GHz</string>
-      
-  <string name="title_6ghz">6 GHz</string>
 
   <string name="title_minimumlevel">Nivel de señal mínimo para cambiar</string>
 
@@ -132,9 +126,9 @@
   <string name="message_requestpermissionnotifications_rationale">A partir de Android 13, también deberá proporcionar un permiso adicional para permitir las notificaciones. Así que active las notificaciones para esta aplicación.</string>
       
   <string name="error_no_permissions_notification">¡Otorgue el permiso de NOTIFICACIÓN en la configuración de la aplicación!</string>
-      
+
   <string name="message_nosupport">Esta aplicación requiere que su dispositivo Android admita Wi-Fi multibanda, es decir, 2,4 GHz y 5 o 6 GHz. Obviamente, este no es el caso. Por lo tanto, desinstálelo.</string>
-      
+
   <string name="action_about">Acerca de</string>
   <string name="title_batt_optimization_settings">Battery optimization settings</string>
   <string name="summary_batt_optimization_settings">Open battery optimization settings to disable all optimizations for this app. This is required for Android 12 and above.</string>
@@ -181,4 +175,5 @@
   <string name="summary_crashlytics">Envía datos estadísticos al desarrollador para analizar cualquier error en la aplicación.</string>
     <string name="title_selectpreferredchannels">Select Preferred Wifi Channels</string>
   <string name="summary_selectpreferredchannels">Select dedicated channels set to optimize the scan and connection (may not work on all devices)</string>
+    <string name="text_wififrequencyok">Su conexión se encuentra actualmente en la frecuencia preferida. Vea a continuación una lista de todas las redes WiFi disponibles.</string>
 </resources>

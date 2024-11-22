@@ -129,27 +129,13 @@
                 android:targetClass="de.erichambuch.forcewifi5.SettingsActivity" />
         </Preference>
     </PreferenceCategory>
-    <PreferenceCategory android:title="Ads">
-        <SwitchPreferenceCompat
-            app:key="@string/prefs_admob2"
-            app:defaultValue="true"
-            app:title="@string/title_admob"
-            app:widgetLayout="@layout/preference_material_switch"
-            app:summary="@string/summary_admob"/>
+    <PreferenceCategory android:title="Analytics">
         <SwitchPreferenceCompat
             app:key="@string/prefs_crashlytics"
             app:defaultValue="true"
             app:title="@string/title_crashlytics"
             app:widgetLayout="@layout/preference_material_switch"
             app:summary="@string/summary_crashlytics"/>
-        <Preference
-            app:title="@string/action_privacy"
-            app:summary="@string/action_privacy">
-            <intent
-                android:action="de.erichambuch.forcewifi5.VIEW_PRIVACY_OPTIONS"
-                android:targetPackage="de.erichambuch.forcewifi5"
-                android:targetClass="de.erichambuch.forcewifi5.SettingsActivity" />
-        </Preference>
     </PreferenceCategory>
     <PreferenceCategory android:title="Experimental">
         <MultiSelectListPreference

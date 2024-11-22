@@ -20,9 +20,6 @@
     <string name="app_url" translatable="false">https://sites.google.com/site/erichambuch/forcewifi5</string>
     <string name="app_mailto" translatable="false">erichambuch+apps@googlemail.com</string>
     <string name="title_deacttived">Inactive</string>
-    <string name="title_5ghz">5 GHz</string>
-    <string name="title_2ghz">2.4 GHz</string>
-    <string name="title_6ghz">6 GHz</string>
     <string name="prefs_activation" translatable="false">prefs_activation</string>
     <string name="prefs_2ghz5ghz" translatable="false">prefs_ghz25switch</string>
     <string name="title_minimumlevel">Minimum signal level to switch over</string>
@@ -88,8 +85,7 @@
     <string name="error_cannot_display_recommended_wifi">Cannot display suggested Wifi list</string>
     <string name="message_requestpermissionnotifications_rationale">Starting with Android 13, you will also have to provide an extra permission to allow notifications. So please active notifications for this app.</string>
     <string name="error_no_permissions_notification">Please grant the NOTIFICATION permission in the app settings!</string>
-    <string name="message_nosupport">This app requires that your Android device supports multi-band Wifi - so 2.4 GHz as well as 5 or 6 GHz. Obviously this is not the case. Therefore please de-install it.</string>
-    <string name="action_about">About</string>
+    <string name="message_nosupport">This app requires that your Android device supports multi-band Wifi - so 2.4 GHz as well as 5 or 6 GHz. Obviously this is not the case. Therefore please de-install it.</string>    <string name="action_about">About</string>
     <string name="prefs_developer_settings" translatable="false">prefs_developer_settings</string>
     <string name="title_batt_optimization_settings">Battery optimization settings</string>
     <string name="summary_batt_optimization_settings">Open battery optimization settings to disable all optimizations for this app. This is required for Android 12 and above.</string>
@@ -127,9 +123,6 @@
     <string name="title_general_settings">General Settings</string>
     <string name="title_admob">Activate ads with Google AdMob</string>
     <string name="summary_admob">Activate or de-activate Google Ads (Restart required)</string>
-    <string name="prefs_admob2" translatable="false">prefs_admob2</string>
-    <string name="admob_debug" translatable="false">ca-app-pub-3940256099942544/6300978111</string>
-    <string name="admob_id" translatable="false">ca-app-pub-6851248802879048/3051018792</string>
     <string name="action_privacy">Privacy Options</string>
     <string name="error_loading_privacy">Error loading privacy forms for AdMob</string>
     <string name="app_faq_url" translatable="false">https://sites.google.com/site/erichambuch/forcewifi5</string>
@@ -151,4 +144,5 @@
     <string name="title_selectpreferredchannels">Select Preferred Wifi Channels</string>
     <string name="summary_selectpreferredchannels">Select dedicated channels set to optimize the scan and connection (may not work on all devices)</string>
     <string name="prefs_selectchannels" translatable="false">prefs_selectchannels</string>
+    <string name="text_wififrequencyok">Your connection is currently on the preferred frequency. See below a list of all available Wifi networks.</string>
 </resources>

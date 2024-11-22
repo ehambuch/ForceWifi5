@@ -84,14 +84,6 @@
             app:menuAlignmentMode="start"
             app:paddingBottomSystemWindowInsets="true" />
 
-        <FrameLayout
-            android:id="@+id/ad_view_container"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_above="@id/bottomAppBar"
-            android:layout_marginBottom="@dimen/appbar_height"
-            android:orientation="horizontal" />
-
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/floatingButtonReload"
             android:layout_width="wrap_content"

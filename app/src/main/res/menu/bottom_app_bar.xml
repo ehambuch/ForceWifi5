@@ -39,7 +39,7 @@
         android:title="@string/text_reset_suggestions"
         android:contentDescription="@string/text_reset_suggestions"
         android:tooltipText="@string/text_reset_suggestions"
-        app:showAsAction="always"/>
+        app:showAsAction="ifRoom"/>
 
     <item
         android:id="@+id/menu_about"
@@ -52,9 +52,4 @@
         app:showAsAction="ifRoom"
         android:contentDescription="@string/action_contact"
         android:title="@string/action_contact"/>
-    <item
-        android:id="@+id/menu_privacy"
-        app:showAsAction="ifRoom"
-        android:contentDescription="@string/action_privacy"
-        android:title="@string/action_privacy"/>
     </menu>

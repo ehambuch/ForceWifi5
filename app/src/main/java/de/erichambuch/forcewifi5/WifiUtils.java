@@ -49,7 +49,7 @@ public class WifiUtils {
      * @return 0 to 100
      */
     public static int calculateWifiLevel(@NonNull WifiManager manager, int signalRssi) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && manager.getMaxSignalLevel() > 0) {
             return manager.calculateSignalLevel(signalRssi) * 100 / manager.getMaxSignalLevel();
         } else {
             if(signalRssi <= -100)

@@ -46,16 +46,17 @@ package de.erichambuch.forcewifi5;
  *     <li>V1.20.0 (09.12.2023) - Improved Layout</li>
  *     <li>V1.21.0 (10.12.2023) - AdMob integration, Manual suggestion mode</li>
  *     <li>V1.21.1 (24.12.2023) - AdMob deactivated by default to comply with Google policies</li>
- *     <li>V1.21.2(50/51) (26.12.2023) - Bugfix: main layout issues, activated AdMob</li>
- *     <li>V1.22.0(52) (13.02.2023) - Added Overview for Vendor Overlay Configuration of Wifi Manager</li>
- *     <li>V1.22.1(53) (17.03.2023) - Bugfixes</li>
- *     <li>V1.23.0(54) (13.04.2023) - RequestNetwork for more aggressive network change, Google Crashlytics, 60 GHz Support</li>
- *     <li>V1.24.0(55) (21.04.2023) - added channel width, fixed first crashes for aggressiveNetworkChange()</li>
- *     <li>V1.25.0(56) (21.04.2023) - Reworked permissions for Android13+, added experimental option to define channels</li>
- *     <li>V1.25.1(57) (24.04.2023) - fixed crashes reported by Crashlytics</li>
- *     <li>V1.25.2(58) (26.04.2023) - fixed crashes reported by Crashlytics</li>
- *     <li>V1.25.3(60) (26.04.2023) - fixed crashes reported by Crashlytics, Improved Notifications</li>
- *     <li>V1.25.4(61) (07.06.2023) - More Crashlytics, minor fixes</li>
+ *     <li>V1.21.2(50/51) (26.12.2024) - Bugfix: main layout issues, activated AdMob</li>
+ *     <li>V1.22.0(52) (13.02.2024) - Added Overview for Vendor Overlay Configuration of Wifi Manager</li>
+ *     <li>V1.22.1(53) (17.03.2024) - Bugfixes</li>
+ *     <li>V1.23.0(54) (13.04.2024) - RequestNetwork for more aggressive network change, Google Crashlytics, 60 GHz Support</li>
+ *     <li>V1.24.0(55) (21.04.2024) - added channel width, fixed first crashes for aggressiveNetworkChange()</li>
+ *     <li>V1.25.0(56) (21.04.2024) - Reworked permissions for Android13+, added experimental option to define channels</li>
+ *     <li>V1.25.1(57) (24.04.2024) - fixed crashes reported by Crashlytics</li>
+ *     <li>V1.25.2(58) (26.04.2024) - fixed crashes reported by Crashlytics</li>
+ *     <li>V1.25.3(60) (26.04.2024) - fixed crashes reported by Crashlytics, Improved Notifications</li>
+ *     <li>V1.25.4(61) (07.06.2024) - More Crashlytics, minor fixes</li>
+ *     <li>V1.26.0(62) (21.11.2024) - Removed AdMob</li>
  * </ul>
  * Open Issues to be fixed:
  * <ul>
@@ -73,7 +74,6 @@ public final class AppInfo {
     public static final String APP_NAME = "ForceWifi5";
     public static final String INTENT_SHOW_DATAPROCTECTION = "de.erichambuch.forcewifi5.VIEW_DATA_PROTECTION";
     public static final String INTENT_SHOW_MARKET = "de.erichambuch.forcewifi5.VIEW_MARKET";
-    public static final String INTENT_VIEW_PRIVACY_OPTIONS = "de.erichambuch.forcewifi5.VIEW_PRIVACY_OPTIONS";
     public static final String INTENT_SHOW_FAQ = "de.erichambuch.forcewifi5.VIEW_FAQ";
 
     public static final String INTENT_SHOW_OVERLAY = "de.erichambuch.forcewifi5.SHOW_OVERLAY";

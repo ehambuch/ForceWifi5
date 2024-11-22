@@ -18,9 +18,6 @@
     <string name="action_settings">Ustawienia</string>
     <string name="action_ignore">Ignoruj</string>
     <string name="title_deacttived">Nieaktywny</string>
-    <string name="title_5ghz">5 GHz</string>
-    <string name="title_2ghz">2.4 GHz</string>
-    <string name="title_6ghz">6 GHz</string>
     <string name="title_minimumlevel">Minimalny poziom sygnału przełączania</string>
     <string name="summary_activation">Aktywuj lub dezaktywuj funkcję automatycznego przełączania częstotliwości Wi-Fi. Jeśli jesteś w trybie ręcznym, nadal możesz ręcznie wybrać preferowaną sieć Wi-Fi.</string>
     <string name="summary_2ghz5ghz">Wybierz preferowaną częstotliwość — 2,4 GHz lub 5 GHz, jeżeli jest obsługiwana</string>
@@ -120,4 +117,5 @@
     <string name="summary_crashlytics">Wysyła dane statystyczne do programisty w celu analizy ewentualnych błędów w aplikacji</string>
     <string name="title_selectpreferredchannels">Select Preferred Wifi Channels</string>
     <string name="summary_selectpreferredchannels">Select dedicated channels set to optimize the scan and connection (may not work on all devices)</string>
+    <string name="text_wififrequencyok">Twoje połączenie działa obecnie na preferowanej częstotliwości. Poniżej znajduje się lista wszystkich dostępnych sieci Wi-Fi.</string>
 </resources>

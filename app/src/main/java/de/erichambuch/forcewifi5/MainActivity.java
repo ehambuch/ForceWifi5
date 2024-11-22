@@ -40,12 +40,8 @@ import android.os.PowerManager;
 import android.provider.Settings;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
-import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.Display;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -70,22 +66,11 @@ import androidx.work.OutOfQuotaPolicy;
 import androidx.work.WorkManager;
 import androidx.work.WorkRequest;
 
-import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.AdSize;
-import com.google.android.gms.ads.AdView;
-import com.google.android.gms.ads.MobileAds;
-import com.google.android.gms.ads.initialization.InitializationStatus;
-import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
 import com.google.android.material.bottomappbar.BottomAppBar;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.divider.MaterialDividerItemDecoration;
 import com.google.android.material.snackbar.Snackbar;
-import com.google.android.ump.ConsentDebugSettings;
-import com.google.android.ump.ConsentForm;
-import com.google.android.ump.ConsentInformation;
-import com.google.android.ump.ConsentRequestParameters;
-import com.google.android.ump.UserMessagingPlatform;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
@@ -94,7 +79,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -124,13 +108,6 @@ public class MainActivity extends AppCompatActivity {
 	 * Flag whether to check for notification enabling or the user dismissed that check.
 	 */
 	protected volatile boolean checkForNotificationsEnabled = true;
-
-	private final AtomicBoolean isMobileAdsInitializeCalled = new AtomicBoolean(false);
-	private final AtomicBoolean initialAdLayoutComplete = new AtomicBoolean(false);
-
-	private AdView adView;
-
-	private ConsentInformation consentInformation;
 
 	/**
 	 * Broadcast receiver for WifiManager.NETWORK_STATE_CHANGED_ACTION.
@@ -487,97 +464,6 @@ public class MainActivity extends AppCompatActivity {
 		} catch (Exception e) {
 			Log.e(AppInfo.APP_NAME, "Error init Firebase", e);
 		}
-
-		setUpAdMob();
-	}
-
-	private void setUpAdMob() {
-		// Code for ads
-		if(isAdMob()) {
-			ConsentRequestParameters params = new ConsentRequestParameters
-					.Builder()
-					.setTagForUnderAgeOfConsent(false)
-					.setConsentDebugSettings(new ConsentDebugSettings.Builder(this).addTestDeviceHashedId("689110FD20F811E9EE0320C70C769D5D").build())
-					.build();
-			consentInformation = UserMessagingPlatform.getConsentInformation(this);
-			consentInformation.requestConsentInfoUpdate(
-					this,
-					params,
-					(ConsentInformation.OnConsentInfoUpdateSuccessListener) () -> {
-						UserMessagingPlatform.loadAndShowConsentFormIfRequired(
-								this,
-								(ConsentForm.OnConsentFormDismissedListener) loadAndShowError -> {
-									if (loadAndShowError != null) {
-										// Consent gathering failed.
-										Log.w(AppInfo.APP_NAME, String.format("%s: %s",
-												loadAndShowError.getErrorCode(),
-												loadAndShowError.getMessage()));
-									}
-									// Consent has been gathered.
-									if (consentInformation.canRequestAds()) {
-										initializeMobileAdsSdk();
-									}
-								}
-						);
-					},
-					(ConsentInformation.OnConsentInfoUpdateFailureListener) requestConsentError -> {
-						// Consent gathering failed.
-						Log.w(AppInfo.APP_NAME, String.format("%s: %s",
-								requestConsentError.getErrorCode(),
-								requestConsentError.getMessage()));
-					});
-
-			if(consentInformation.canRequestAds()) {
-				initializeMobileAdsSdk();
-			}
-			// update AdView Container after full layout completed
-			findViewById(R.id.ad_view_container)
-					.getViewTreeObserver()
-					.addOnGlobalLayoutListener(
-							() -> {
-								if (!initialAdLayoutComplete.getAndSet(true) && consentInformation.canRequestAds()) {
-									loadBanner();
-								}
-							});
-
-		} else {
-			findViewById(R.id.ad_view_container).setVisibility(View.GONE);
-		}
-	}
-	private void initializeMobileAdsSdk() {
-		if (isMobileAdsInitializeCalled.getAndSet(true)) {
-			return;
-		}
-		MobileAds.initialize(this, new OnInitializationCompleteListener() {
-			@Override
-			public void onInitializationComplete(@NonNull InitializationStatus initializationStatus) {
-				Log.d(AppInfo.APP_NAME, "Mobile Ads initialized");
-			}
-		});
-		if (initialAdLayoutComplete.get()) {
-			loadBanner();
-		}
-	}
-
-	private void loadBanner() {
-		// Create a new ad view.
-		adView = new AdView(this);
-		adView.setAdUnitId(BuildConfig.DEBUG ? getString(R.string.admob_debug) : getString(R.string.admob_id));
-		adView.setAdSize(getAdSize());
-
-		// Replace ad container with new ad view.
-		ViewGroup adContainerView = findViewById(R.id.ad_view_container);
-		adContainerView.removeAllViews();
-		adContainerView.addView(adView);
-
-		// Start loading the ad in the background.
-		AdRequest adRequest = new AdRequest.Builder().build();
-		adView.loadAd(adRequest);
-	}
-
-
-	private boolean isAdMob() {
-		return PreferenceManager.getDefaultSharedPreferences(this).getBoolean(getString(R.string.prefs_admob2), true);
 	}
 
 	@SuppressLint("MissingPermission")
@@ -588,7 +474,6 @@ public class MainActivity extends AppCompatActivity {
 		appbar.getMenu().findItem(R.id.menu_wifi_suggestions).setEnabled((Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q));
 		appbar.getMenu().findItem(R.id.menu_wifi_reset).setEnabled((Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q));
 		appbar.getMenu().findItem(R.id.menu_wifi_save).setVisible(isManualMode());
-		appbar.getMenu().findItem(R.id.menu_privacy).setEnabled(isPrivacyOptionsRequired());
 
 		if ((missingPermissions().isEmpty())) {
 			// starting with Android 6, Location services has to be enabled to list all wifis
@@ -604,9 +489,6 @@ public class MainActivity extends AppCompatActivity {
 	}
 	@Override
 	public void onPause() {
-		if (adView != null) {
-			adView.pause();
-		}
 		super.onPause();
 	}
 
@@ -614,9 +496,6 @@ public class MainActivity extends AppCompatActivity {
 	@Override
 	public void onResume() {
 		super.onResume();
-		if (adView != null) {
-			adView.resume();
-		}
 	}
 
 	/**
@@ -724,7 +603,8 @@ public class MainActivity extends AppCompatActivity {
 		final int is24Ghz = (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || wifiManager.is24GHzBandSupported()) ? 1 : 0;
 		final int is50Ghz = wifiManager.is5GHzBandSupported() ? 1 : 0;
 		final int is60Ghz = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && wifiManager.is6GHzBandSupported()) ? 1 : 0;
-		if (!BuildConfig.DEBUG && (is24Ghz + is50Ghz + is60Ghz) < 2) {
+		final int is600Ghz = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && wifiManager.is60GHzBandSupported()) ? 1 : 0;
+		if(!BuildConfig.DEBUG && (is24Ghz + is50Ghz + is60Ghz + is600Ghz) < 2) {
 			new MaterialAlertDialogBuilder(this)
 					.setTitle(getString(R.string.app_name))
 					.setNegativeButton(R.string.text_cancel, new DialogInterface.OnClickListener() {
@@ -809,10 +689,6 @@ public class MainActivity extends AppCompatActivity {
 	}
 
 	protected void onDestroy() {
-		// do not call connManager.unregisterNetworkCallback(myNetworkCallback); as we want to continue receiving events
-		if (adView != null) {
-			adView.destroy();
-		}
 		super.onDestroy();
 	}
 
@@ -862,16 +738,6 @@ public class MainActivity extends AppCompatActivity {
 			return true;
 		} else if (id == R.id.menu_info) {
 			showContact();
-			return true;
-		} else if (id == R.id.menu_privacy) {
-			UserMessagingPlatform.showPrivacyOptionsForm(
-					this,
-					formError -> {
-						if (formError != null) {
-							showError(getString(R.string.error_loading_privacy) + ":" + formError.getMessage());
-						}
-					}
-			);
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
@@ -1062,7 +928,9 @@ public class MainActivity extends AppCompatActivity {
 			if(isManualMode()) {
 				noWifiTextview.setText(R.string.text_wifimanualmode);
 			} else {
-				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+				if(activeNetwork != null && WifiUtils.isWantedFrequency(this, activeNetwork.getFrequency())) {
+					noWifiTextview.setText(R.string.text_wififrequencyok);
+				} else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
 					noWifiTextview.setText(R.string.error_not_android10);
 				} else {
 					noWifiTextview.setText(R.string.text_wififound);
@@ -1224,11 +1092,6 @@ public class MainActivity extends AppCompatActivity {
 		Toast.makeText(this, string, Toast.LENGTH_LONG).show();
 	}
 
-	protected boolean isPrivacyOptionsRequired() {
-		return consentInformation != null && consentInformation.getPrivacyOptionsRequirementStatus()
-				== ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED;
-	}
-
 	private boolean isAggressive() {
 		return PreferenceManager.getDefaultSharedPreferences(this).getBoolean(getString(R.string.prefs_aggressive_change), true);
 	}
@@ -1259,6 +1122,7 @@ public class MainActivity extends AppCompatActivity {
 					context.startService(new Intent(context.getApplicationContext(), WifiChangeService14.class));
 				} catch (SecurityException | IllegalStateException e) {
 					Log.w(AppInfo.APP_NAME, "Error starting WifiChangeService on Android14+");
+					Crashlytics.recordException(e);
 					// we send a notification
 					NotificationManagerCompat.from(context).notify(ONGOING_NOTIFICATION_ID,
 							WifiChangeService.createMessageNotification(context, R.string.message_forcewifi14_activated));
@@ -1315,24 +1179,5 @@ public class MainActivity extends AppCompatActivity {
 
 	private boolean isCrashlyticsEnabled() {
 		return PreferenceManager.getDefaultSharedPreferences(this).getBoolean(getString(R.string.prefs_crashlytics), true);
-	}
-
-	private AdSize getAdSize() {
-		// Determine the screen width (less decorations) to use for the ad width.
-		Display display = getWindowManager().getDefaultDisplay();
-		DisplayMetrics outMetrics = new DisplayMetrics();
-		display.getMetrics(outMetrics);
-
-		float density = outMetrics.density;
-
-		float adWidthPixels = adView.getWidth();
-
-		// If the ad hasn't been laid out, default to the full screen width.
-		if (adWidthPixels == 0) {
-			adWidthPixels = outMetrics.widthPixels;
-		}
-
-		int adWidth = (int) (adWidthPixels / density);
-		return AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(this, adWidth);
 	}
 }

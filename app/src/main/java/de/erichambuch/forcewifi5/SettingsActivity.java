@@ -39,7 +39,6 @@ import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.android.ump.UserMessagingPlatform;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -103,15 +102,6 @@ public class SettingsActivity extends AppCompatActivity {
 				Log.e(AppInfo.APP_NAME, "Error opening browser", e);
 				Toast.makeText(this, R.string.error_not_supported, Toast.LENGTH_LONG).show();
 			}
-		} else if (AppInfo.INTENT_VIEW_PRIVACY_OPTIONS.equals(getIntent().getAction())) {
-			UserMessagingPlatform.showPrivacyOptionsForm(
-					this,
-					formError -> {
-						if (formError != null) {
-							Toast.makeText(this, getString(R.string.error_loading_privacy) + ":" + formError.getMessage(), Toast.LENGTH_LONG).show();
-						}
-					}
-			);
 		} else if (AppInfo.INTENT_SHOW_OVERLAY.equals(getIntent().getAction())) {
 			StringBuilder overlayParams = logOverlayParameters();
 			overlayParams.append("<p>Vendor: ").append(Build.MANUFACTURER).append("/").append(Build.MODEL).append("/").append(Build.VERSION.SDK_INT).append("</p>");
