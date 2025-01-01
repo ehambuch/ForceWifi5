@@ -36,7 +36,8 @@
     <string name="title_switchnetwork">Switch to other network</string>
     <string name="summary_switchnetwork">Choose another network (SSID) with the desired frequency instead of staying with the same SSID</string>
     <string name="info_switch_wifi_5ghz_android10">Please re-connect to your Wifi manually or reboot the device to change frequency</string>
-    <string name="message_welcome"><![CDATA[<p>I wrote this app to force my devices to the less used 5 GHz channels of my Wifi network.</p><br/><p>Unfortunately starting with Android 10, apps cannot <em>force</em> the system to change the Wifi channel, but only give a <em>recommendation</em> to do so.</p><br/><p>Therefore this app <em>MAY or MAY NOT</em> work on your device. Please give a try. In certain cases you will have to disable and enable your Wifi manually once or even reboot your device in order to get an effect.</p><p>If it\'s not working, just de-install it.</p><br/><p>Any feedback is welcome - just drop me an email.</p>]]></string>
+    <string name="message_welcome"><![CDATA[<p>I wrote this app to force my devices to the less used 5 GHz channels of my Wifi network.</p><br/><p>Unfortunately starting with Android 10, apps cannot <em>force</em> the system to change the Wifi channel, but only give a <em>recommendation</em> to do so.</p><br/><p>Therefore this app <em>MAY or MAY NOT</em> work on your device. Please give a try. In certain cases you will have to disable and enable your Wifi manually once or even reboot your device in order to get an effect.</p><p>If it\'s not working, just de-install it.</p><br/>
+    <p>The app makes use of <a href="https://https://firebase.google.com/support/privacy">Firebase Crashlytics</a> to identify failures while using the app. You may enable or disable the data transfer in the <em>Settings</em>. For more details please refer to the <a href="https://https://sites.google.com/site/erichambuch/dataprotection">Data protection details</a>.</p><p>Any feedback is welcome - just drop me an email.</p>]]></string>
     <string name="message_activate_locationservices"><![CDATA[<p>This app requires access to all wireless networks nearby. Therefore <em>Location Services</em> must be enabled in order to retrieve a list of all Wifis. This is a requirement enforced by Android.<br/>Without the app WILL NOT work.<br/><p>The app will never try to locate your position or similar.</p>]]></string>
     <string name="message_activate_notifications">This app requires to display notifications, otherwise functionality may be limited. Please enanble notifications in the app settings.</string>
     <string name="error_switch_wifi_android10">Error while setting suggestion for wifi</string>
@@ -79,7 +80,8 @@
     <string name="title_unknown">Unknown</string>
     <string name="error_not_supported">Function not supported on your phone</string>
     <string name="prefs_widget_settings" translatable="false">prefs_widget_settings</string>
-    <string name="message_requestpermission_rationale"><![CDATA[<p>This app requires several permissions settings in order to work properly. Please grant them all:</p><ol><li><b> Access to your location</b> - this is mandatory by Android to determinate all Wifi access points nearby</li><li><b> Enabled location services</b> - and your <em>Location Services</em> must be enabled too</li><li><em><b> Battery optimization modes</b></em> should be deactived to keep the app running in background</li><li>… and you may be asked when the app proposes another Wifi. Please say ‘Yes’, because thats the only purpose of this app.</li></ol>]]></string>
+    <string name="message_requestpermission_rationale"><![CDATA[<p>This app requires several permissions settings in order to work properly. Please grant them all:</p><ol><li><b> Access to your location</b> - this is mandatory by Android to determinate all Wifi access points nearby</li><li><b> Enabled location services</b> - and your <em>Location Services</em> must be enabled too</li><li><em><b> Battery optimization modes</b></em> should be deactived to keep the app running in background</li><li>… and you may be asked when the app proposes another Wifi. Please say ‘Yes’, because thats the only purpose of this app.</li></ol>
+<br/><p>The app makes use of <a href="https://https://firebase.google.com/support/privacy">Firebase Crashlytics</a> to identify failures while using the app. You may enable or disable the data transfer in the <em>Settings</em>. For more details please refer to the <a href="https://https://sites.google.com/site/erichambuch/dataprotection">Data protection details</a>.</p>]]></string>
     <string name="title_sendfeedback">Provide feedback</string>
     <string name="feedback_subject">Feedback on ForceWifi5</string>
     <string name="error_cannot_display_recommended_wifi">Cannot display suggested Wifi list</string>
@@ -139,7 +141,7 @@
     <string name="title_aggressive_change">Aggressively request new Wifi</string>
     <string name="summary_aggressive_change">Activation may help on some devices to enforce the recommendations</string>
     <string name="title_crashlytics">Activate Google Crashlytics</string>
-    <string name="summary_crashlytics">Sends statistical data to the developer to analyze any errors in the app</string>
+    <string name="summary_crashlytics">Sends statistical data to the developer to analyze any errors in the app (restart required)</string>
     <string name="prefs_crashlytics" translatable="false">prefs_crashlytics</string>
     <string name="title_selectpreferredchannels">Select Preferred Wifi Channels</string>
     <string name="summary_selectpreferredchannels">Select dedicated channels set to optimize the scan and connection (may not work on all devices)</string>

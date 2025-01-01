@@ -8,13 +8,12 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
 public final class Crashlytics {
 
-    public static void recordException(@NonNull Throwable e) {
-        FirebaseCrashlytics.getInstance().recordException(e);
-        Log.e(AppInfo.APP_NAME, "Internal crash record", e);
-    }
-
     public static void recordException(@NonNull Exception e) {
-        FirebaseCrashlytics.getInstance().recordException(e);
-        Log.e(AppInfo.APP_NAME, "Internal crash record", e);
+        try {
+            Log.e(AppInfo.APP_NAME, "Internal crash record", e);
+            FirebaseCrashlytics.getInstance().recordException(e);
+        } catch(RuntimeException e2) {
+            // ignore
+        }
     }
 }

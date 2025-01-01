@@ -57,6 +57,7 @@ package de.erichambuch.forcewifi5;
  *     <li>V1.25.3(60) (26.04.2024) - fixed crashes reported by Crashlytics, Improved Notifications</li>
  *     <li>V1.25.4(61) (07.06.2024) - More Crashlytics, minor fixes</li>
  *     <li>V1.26.0(62) (21.11.2024) - Removed AdMob</li>
+ *     <li>V1.26.1(63) (01.01.2025) - Updated startup message, fixes for Crashlytics</li>
  * </ul>
  * Open Issues to be fixed:
  * <ul>

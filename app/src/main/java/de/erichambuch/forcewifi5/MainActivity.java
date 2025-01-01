@@ -79,6 +79,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -412,6 +413,11 @@ public class MainActivity extends AppCompatActivity {
 
 	private NetworkCallback networkCallback;
 
+	/**
+	 * Set to true if all dialogs have been accepted (permission, data,...)
+	 */
+	private final AtomicBoolean setUpInfoAccepted = new AtomicBoolean(false);
+
 	@SuppressLint("MissingPermission")
 	@Override
 	protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -454,13 +460,16 @@ public class MainActivity extends AppCompatActivity {
 			}
 			if(!haveAll)
 				requestMyPermissions(true);
+			else
+				setUpInfoAccepted.set(true);
 		}
 
-		// onyl activate Crashlytics if enabled
+		// only activate Crashlytics if enabled
 		try {
-			FirebaseApp.initializeApp(this);
-			if (isCrashlyticsEnabled())
+			if (setUpInfoAccepted.get() && isCrashlyticsEnabled()) {
+				FirebaseApp.initializeApp(this);
 				FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(true);
+			}
 		} catch (Exception e) {
 			Log.e(AppInfo.APP_NAME, "Error init Firebase", e);
 		}
@@ -509,13 +518,24 @@ public class MainActivity extends AppCompatActivity {
 			for (String permission : missingPermissions)
 				shouldShowRequestPermissionRationale(permission); // just call to satisfy Android, we should the rational anyway
 			if (showExplanation) {
-				new MaterialAlertDialogBuilder(this)
-						.setTitle(getString(R.string.app_name))
-						.setPositiveButton("I got it", (dialog1, which) -> {
-							requestPermissions((String[]) missingPermissions.toArray(new String[0]), REQUEST_CODE_PERMISSIONS);
-						})
-						.setMessage(Html.fromHtml(getString(R.string.message_requestpermission_rationale), Html.FROM_HTML_MODE_COMPACT))
-						.show();
+				AlertDialog dialog =
+					new MaterialAlertDialogBuilder(this)
+							.setTitle(getString(R.string.app_name))
+							.setNegativeButton("I got it", (dialog1, which) -> {
+								requestPermissions((String[]) missingPermissions.toArray(new String[0]), REQUEST_CODE_PERMISSIONS);
+							})
+							.setNeutralButton(getString(R.string.text_settings), new DialogInterface.OnClickListener() {
+								@Override
+								public void onClick(DialogInterface dialog, int which) {
+									startActivity(new Intent(getApplicationContext(), SettingsActivity.class));
+								}
+							})
+							.setMessage(Html.fromHtml(getString(R.string.message_requestpermission_rationale), Html.FROM_HTML_MODE_COMPACT))
+							.create();
+				dialog.show();
+				TextView view = (TextView) dialog.findViewById(android.R.id.message);
+				if (view != null)
+					view.setMovementMethod(LinkMovementMethod.getInstance()); // make links clickable;
 			} else {
 				requestPermissions((String[]) missingPermissions.toArray(new String[0]), REQUEST_CODE_PERMISSIONS);
 			}
@@ -566,6 +586,8 @@ public class MainActivity extends AppCompatActivity {
 		if (missingPermssions.isEmpty() && (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)) {
 			checkNotificationsEnalbed();
 		}
+
+		this.setUpInfoAccepted.set(true);
 	}
 
 	/**
@@ -700,6 +722,7 @@ public class MainActivity extends AppCompatActivity {
 				if (grant != PackageManager.PERMISSION_GRANTED)
 					return;
 			}
+			this.setUpInfoAccepted.set(true);
 			try {
 				// ensure that in all the permission flows etc. the dialog is shown
 				checkPermissionDialogs(false);
@@ -1012,17 +1035,24 @@ public class MainActivity extends AppCompatActivity {
 	private void showAbout() {
 		final AlertDialog dialog = new MaterialAlertDialogBuilder(this)
 				.setTitle(getString(R.string.app_name))
-				.setNeutralButton("Continue", new DialogInterface.OnClickListener() {
+				.setNegativeButton("Continue", new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
 						dialog.cancel();
 					}
 				})
+				.setNeutralButton(R.string.text_settings, new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						startActivity(new Intent(getApplicationContext(), SettingsActivity.class));
+						dialog.cancel();
+					}
+				})
 				.setMessage(Html.fromHtml(getString(R.string.message_welcome), Html.FROM_HTML_MODE_COMPACT)).create();
+		dialog.show();
 		TextView view = (TextView) dialog.findViewById(android.R.id.message);
 		if (view != null)
 			view.setMovementMethod(LinkMovementMethod.getInstance()); // make links clickable
-		dialog.show();
 	}
 
 	private void showContact() {
