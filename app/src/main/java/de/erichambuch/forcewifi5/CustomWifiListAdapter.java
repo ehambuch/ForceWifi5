@@ -48,12 +48,12 @@ public class CustomWifiListAdapter extends RecyclerView.Adapter<CustomWifiListAd
         }
 
         public void setConnected(boolean connected) {
-            image1.setVisibility(connected ? View.VISIBLE : View.INVISIBLE);
+            image1.setVisibility(connected ? View.VISIBLE : View.GONE);
         }
 
 
         public void setRecommended(boolean i) {
-            image2.setVisibility(i ? View.VISIBLE : View.INVISIBLE);
+            image2.setVisibility(i ? View.VISIBLE : View.GONE);
             final boolean connected = image1.getVisibility() == View.VISIBLE;
             if(connected) {
                 image2.setBackgroundResource(R.drawable.baseline_high_priority_24);

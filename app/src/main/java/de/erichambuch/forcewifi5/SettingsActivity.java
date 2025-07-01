@@ -205,7 +205,7 @@ public class SettingsActivity extends AppCompatActivity {
 					freqSelector = 8; // WIFI_BAND_6_GHZ=8
 				else if (WifiUtils.is60GHzPreferred(this))
 					freqSelector = 16;
-				final List<WifiAvailableChannel> channels = wifiManager.getAllowedChannels(freqSelector, 0);
+				List<WifiAvailableChannel> channels = wifiManager.getAllowedChannels(freqSelector, 0);
 				final List<String> entries = new ArrayList<>();
 				final List<String> entriesValues = new ArrayList<>();
 				for(WifiAvailableChannel c : channels) {
@@ -215,8 +215,8 @@ public class SettingsActivity extends AppCompatActivity {
 
 				multiSelectListPreference.setEntries(entries.toArray(new String[0]));
 				multiSelectListPreference.setEntryValues(entriesValues.toArray(new String[0]));
-			} catch(Exception e) {
-				Log.w(AppInfo.APP_NAME, e);
+			} catch(Exception e) { // e.g. UnsupportedOperation
+				Log.i(AppInfo.APP_NAME, "Unsupported function", e);
 				multiSelectListPreference.setEnabled(false);
 			}
 		}

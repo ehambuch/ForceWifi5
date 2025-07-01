@@ -649,6 +649,7 @@ public class MainActivity extends AppCompatActivity {
 					.show();
 			return true;
 		}
+		showAbout();
 		return false;
 	}
 
@@ -1035,9 +1036,17 @@ public class MainActivity extends AppCompatActivity {
 	private void showAbout() {
 		final AlertDialog dialog = new MaterialAlertDialogBuilder(this)
 				.setTitle(getString(R.string.app_name))
-				.setNegativeButton("Continue", new DialogInterface.OnClickListener() {
+				.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
+						dialog.cancel();
+					}
+				})
+				.setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) { // deactive Crashlytics
+						PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().
+								putBoolean(getString(R.string.prefs_crashlytics), false).apply();
 						dialog.cancel();
 					}
 				})

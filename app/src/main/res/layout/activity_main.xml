@@ -8,6 +8,7 @@
     android:layout_alignParentEnd="true"
     android:orientation="vertical"
     android:textAlignment="center"
+    android:fitsSystemWindows="true"
     tools:context=".MainActivity">
 
     <androidx.constraintlayout.widget.ConstraintLayout

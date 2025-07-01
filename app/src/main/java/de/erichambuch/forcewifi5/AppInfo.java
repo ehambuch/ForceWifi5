@@ -58,6 +58,7 @@ package de.erichambuch.forcewifi5;
  *     <li>V1.25.4(61) (07.06.2024) - More Crashlytics, minor fixes</li>
  *     <li>V1.26.0(62) (21.11.2024) - Removed AdMob</li>
  *     <li>V1.26.1(63) (01.01.2025) - Updated startup message, fixes for Crashlytics</li>
+ *     <li>V1.27.0(64) (02.07.2025) - Update Android 15</li>
  * </ul>
  * Open Issues to be fixed:
  * <ul>
@@ -78,6 +79,4 @@ public final class AppInfo {
     public static final String INTENT_SHOW_FAQ = "de.erichambuch.forcewifi5.VIEW_FAQ";
 
     public static final String INTENT_SHOW_OVERLAY = "de.erichambuch.forcewifi5.SHOW_OVERLAY";
-
-    public static final String TEST = "";
 }
