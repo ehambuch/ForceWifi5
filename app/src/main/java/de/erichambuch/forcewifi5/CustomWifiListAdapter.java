@@ -89,11 +89,13 @@ public class CustomWifiListAdapter extends RecyclerView.Adapter<CustomWifiListAd
     private final WifiManager wifiManager;
 
     private final boolean selectionMode;
+    private final boolean isOnWantedFrequency;
 
-    public CustomWifiListAdapter(@NonNull List<MainActivity.AccessPointEntry> networkEntries, @NonNull WifiManager wifiManager, boolean selectionMode) {
+    public CustomWifiListAdapter(@NonNull List<MainActivity.AccessPointEntry> networkEntries, @NonNull WifiManager wifiManager, boolean selectionMode, boolean isOnWantedFreq) {
         this.networkEntries = networkEntries;
         this.wifiManager = wifiManager;
         this.selectionMode = selectionMode;
+        this.isOnWantedFrequency = isOnWantedFreq;
     }
 
     // Create new views (invoked by the layout manager)
@@ -116,7 +118,7 @@ public class CustomWifiListAdapter extends RecyclerView.Adapter<CustomWifiListAd
         text.append(" - ").append(WifiUtils.calculateWifiLevel(wifiManager, entry.signalLevel)).append(" %");
         viewHolder.getTextViewInformation().setText(text);
         viewHolder.setConnected(entry.connected);
-        viewHolder.setRecommended(entry.recommended);
+        viewHolder.setRecommended(!isOnWantedFrequency && entry.recommended); // only show SWITCH symbol if we are on wrong Wifi
         viewHolder.setSelectable(this.selectionMode);
         viewHolder.setSelected(entry.selected);
         viewHolder.connectWithEntry(entry);

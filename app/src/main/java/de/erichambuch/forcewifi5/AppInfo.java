@@ -58,7 +58,7 @@ package de.erichambuch.forcewifi5;
  *     <li>V1.25.4(61) (07.06.2024) - More Crashlytics, minor fixes</li>
  *     <li>V1.26.0(62) (21.11.2024) - Removed AdMob</li>
  *     <li>V1.26.1(63) (01.01.2025) - Updated startup message, fixes for Crashlytics</li>
- *     <li>V1.27.0(64) (02.07.2025) - Update Android 15</li>
+ *     <li>V1.27.0(64/65 (02.07.2025) - Update Android 15, Bugfix Overview Wifi List to handle multiple access points</li>
  * </ul>
  * Open Issues to be fixed:
  * <ul>

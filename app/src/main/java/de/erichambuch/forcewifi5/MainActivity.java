@@ -942,7 +942,8 @@ public class MainActivity extends AppCompatActivity {
 		}
 
 		final RecyclerView listView = findViewById(R.id.listview);
-		listView.setAdapter(new CustomWifiListAdapter(listNetworks, wifiManager, isManualMode()));
+		final boolean isOnWantedFreq = activeNetwork != null && WifiUtils.isWantedFrequency(this, activeNetwork.getFrequency());
+		listView.setAdapter(new CustomWifiListAdapter(listNetworks, wifiManager, isManualMode(), isOnWantedFreq));
 		listView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
 		listView.addItemDecoration(new MaterialDividerItemDecoration(this, MaterialDividerItemDecoration.VERTICAL));
 		listView.setHasFixedSize(true);
@@ -952,7 +953,7 @@ public class MainActivity extends AppCompatActivity {
 			if(isManualMode()) {
 				noWifiTextview.setText(R.string.text_wifimanualmode);
 			} else {
-				if(activeNetwork != null && WifiUtils.isWantedFrequency(this, activeNetwork.getFrequency())) {
+				if(isOnWantedFreq) {
 					noWifiTextview.setText(R.string.text_wififrequencyok);
 				} else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
 					noWifiTextview.setText(R.string.error_not_android10);
