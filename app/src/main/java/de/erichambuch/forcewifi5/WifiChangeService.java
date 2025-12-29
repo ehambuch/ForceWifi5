@@ -271,8 +271,12 @@ public class WifiChangeService extends Service {
 						// found Wifi -> try to connect to it
 						if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
 							final WifiNetworkSuggestion.Builder suggestionBuilder = new WifiNetworkSuggestion.Builder();
-							suggestionBuilder.setSsid(normalizeSSID(result.SSID));
-							suggestionsString.append(normalizeSSID(result.SSID)).append(" - ");
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && result.getWifiSsid() != null) {
+                                suggestionBuilder.setWifiSsid(result.getWifiSsid());
+                            } else {
+								suggestionBuilder.setSsid(normalizeSSID(result.SSID));
+							}
+                            suggestionsString.append(normalizeSSID(result.SSID)).append(" - ");
 							if (result.BSSID != null) {
 								suggestionBuilder.setBssid(MacAddress.fromString(result.BSSID));
 								suggestionsString.append(result.BSSID);

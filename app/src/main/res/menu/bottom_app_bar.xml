@@ -6,7 +6,7 @@
     android:title="@string/text_wifi"
     android:contentDescription="@string/description_wifi"
         android:tooltipText="@string/description_wifi"
-    app:showAsAction="ifRoom"/>
+    app:showAsAction="always"/>
 
     <item
         android:id="@+id/menu_settings"

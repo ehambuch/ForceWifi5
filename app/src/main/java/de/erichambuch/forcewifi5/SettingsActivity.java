@@ -24,6 +24,7 @@ import android.text.Html;
 import android.text.method.LinkMovementMethod;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -74,12 +75,17 @@ public class SettingsActivity extends AppCompatActivity {
 		binding = ActivitySettingsBinding.inflate(getLayoutInflater());
 		setContentView(binding.getRoot());
 
+		// Hide navigation bar on edge-to-edge displays
 		ViewCompat.setOnApplyWindowInsetsListener(binding.getRoot(), new OnApplyWindowInsetsListener() {
 			@Override
 			public @NonNull WindowInsetsCompat onApplyWindowInsets(@NonNull View v, @NonNull WindowInsetsCompat insets) {
 				Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-				v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-				return insets;
+				ViewGroup.MarginLayoutParams mlp = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
+				mlp.leftMargin = systemBars.left;
+				mlp.bottomMargin = systemBars.bottom;
+				mlp.rightMargin = systemBars.right;
+				v.setLayoutParams(mlp);
+				return WindowInsetsCompat.CONSUMED;
 			}});
 
 		if (AppInfo.INTENT_SHOW_DATAPROCTECTION.equals(getIntent().getAction())) {
@@ -154,7 +160,7 @@ public class SettingsActivity extends AppCompatActivity {
 		} else
 			getSupportFragmentManager()
 					.beginTransaction()
-					.replace(android.R.id.content, settingsFragment = new MySettingsFragment())
+					.replace(R.id.fragment_settings_id, settingsFragment = new MySettingsFragment())
 					.commit();
 	}
 
