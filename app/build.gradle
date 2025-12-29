@@ -4,7 +4,7 @@ apply plugin: 'com.google.firebase.crashlytics'
 apply plugin: 'com.google.android.gms.oss-licenses-plugin'
 
 android {
-    compileSdk 35
+    compileSdk 36
 
     // Read the API keys from the local.properties
     Properties localProperties = new Properties()
@@ -13,9 +13,9 @@ android {
     defaultConfig {
         applicationId "de.erichambuch.forcewifi5"
         minSdk 26
-        targetSdkVersion 35
-        versionCode 65
-        versionName '1.27.0'
+        targetSdkVersion 36
+        versionCode 66
+        versionName '1.28.0'
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
@@ -38,21 +38,21 @@ android {
 
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
-    implementation(platform("com.google.firebase:firebase-bom:33.16.0"))
+    implementation(platform("com.google.firebase:firebase-bom:34.7.0"))
     implementation 'androidx.appcompat:appcompat:1.7.1'
     implementation 'com.google.firebase:firebase-crashlytics'
-    implementation 'androidx.compose.material3:material3:1.3.2'
-    implementation 'com.google.android.material:material:1.12.0'
+    implementation 'androidx.compose.material3:material3:1.4.0'
+    implementation 'com.google.android.material:material:1.13.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.2.1'
     implementation "androidx.viewpager:viewpager:1.1.0"
-    implementation 'androidx.navigation:navigation-fragment:2.9.0'
-    implementation 'androidx.navigation:navigation-ui:2.9.0'
+    implementation 'androidx.navigation:navigation-fragment:2.9.6'
+    implementation 'androidx.navigation:navigation-ui:2.9.6'
     implementation 'androidx.preference:preference:1.2.1'
-    implementation("com.google.android.gms:play-services-oss-licenses:17.1.0")
-    implementation 'androidx.core:core:1.16.0'
-    implementation 'androidx.work:work-runtime:2.10.2'
-    implementation 'androidx.concurrent:concurrent-futures:1.2.0'
+    implementation("com.google.android.gms:play-services-oss-licenses:17.3.0")
+    implementation 'androidx.core:core:1.17.0'
+    implementation 'androidx.work:work-runtime:2.11.0'
+    implementation 'androidx.concurrent:concurrent-futures:1.3.0'
     testImplementation 'junit:junit:4.13.2'
-    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
+    androidTestImplementation 'androidx.test.ext:junit:1.3.0'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.7.0'
 }

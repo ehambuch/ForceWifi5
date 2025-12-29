@@ -23,6 +23,7 @@ import android.os.PowerManager;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
 import android.util.Log;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -33,6 +34,10 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.core.graphics.Insets;
+import androidx.core.view.OnApplyWindowInsetsListener;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.preference.ListPreference;
 import androidx.preference.MultiSelectListPreference;
 import androidx.preference.PreferenceFragmentCompat;
@@ -40,8 +45,12 @@ import androidx.preference.PreferenceManager;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
+import org.jspecify.annotations.NonNull;
+
 import java.util.ArrayList;
 import java.util.List;
+
+import de.erichambuch.forcewifi5.databinding.ActivitySettingsBinding;
 
 /**
  * Activity for Preferences screen.
@@ -49,6 +58,8 @@ import java.util.List;
 public class SettingsActivity extends AppCompatActivity {
 
 	private MySettingsFragment settingsFragment;
+
+	private ActivitySettingsBinding binding;
 
 	public static class MySettingsFragment extends PreferenceFragmentCompat {
 		@Override
@@ -60,6 +71,17 @@ public class SettingsActivity extends AppCompatActivity {
 	@Override
 	protected void onCreate(@Nullable Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		binding = ActivitySettingsBinding.inflate(getLayoutInflater());
+		setContentView(binding.getRoot());
+
+		ViewCompat.setOnApplyWindowInsetsListener(binding.getRoot(), new OnApplyWindowInsetsListener() {
+			@Override
+			public @NonNull WindowInsetsCompat onApplyWindowInsets(@NonNull View v, @NonNull WindowInsetsCompat insets) {
+				Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+				v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+				return insets;
+			}});
+
 		if (AppInfo.INTENT_SHOW_DATAPROCTECTION.equals(getIntent().getAction())) {
 			try {
 				final Intent emailIntent = new Intent(Intent.ACTION_VIEW);

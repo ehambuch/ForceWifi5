@@ -128,18 +128,18 @@
             android:name=".WifiChangeService14"
             android:exported="false" />
 
-        <!-- WorkManager, Android 12 https://developer.android.com/guide/background/persistent/how-to/long-running -->
-        <service
-            android:name="androidx.work.impl.foreground.SystemForegroundService" android:foregroundServiceType="location"
-            tools:node="merge"
-            tools:ignore="ForegroundServicePermission" />
-
         <!-- works only up to Android 9 -->
         <receiver android:name=".MainActivity$NetworkStateChangedReceiver" android:enabled="true" android:exported="true">
             <intent-filter>
                 <action android:name="android.net.wifi.NETWORK_STATE_CHANGED_ACTION"/>
             </intent-filter>
         </receiver>
+
+        <!-- WorkManager, Android 12 https://developer.android.com/guide/background/persistent/how-to/long-running -->
+        <service
+            android:name="androidx.work.impl.foreground.SystemForegroundService" android:foregroundServiceType="location"
+            tools:node="merge"
+            tools:ignore="ForegroundServicePermission" />
 
         <receiver
             android:name=".StartOnBootReceiver"

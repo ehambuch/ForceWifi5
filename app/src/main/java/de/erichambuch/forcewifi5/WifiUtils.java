@@ -116,7 +116,7 @@ public class WifiUtils {
      * @return the list of required permissions
      * @see <a href="https://developer.android.com/develop/connectivity/wifi/wifi-permissions?hl=de">...</a>
      */
-    public static String[] getRequiredAppPermissions() {
+    public static @NonNull String[] getRequiredAppPermissions() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             return new String[]{
                     ACCESS_WIFI_STATE, CHANGE_NETWORK_STATE, NEARBY_WIFI_DEVICES, ACCESS_FINE_LOCATION, POST_NOTIFICATIONS

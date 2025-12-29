@@ -6,7 +6,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -76,12 +75,7 @@ public class CustomWifiListAdapter extends RecyclerView.Adapter<CustomWifiListAd
         }
 
         public void connectWithEntry(final @NonNull MainActivity.AccessPointEntry entry) {
-            checkbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                @Override
-                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    entry.setSelected(isChecked);
-                }
-            });
+            checkbox.setOnCheckedChangeListener((buttonView, isChecked) -> entry.setSelected(isChecked));
         }
     }
 

@@ -55,7 +55,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.location.LocationManagerCompat;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -684,9 +683,13 @@ public class MainActivity extends AppCompatActivity {
 		if (!isLocationServicesEnabled(this))
 			showError(R.string.error_no_location_enabled);
 
-		registerReceiver(scanFinishedListener, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
-		LocalBroadcastManager.getInstance(this).registerReceiver(recommendationListener, new IntentFilter(INTENT_WIFICHANGETEXT));
-
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+	        registerReceiver(scanFinishedListener, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION), RECEIVER_NOT_EXPORTED);
+			registerReceiver(recommendationListener, new IntentFilter(INTENT_WIFICHANGETEXT), RECEIVER_NOT_EXPORTED);
+        } else {
+			registerReceiver(scanFinishedListener, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
+			registerReceiver(recommendationListener, new IntentFilter(INTENT_WIFICHANGETEXT));
+		}
 
 		WifiManager wifiManager = getSystemService(WifiManager.class);
 		try {
@@ -704,15 +707,15 @@ public class MainActivity extends AppCompatActivity {
 	public void onStop() {
 		try {
 			unregisterReceiver(scanFinishedListener); // may fail
-			LocalBroadcastManager.getInstance(this).unregisterReceiver(recommendationListener); // may fail
+		} catch (Exception e) {
+			Log.w(AppInfo.APP_NAME, e);
+		}
+		try {
+			unregisterReceiver(recommendationListener); // may fail
 		} catch (Exception e) {
 			Log.w(AppInfo.APP_NAME, e);
 		}
 		super.onStop();
-	}
-
-	protected void onDestroy() {
-		super.onDestroy();
 	}
 
 	@Override

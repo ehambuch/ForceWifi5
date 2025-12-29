@@ -3,7 +3,6 @@ package de.erichambuch.forcewifi5.test;
 import android.net.MacAddress;
 import android.net.wifi.WifiNetworkSuggestion;
 
-import androidx.annotation.RequiresApi;
 import androidx.test.filters.SdkSuppress;
 
 import org.junit.Assert;
@@ -34,7 +33,7 @@ public class NetworkAPITests {
     }
 
     @Test
-    @RequiresApi(30)
+    @SdkSuppress(minSdkVersion = 30)
     public void testNetworkSuggestionNotEquals() {
         final WifiNetworkSuggestion.Builder suggestionBuilder = new WifiNetworkSuggestion.Builder();
         suggestionBuilder.setSsid("WLAN-TEST");

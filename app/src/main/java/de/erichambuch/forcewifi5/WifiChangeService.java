@@ -46,7 +46,6 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.app.ServiceCompat;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.preference.PreferenceManager;
 
 import java.util.ArrayList;
@@ -68,7 +67,7 @@ public class WifiChangeService extends Service {
 
 		private final Context context;
 
-		public WifiServiceConnection(Context context) {
+		public WifiServiceConnection(@NonNull Context context) {
 			this.context = context;
 		}
 
@@ -392,8 +391,10 @@ public class WifiChangeService extends Service {
 
 					// and display by sending a broadcast to MainActivity
 					final Intent intent = new Intent(MainActivity.INTENT_WIFICHANGETEXT);
+					intent.setPackage(getPackageName());
+					intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY | Intent.FLAG_FROM_BACKGROUND);
 					intent.putExtra(MainActivity.EXTRA_WIFICHANGETEXT, suggestionsString.toString());
-					LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+					getApplicationContext().sendBroadcast(intent);
 				} else
 					showError(R.string.error_5ghz_not_configured);
 			} else {
@@ -429,7 +430,6 @@ public class WifiChangeService extends Service {
 						build();
 				Log.i(AppInfo.APP_NAME, "Requesting "+request);
 				context.getSystemService(ConnectivityManager.class).requestNetwork(request, new ChangeNetworkCallback(context.getApplicationContext()));
-				return;
 			} catch(Exception e) {
 				Crashlytics.recordException(e);
 			}
@@ -564,7 +564,7 @@ public class WifiChangeService extends Service {
 	 * @return notification to display
 	 */
 	@NonNull
-	protected static Notification createMessageNotification(Context context, int resourceId) {
+	protected static Notification createMessageNotification(@NonNull Context context, int resourceId) {
 		NotificationCompat.Builder builder =
 				new NotificationCompat.Builder(context, MainActivity.CHANNEL_ID)
 						.setContentTitle(context.getText(R.string.app_name))
