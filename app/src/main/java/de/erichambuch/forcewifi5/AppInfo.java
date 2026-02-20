@@ -60,6 +60,7 @@ package de.erichambuch.forcewifi5;
  *     <li>V1.26.1(63) (01.01.2025) - Updated startup message, fixes for Crashlytics</li>
  *     <li>V1.27.0(64/65 (02.07.2025) - Update Android 15, Bugfix Overview Wifi List to handle multiple access points</li>
  *     <li>V1.28.0 (68) (29.12.2025) - Update Android 16</li>
+ *     <li>V1.29.1 (69) (20.02.2026) - Update Firebase Key, Libs, Fixes WorkManager Initialization</li>
  * </ul>
  * Open Issues to be fixed:
  * <ul>
@@ -80,4 +81,5 @@ public final class AppInfo {
     public static final String INTENT_SHOW_FAQ = "de.erichambuch.forcewifi5.VIEW_FAQ";
 
     public static final String INTENT_SHOW_OVERLAY = "de.erichambuch.forcewifi5.SHOW_OVERLAY";
+    public static final String INTENT_SHOW_DEV_SETTINGS = "de.erichambuch.forcewifi5.SHOW_DEV_SETTINGS";
 }

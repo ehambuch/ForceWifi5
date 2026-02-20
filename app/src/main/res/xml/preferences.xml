@@ -117,8 +117,9 @@
             app:title="@string/title_developer_settings"
             app:summary="@string/description_developer_settings">
             <intent
-                android:action="android.settings.APPLICATION_DEVELOPMENT_SETTINGS"
-                />
+                android:action="de.erichambuch.forcewifi5.SHOW_DEV_SETTINGS"
+                android:targetPackage="de.erichambuch.forcewifi5"
+                android:targetClass="de.erichambuch.forcewifi5.SettingsActivity" />
         </Preference>
         <Preference
             app:title="@string/title_device_overlay"
@@ -165,7 +166,7 @@
             app:title="Licences"
             app:summary="Open Source Licences">
             <intent android:targetPackage="de.erichambuch.forcewifi5"
-                android:targetClass="com.google.android.gms.oss.licenses.OssLicensesMenuActivity" />
+                android:targetClass="com.google.android.gms.oss.licenses.v2.OssLicensesMenuActivity" />
         </Preference>
     <Preference
         app:title="@string/title_sendfeedback"

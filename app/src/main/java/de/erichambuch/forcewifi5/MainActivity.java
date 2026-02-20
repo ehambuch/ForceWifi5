@@ -1003,6 +1003,7 @@ public class MainActivity extends AppCompatActivity {
 	 * @param activeWifi
 	 * @deprecated remove soon
 	 */
+	@Deprecated
 	private void showCurrentSuggestions(List<WifiNetworkSuggestion> suggestionList, boolean activeWifi) {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
 			//final TextView recommendationView = ((TextView) findViewById(R.id.recommandedwifitextview));

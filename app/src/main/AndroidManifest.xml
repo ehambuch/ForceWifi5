@@ -13,7 +13,9 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" android:maxSdkVersion="33"/>
+    <!-- due to policy in Android Play Market -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" android:maxSdkVersion="33"
+        tools:ignore="ForegroundServicesPolicy" />
     <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
@@ -110,15 +112,11 @@
                 <action android:name="de.erichambuch.forcewifi5.SHOW_OVERLAY" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="de.erichambuch.forcewifi5.SHOW_DEV_SETTINGS"/>
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
         </activity>
-        <activity
-            android:name="com.google.android.gms.oss.licenses.OssLicensesMenuActivity"
-            android:exported="false"
-            android:theme="@style/AppTheme.NoActionBar" />
-        <activity
-            android:name="com.google.android.gms.oss.licenses.OssLicensesActivity"
-            android:exported="false"
-            android:theme="@style/AppTheme.NoActionBar" />
 
         <service
             android:name=".WifiChangeService" android:foregroundServiceType="location"
@@ -153,12 +151,6 @@
             </intent-filter>
         </receiver>
 
-        <!-- Workaround WorkManager Android 12 -->
-        <provider
-            android:name="androidx.startup.InitializationProvider"
-            android:authorities="${applicationId}.androidx-startup"
-            tools:node="remove">
-        </provider>
         <meta-data
             android:name="firebase_crashlytics_collection_enabled"
             android:value="false" />

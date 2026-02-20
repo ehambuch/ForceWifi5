@@ -20,6 +20,7 @@ import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
+import android.provider.Settings;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
 import android.util.Log;
@@ -157,6 +158,18 @@ public class SettingsActivity extends AppCompatActivity {
 			if (view != null)
 				view.setMovementMethod(LinkMovementMethod.getInstance());
 			dialog.show();
+		} else if (AppInfo.INTENT_SHOW_DEV_SETTINGS.equals(getIntent().getAction())) {
+			try {
+				final Intent devIntent = new Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS);
+				if (devIntent.resolveActivity(getPackageManager()) != null) {
+					startActivity(devIntent);
+				} else
+					Toast.makeText(this, R.string.error_not_supported, Toast.LENGTH_LONG).show();
+				finish();
+			} catch (ActivityNotFoundException e) {
+				Log.e(AppInfo.APP_NAME, "Error opening dev settings", e);
+				Toast.makeText(this, R.string.error_not_supported, Toast.LENGTH_LONG).show();
+			}
 		} else
 			getSupportFragmentManager()
 					.beginTransaction()
@@ -179,6 +192,10 @@ public class SettingsActivity extends AppCompatActivity {
 				setListOfAvailableChannels();
 			} else
 				settingsFragment.findPreference(getString(R.string.prefs_selectchannels)).setEnabled(false);
+
+			final Intent devIntent = new Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS);
+			settingsFragment.findPreference(getString(R.string.prefs_developer_settings)).
+					setEnabled(devIntent.resolveActivity(getPackageManager()) != null);
 		}
 	}
 
