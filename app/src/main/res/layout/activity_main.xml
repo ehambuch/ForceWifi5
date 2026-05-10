@@ -11,20 +11,20 @@
     android:fitsSystemWindows="true"
     tools:context=".MainActivity">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <LinearLayout
         android:id="@+id/mainFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginStart="5dp"
-        android:layout_marginTop="5dp"
-        android:layout_marginEnd="5dp"
-        android:paddingBottom="@dimen/appbar_height">
+        android:layout_above="@id/adViewContainer"
+        android:orientation="vertical"
+        android:padding="8dp">
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/nowificardview"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="5dp"
+            android:textAppearance="@style/TextAppearance.Material3.BodyMedium.Emphasized"
             android:text="@string/error_no_permissions_provived"
             android:visibility="visible"
             app:cardBackgroundColor="@android:color/holo_red_light"
@@ -33,31 +33,110 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
-            <TextView
-                android:id="@+id/nowifitextview"
-                android:layout_width="wrap_content"
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="8dp"
-                android:text="@string/text_nowififound"
-                android:textColor="@android:color/white" />
+                android:layout_margin="8dp">
+
+                <ImageButton
+                    android:id="@+id/closeCardBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Close"
+                    android:src="@android:drawable/ic_menu_close_clear_cancel"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:tint="@android:color/white" />
+
+                <TextView
+                    android:id="@+id/nowifitextview"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    app:layout_constraintBottom_toTopOf="@id/cardSwitchManualModeBtn"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toStartOf="@id/closeCardBtn"
+                    app:layout_constraintTop_toTopOf="parent"
+                    android:textAppearance="@style/TextAppearance.Material3.BodyMedium.Emphasized"
+                    android:text="@string/text_nowififound"
+                    android:textColor="@android:color/white"
+                    />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/cardSwitchManualModeBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintTop_toBottomOf="@id/nowifitextview"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    style="@style/Widget.Material3.Button.TextButton.Dialog"
+                    android:text="@string/action_manualmode"/>
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
         </com.google.android.material.card.MaterialCardView>
 
+        <com.google.android.material.textview.MaterialTextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/text_active_wifi"
+            android:textAppearance="@style/TextAppearance.Material3.HeadlineSmall"
+            />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/activatedWifi"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Test Wifi"
+            android:background="?attr/colorSurfaceContainerHigh"
+            android:textAppearance="@style/TextAppearance.Material3.LabelSmall.Emphasized"
+            android:padding="8dp"/>
+
+        <com.google.android.material.textview.MaterialTextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/text_preferred"
+            android:textAppearance="@style/TextAppearance.Material3.HeadlineSmall"
+            />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/wifiListPreferred"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="0.3"
+            android:background="?attr/colorSurfaceContainerLow"
+            android:layout_marginBottom="8dp"
+            android:dividerHeight="2dp"
+            android:orientation="vertical"
+            android:scrollbars="vertical"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/text_available_wifis"
+            android:textAppearance="@style/TextAppearance.Material3.HeadlineSmall"
+            />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/listview"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:contextClickable="true"
+            android:background="?attr/colorSurfaceContainerLow"
+            android:layout_weight="1"
             android:dividerHeight="2dp"
-            android:gravity="fill|top"
             android:orientation="vertical"
-            android:scrollbars="vertical"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/nowificardview"
-            app:layout_constraintBottom_toBottomOf="parent"/>
-    </androidx.constraintlayout.widget.ConstraintLayout>
+            android:scrollbars="vertical" />
+    </LinearLayout>
+
+    <!--  AdMob, add divider for policy  -->
+    <FrameLayout
+        android:id="@+id/adViewContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/coordinator_layout"
+        android:layout_centerInParent="true"
+        android:layout_marginTop="4dp">
+    </FrameLayout>
 
     <!-- Here we need a hack: The CoordinatorLayout makes all children overlapping each other, so we embed the CoordinatorLayout with the AppBar
     into a RelativeLayout and set the margins fixed to 80dp, which is the height of the Material3 AppBar... -->
@@ -67,8 +146,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_marginTop="@dimen/appbar_height"
-        android:orientation="vertical"
+        android:orientation="horizontal"
         android:textAlignment="center">
 
         <com.google.android.material.bottomappbar.BottomAppBar
@@ -86,15 +164,12 @@
             app:paddingBottomSystemWindowInsets="true" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/floatingButtonReload"
+            android:id="@+id/floatingButtonSave"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:clickable="true"
-            android:contentDescription="@string/action_reload"
-            android:focusable="true"
-            app:layout_anchor="@id/bottomAppBar"
-            app:srcCompat="@drawable/baseline_autorenew_24" />
+            android:contentDescription="@string/action_save"
+            app:srcCompat="@drawable/baseline_save_alt_24"
+            app:layout_anchor="@id/bottomAppBar"/>
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
-
 
 </RelativeLayout>

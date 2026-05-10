@@ -6,9 +6,9 @@ import static android.Manifest.permission.CHANGE_NETWORK_STATE;
 import static android.Manifest.permission.CHANGE_WIFI_STATE;
 import static android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION;
 import static de.erichambuch.forcewifi5.WifiUtils.getPreferredNetworkFrequencies;
-import static de.erichambuch.forcewifi5.WifiUtils.hasNormalizedSSID;
+import static de.erichambuch.forcewifi5.WifiUtils.getQuotationalSSID;
 import static de.erichambuch.forcewifi5.WifiUtils.is5GHzPreferred;
-import static de.erichambuch.forcewifi5.WifiUtils.normalizeSSID;
+import static de.erichambuch.forcewifi5.WifiUtils.unquoteSSid;
 
 import android.app.Notification;
 import android.app.PendingIntent;
@@ -265,7 +265,7 @@ public class WifiChangeService extends Service {
 				for (ScanResult result : scanResults) {
 					final int signalLevel = WifiUtils.calculateWifiLevel(wifiManager, result.level);
 					if (WifiUtils.isWantedFrequency(this, result.frequency)
-							&& (switchToOtherSSID || result.SSID.equals(normalizeSSID(activeWifi.getSSID())))
+							&& (switchToOtherSSID || WifiUtils.isSameSSID(result, activeWifi))
 							&& signalLevel >= getMinimumLevel()
 							&& signalLevel > minimumSignalLevel) {
 						// found Wifi -> try to connect to it
@@ -274,9 +274,9 @@ public class WifiChangeService extends Service {
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && result.getWifiSsid() != null) {
                                 suggestionBuilder.setWifiSsid(result.getWifiSsid());
                             } else {
-								suggestionBuilder.setSsid(normalizeSSID(result.SSID));
+								suggestionBuilder.setSsid(getQuotationalSSID(result.SSID));
 							}
-                            suggestionsString.append(normalizeSSID(result.SSID)).append(" - ");
+                            suggestionsString.append(unquoteSSid(result.SSID)).append(" - ");
 							if (result.BSSID != null) {
 								suggestionBuilder.setBssid(MacAddress.fromString(result.BSSID));
 								suggestionsString.append(result.BSSID);
@@ -285,12 +285,6 @@ public class WifiChangeService extends Service {
 							suggestionsString.append(" recommended at prio ").append(priority).append(". Please disable and re-enable your Wifi.");
 							suggestionBuilder.setPriority(priority++);
 							suggestions.add(suggestionBuilder.build());
-							// special case: wir haben ein Netzwerk mit normalisierter SSID, versuchen wir dazuzufügen
-							if (hasNormalizedSSID(result.SSID)) {
-								Log.d(AppInfo.APP_NAME, "Adding normalized SSID "+result.SSID);
-								suggestionBuilder.setSsid(result.SSID); // mit ""
-								suggestions.add(suggestionBuilder.build()); // und zweite Suggestion
-							}
 							minimumSignalLevel = signalLevel;
 							reconnected = true;
 							// for Repeaters with different access points - we try to find a stronger signal, so don't break: continue;
@@ -299,7 +293,7 @@ public class WifiChangeService extends Service {
 							// nur die SSIDs, nicht zwigend die verschiedenen BSSIDs, so dass wir diese unterscheiden können.
 							List<WifiConfiguration> configs = wifiManager.getConfiguredNetworks();
 							for (WifiConfiguration config : configs) {
-								if (normalizeSSID(config.SSID).equals(result.SSID) && (config.BSSID == null || config.BSSID.equals(result.BSSID))) {
+								if (getQuotationalSSID(config.SSID).equals(getQuotationalSSID(result.SSID)) && (config.BSSID == null || config.BSSID.equals(result.BSSID))) {
 									// assume: thats the 5GHz point - we cannot be sure, but give a try; some Android versions keep the same Network 2/5 GhZ
 									// under the same networkId, so we don't have a chance to distinguish them
 									reconnected = true;
@@ -447,9 +441,7 @@ public class WifiChangeService extends Service {
 
 	private String suggestionToString(WifiNetworkSuggestion suggestion) {
 		StringBuilder builder = new StringBuilder(32);
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-			builder.append(suggestion.getSsid()).append(" [").append(suggestion.getBssid()).append("]");
-		}
+		builder.append(suggestion.getSsid()).append(" [").append(suggestion.getBssid()).append("]");
 		return builder.toString();
 	}
 
@@ -458,23 +450,18 @@ public class WifiChangeService extends Service {
 	 */
 	@RequiresPermission(value = "android.permission.CHANGE_WIFI_STATE")
 	public static void removeSuggestions(@NonNull Context context) {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-			WifiManager wifiManager = (WifiManager) context.getSystemService(WIFI_SERVICE);
-			int rc = wifiManager.removeNetworkSuggestions(Collections.emptyList());
-			Log.i(AppInfo.APP_NAME, "Removing all network suggestings from app: " + rc);
-		}
+		WifiManager wifiManager = (WifiManager) context.getSystemService(WIFI_SERVICE);
+		int rc = wifiManager.removeNetworkSuggestions(Collections.emptyList());
+		Log.i(AppInfo.APP_NAME, "Removing all network suggestings from app: " + rc);
 	}
 
 	@RequiresPermission(value = "android.permission.CHANGE_WIFI_STATE")
 	public static int provideSuggestions(@NonNull Context context, @NonNull List<WifiNetworkSuggestion> suggestionList) {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-			WifiManager wifiManager = (WifiManager) context.getSystemService(WIFI_SERVICE);
-			wifiManager.removeNetworkSuggestions(Collections.emptyList());
-			int rc = wifiManager.addNetworkSuggestions(suggestionList);
-			Log.i(AppInfo.APP_NAME, "Provided new network suggestings from app: " + rc);
-			return rc;
-		}
-		return 0;
+		WifiManager wifiManager = (WifiManager) context.getSystemService(WIFI_SERVICE);
+		wifiManager.removeNetworkSuggestions(Collections.emptyList());
+		int rc = wifiManager.addNetworkSuggestions(suggestionList);
+		Log.i(AppInfo.APP_NAME, "Provided new network suggestings from app: " + rc);
+		return rc;
 	}
 
 	private void showError(int stringId) {

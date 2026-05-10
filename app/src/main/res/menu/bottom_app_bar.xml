@@ -1,12 +1,5 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-    <item
-    android:id="@+id/menu_wifionoff"
-    android:icon="@drawable/wifi_24px"
-    android:title="@string/text_wifi"
-    android:contentDescription="@string/description_wifi"
-        android:tooltipText="@string/description_wifi"
-    app:showAsAction="ifRoom"/>
 
     <item
         android:id="@+id/menu_settings"
@@ -14,23 +7,6 @@
         android:title="@string/action_settings"
         android:contentDescription="@string/action_settings"
         android:tooltipText="@string/action_settings"
-        app:showAsAction="always"/>
-
-    <item
-        android:id="@+id/menu_wifi_suggestions"
-        android:icon="@drawable/baseline_format_list_numbered_24"
-        android:title="@string/text_listsuggestions"
-        android:contentDescription="@string/text_listsuggestions"
-        android:tooltipText="@string/text_listsuggestions"
-        app:showAsAction="ifRoom"/>
-
-    <item
-        android:id="@+id/menu_wifi_save"
-        android:icon="@drawable/baseline_save_alt_24"
-        android:title="@string/text_savesuggestions"
-        android:contentDescription="@string/text_savesuggestions"
-        android:visible="false"
-        android:tooltipText="@string/text_savesuggestions"
         app:showAsAction="always"/>
 
     <item
@@ -43,13 +19,48 @@
 
     <item
         android:id="@+id/menu_about"
-        app:showAsAction="ifRoom"
+        app:showAsAction="never"
         android:contentDescription="@string/action_about"
         android:title="@string/action_about"/>
 
     <item
         android:id="@+id/menu_info"
-        app:showAsAction="ifRoom"
+        app:showAsAction="never"
         android:contentDescription="@string/action_contact"
         android:title="@string/action_contact"/>
-    </menu>
+
+    <item
+        android:id="@+id/menu_privacy_options"
+        app:showAsAction="never"
+        android:contentDescription="@string/action_privacyoptions"
+        android:title="@string/action_privacyoptions"/>
+
+    <item
+        android:id="@+id/menu_dataprotection"
+        app:showAsAction="never"
+        android:contentDescription="@string/action_data_protection"
+        android:title="@string/action_data_protection"/>
+
+
+    <item
+        android:id="@+id/menu_wifionoff"
+        android:icon="@drawable/wifi_24px"
+        android:title="@string/text_wifi"
+        android:contentDescription="@string/description_wifi"
+        android:tooltipText="@string/description_wifi"
+        app:showAsAction="ifRoom"/>
+
+    <item
+        android:id="@+id/menu_manualmode"
+        app:showAsAction="always"
+        android:icon="@drawable/autoplay_24px"
+        android:contentDescription="@string/action_manualmode"
+        android:title="@string/action_manualmode"/>
+    <item
+        android:id="@+id/menu_reload"
+        app:showAsAction="always"
+        android:icon="@drawable/baseline_autorenew_24"
+        android:contentDescription="@string/action_reload"
+        android:title="@string/action_reload"/>
+
+</menu>

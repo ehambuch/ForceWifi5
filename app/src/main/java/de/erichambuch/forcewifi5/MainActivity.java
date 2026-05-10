@@ -4,8 +4,10 @@ import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.Manifest.permission.ACCESS_WIFI_STATE;
 import static android.content.Intent.ACTION_UNINSTALL_PACKAGE;
 import static android.text.Html.FROM_HTML_MODE_LEGACY;
+import static android.view.View.GONE;
+import static android.view.View.VISIBLE;
 import static de.erichambuch.forcewifi5.WifiChangeService.ONGOING_NOTIFICATION_ID;
-import static de.erichambuch.forcewifi5.WifiUtils.normalizeSSID;
+import static de.erichambuch.forcewifi5.WifiChangeService.showNotificationMessage;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -20,6 +22,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
@@ -33,15 +36,21 @@ import android.net.wifi.ScanResult;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiNetworkSuggestion;
+import android.net.wifi.WifiSsid;
 import android.os.BadParcelableException;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.os.PowerManager;
 import android.provider.Settings;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
 import android.util.Log;
+import android.view.DragEvent;
+import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -75,6 +84,7 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -101,13 +111,24 @@ public class MainActivity extends AppCompatActivity {
 	@NonNull
 	protected static final AtomicLong lastNetworkCallback = new AtomicLong(0);
 
+	/**
+	 * List of all available Wifi networks.
+	 */
 	@NonNull
 	protected final List<AccessPointEntry> listNetworks = Collections.synchronizedList(new ArrayList<>());
+
+	/**
+	 * List of all preferred Wifi networks.
+	 */
+	@NonNull
+	protected final List<AccessPointEntry> preferredNetworks = Collections.synchronizedList(new ArrayList<>());
 
 	/**
 	 * Flag whether to check for notification enabling or the user dismissed that check.
 	 */
 	protected volatile boolean checkForNotificationsEnabled = true;
+
+	protected AdMobUtils adMobUtils;
 
 	/**
 	 * Broadcast receiver for WifiManager.NETWORK_STATE_CHANGED_ACTION.
@@ -224,6 +245,27 @@ public class MainActivity extends AppCompatActivity {
 		}
 	}
 
+	/**
+	 * Receiver to check if Android has accepted our WifiSuggestions.
+	 */
+	public class WifiSuggestionReceiver extends BroadcastReceiver {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			if (WifiManager.ACTION_WIFI_NETWORK_SUGGESTION_POST_CONNECTION.equals(intent.getAction())) {
+				// Android has successfully connected to one of your suggestions!
+				// You can get the details of the suggestion that was used:
+				WifiNetworkSuggestion suggestion = intent.getParcelableExtra(
+						WifiManager.EXTRA_NETWORK_SUGGESTION);
+
+				Log.d(AppInfo.APP_NAME, "Connected to: " + suggestion.getSsid());
+
+				final String ssid = suggestion != null ? suggestion.getSsid() : "?";
+
+				showNotificationMessage(context, String.format(getString(R.string.text_wifi_change_accepted), ssid));
+			}
+		}
+	}
+
 	public static class NetworkEntry {
 		final String name;
 		final boolean connected;
@@ -244,13 +286,10 @@ public class MainActivity extends AppCompatActivity {
 			text.append(name);
 			text.append("</b><small><br/>");
 			for (AccessPointEntry entry : accessPoints) {
-				if (entry.connected)
-					text.append("->");
-				if (entry.recommended)
-					text.append(" * ");
 				text.append(entry.bssid);
 				text.append(" - ");
-				text.append(entry.frequencies);
+				if(entry.frequencies != null)
+					text.append(entry.frequencies);
 				text.append("</small>");
 				text.append("<br/>");
 			}
@@ -261,17 +300,21 @@ public class MainActivity extends AppCompatActivity {
 		void addAccessPoint(AccessPointEntry entry) {
 			this.accessPoints.add(entry);
 		}
-
-		public boolean isSuggested() {
-			for (AccessPointEntry entry : accessPoints) {
-				if (entry.recommended)
-					return true;
-			}
-			return false;
-		}
 	}
 
-	public static class AccessPointFrequencies {
+	public static class AccessPointFrequencies implements Parcelable {
+
+		public static final Creator<AccessPointFrequencies> CREATOR = new Creator<AccessPointFrequencies>() {
+			@Override
+			public AccessPointFrequencies createFromParcel(Parcel in) {
+				return new AccessPointFrequencies(in);
+			}
+
+			@Override
+			public AccessPointFrequencies[] newArray(int size) {
+				return new AccessPointFrequencies[size];
+			}
+		};
 
 		private static final Map<Integer, String> CHANNELWIDTH = new HashMap<>();
 
@@ -299,6 +342,27 @@ public class MainActivity extends AppCompatActivity {
 			this.channelwidth = bandwidth;
 		}
 
+		protected AccessPointFrequencies(Parcel in) {
+			frequency = in.readInt();
+			center0 = in.readInt();
+			center1 = in.readInt();
+			channelwidth = in.readInt();
+		}
+
+
+		@Override
+		public int describeContents() {
+			return 0;
+		}
+
+		@Override
+		public void writeToParcel(Parcel dest, int flags) {
+			dest.writeInt(frequency);
+			dest.writeInt(center0);
+			dest.writeInt(center1);
+			dest.writeInt(channelwidth);
+		}
+
 		@NonNull
 		public String toString() {
 			final StringBuilder builder = new StringBuilder(32);
@@ -306,32 +370,68 @@ public class MainActivity extends AppCompatActivity {
 		}
 	}
 
-	public static class AccessPointEntry {
+	public static class AccessPointEntry implements Parcelable {
+
+		public static final Creator<AccessPointEntry> CREATOR = new Creator<AccessPointEntry>() {
+			@Override
+			public AccessPointEntry createFromParcel(Parcel in) {
+				return new AccessPointEntry(in);
+			}
+
+			@Override
+			public AccessPointEntry[] newArray(int size) {
+				return new AccessPointEntry[size];
+			}
+		};
+
 		final String name;
+
+		@Nullable
+		final WifiSsid wifiSsid;
+
 		final String bssid;
 		final AccessPointFrequencies frequencies;
 		final int signalLevel;
-		final boolean connected;
+
 		final boolean recommended;
 
-		boolean selected;
-
-		AccessPointEntry(String name, String bssid, AccessPointFrequencies frequencies, int level, boolean connected, boolean suggested) {
+		AccessPointEntry(String name, @Nullable WifiSsid wifiSsid, String bssid,  @Nullable AccessPointFrequencies frequencies, int level, boolean recommended) {
 			this.name = name;
+			this.wifiSsid = wifiSsid;
 			this.bssid = bssid;
 			this.frequencies = frequencies;
 			this.signalLevel = level;
-			this.connected = connected;
-			this.recommended = suggested;
-			this.selected = suggested;
+			this.recommended = recommended;
+		}
+
+		protected AccessPointEntry(Parcel in) {
+			name = in.readString();
+			wifiSsid = in.readParcelable(in.getClass().getClassLoader());
+			bssid = in.readString();
+			frequencies = in.readParcelable(AccessPointFrequencies.class.getClassLoader());
+			signalLevel = in.readInt();
+			recommended = in.readBoolean();
+		}
+
+		@Override
+		public int describeContents() {
+			return 0;
+		}
+
+		@Override
+		public void writeToParcel(Parcel dest, int flags) {
+			dest.writeString(name);
+			dest.writeParcelable(wifiSsid, flags);
+			dest.writeString(bssid);
+			dest.writeParcelable(frequencies, flags);
+			dest.writeInt(signalLevel);
+			dest.writeBoolean(recommended);
 		}
 
 		public @NonNull
 		String toString() {
 			return this.bssid;
 		}
-
-		void setSelected(boolean s) { this.selected = s; }
 	}
 
 	/**
@@ -407,8 +507,42 @@ public class MainActivity extends AppCompatActivity {
 		}
 	}
 
+	/**
+	 * Listener for Drag &amp; Drop between Lists.
+	 */
+    static class ListDragListener implements View.OnDragListener {
+		private final CustomWifiListAdapter adapter;
+
+		ListDragListener(CustomWifiListAdapter adapter) {
+			this.adapter = adapter;
+		}
+
+		@Override
+		public boolean onDrag(View v, DragEvent event) {
+			if (event.getAction() == DragEvent.ACTION_DROP) {
+				if(!(event.getLocalState() instanceof CustomWifiListAdapter.WifiLocalState))
+					return false;
+				// we retrieve the whole object as LocalState
+				CustomWifiListAdapter.WifiLocalState localState = (CustomWifiListAdapter.WifiLocalState) event.getLocalState();
+				if (localState.listView.getParent() instanceof RecyclerView) {
+					RecyclerView sourceRecyclerView = (RecyclerView) localState.listView.getParent();
+					CustomWifiListAdapter sourceAdapter = (CustomWifiListAdapter) sourceRecyclerView.getAdapter();
+
+					if (sourceAdapter != null && sourceAdapter != adapter) {
+						sourceAdapter.removeItem(localState.accessPointEntry);
+						adapter.addItem(localState.accessPointEntry);
+					}
+				}
+				return true;
+			}
+			return true;
+		}
+	}
+
 	private final ScanFinishedListener scanFinishedListener = new ScanFinishedListener();
 	private final RecommendationListener recommendationListener = new RecommendationListener();
+
+	private final WifiSuggestionReceiver suggestionReceiver = new WifiSuggestionReceiver();
 
 	private NetworkCallback networkCallback;
 
@@ -417,6 +551,8 @@ public class MainActivity extends AppCompatActivity {
 	 */
 	private final AtomicBoolean setUpInfoAccepted = new AtomicBoolean(false);
 
+	private Menu menuBar;
+
 	@SuppressLint("MissingPermission")
 	@Override
 	protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -424,20 +560,24 @@ public class MainActivity extends AppCompatActivity {
 
 		setContentView(R.layout.activity_main);
 
+		this.adMobUtils = new AdMobUtils(this);
+
 		final BottomAppBar appbar = ((BottomAppBar)findViewById(R.id.bottomAppBar));
 		appbar.setOnMenuItemClickListener(this::onOptionsItemSelected);
 
 		createNotificationChannel(this);
 
-		findViewById(R.id.floatingButtonReload).setOnClickListener(v -> {
-			WifiManager wifiManager = getSystemService(WifiManager.class);
-			if (wifiManager != null) {
-				boolean scanSuccessful = wifiManager.startScan(); // listNetworks is called by ScanFinishedListener
-				if (!scanSuccessful)
-					showError(R.string.error_scan_failed_throttle);
+		findViewById(R.id.floatingButtonSave).setOnClickListener(v -> {
+				MainActivity.this.saveSuggestions();
 			}
-		}
 		);
+		findViewById(R.id.cardSwitchManualModeBtn).setOnClickListener(v -> {
+			MainActivity.this.toggleManualMode();
+			updateManualModeUI();
+		});
+		findViewById(R.id.closeCardBtn).setOnClickListener(v -> {
+			findViewById(R.id.nowificardview).setVisibility(View.GONE);
+		});
 
 		// register a listener to network changes (this may occure twice if already done in StartOnBootReceiver!)
 		ConnectivityManager connManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -445,7 +585,11 @@ public class MainActivity extends AppCompatActivity {
 				new NetworkRequest.Builder().addTransportType(NetworkCapabilities.TRANSPORT_WIFI).build(),
 				networkCallback = new NetworkCallback(getApplicationContext()));
 
-		if (Intent.ACTION_MAIN.equals(getIntent().getAction())) // show info dialog only on first start
+		// register a listener that gives a feedback if Android has accepted change
+		registerReceiver(suggestionReceiver,
+				new IntentFilter(WifiManager.ACTION_WIFI_NETWORK_SUGGESTION_POST_CONNECTION));
+
+        if (Intent.ACTION_MAIN.equals(getIntent().getAction())) // show info dialog only on first start
 		{
 			if (!checkAndShowNotUsefulDialog())
 				checkPermissionDialogs(true);
@@ -472,16 +616,18 @@ public class MainActivity extends AppCompatActivity {
 		} catch (Exception e) {
 			Log.e(AppInfo.APP_NAME, "Error init Firebase", e);
 		}
+
+		// set up Ads
+		adMobUtils.requestAdConsent();
+		adMobUtils.setUpAds();
 	}
 
 	@SuppressLint("MissingPermission")
 	protected void onStart() {
 		super.onStart();
 
-		final BottomAppBar appbar = ((BottomAppBar)findViewById(R.id.bottomAppBar));
-		appbar.getMenu().findItem(R.id.menu_wifi_suggestions).setEnabled((Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q));
-		appbar.getMenu().findItem(R.id.menu_wifi_reset).setEnabled((Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q));
-		appbar.getMenu().findItem(R.id.menu_wifi_save).setVisible(isManualMode());
+		// update if changed in settings
+		updateManualModeUI();
 
 		if ((missingPermissions().isEmpty())) {
 			// starting with Android 6, Location services has to be enabled to list all wifis
@@ -495,15 +641,48 @@ public class MainActivity extends AppCompatActivity {
 			requestMyPermissions(true);
 		}
 	}
+
 	@Override
 	public void onPause() {
+		if (adMobUtils.getAdMobView() != null)
+			adMobUtils.getAdMobView().pause();
+
 		super.onPause();
 	}
 
-	/** Called when returning to the activity */
 	@Override
 	public void onResume() {
+		if (adMobUtils.getAdMobView() != null) {
+			try {
+				adMobUtils.getAdMobView().resume();
+				// load a new add when coming back after more than 1 minutes -> ensures ad refresh
+				adMobUtils.loadAd();
+			} catch(RuntimeException e) {
+				Crashlytics.recordException(e);
+			}
+		}
+
+		// show start message again
 		super.onResume();
+	}
+
+	// Block for AdMob and Consent Handling
+
+
+
+	/**
+	 * Update the whole UI for Manual or Automatic mode.
+	 */
+	private void updateManualModeUI() {
+		final boolean manualMode = isManualMode();
+		findViewById(R.id.wifiListPreferred).setEnabled(manualMode);
+		findViewById(R.id.listview).setEnabled(manualMode);
+		BottomAppBar appBar = findViewById(R.id.bottomAppBar);
+		MenuItem manualItem = appBar.getMenu().findItem(R.id.menu_manualmode); // if using a normal Menu we should overwrite onPrepareOptionsMenu
+		if (manualItem != null) {
+			manualItem.setIcon(manualMode ? R.drawable.autostop_24px : R.drawable.autoplay_24px);
+		}
+		findViewById(R.id.floatingButtonSave).setVisibility(manualMode ? VISIBLE : GONE);
 	}
 
 	/**
@@ -625,7 +804,7 @@ public class MainActivity extends AppCompatActivity {
 		final int is50Ghz = wifiManager.is5GHzBandSupported() ? 1 : 0;
 		final int is60Ghz = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && wifiManager.is6GHzBandSupported()) ? 1 : 0;
 		final int is600Ghz = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && wifiManager.is60GHzBandSupported()) ? 1 : 0;
-		if(!BuildConfig.DEBUG && (is24Ghz + is50Ghz + is60Ghz + is600Ghz) < 2) {
+		if(!WifiUtils.isEmulator() && (is24Ghz + is50Ghz + is60Ghz + is600Ghz) < 2) {
 			new MaterialAlertDialogBuilder(this)
 					.setTitle(getString(R.string.app_name))
 					.setNegativeButton(R.string.text_cancel, new DialogInterface.OnClickListener() {
@@ -688,7 +867,7 @@ public class MainActivity extends AppCompatActivity {
 			registerReceiver(recommendationListener, new IntentFilter(INTENT_WIFICHANGETEXT), RECEIVER_NOT_EXPORTED);
         } else {
 			registerReceiver(scanFinishedListener, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
-			registerReceiver(recommendationListener, new IntentFilter(INTENT_WIFICHANGETEXT));
+			registerReceiver(recommendationListener, new IntentFilter(INTENT_WIFICHANGETEXT), RECEIVER_NOT_EXPORTED);
 		}
 
 		WifiManager wifiManager = getSystemService(WifiManager.class);
@@ -742,10 +921,10 @@ public class MainActivity extends AppCompatActivity {
 	public boolean onOptionsItemSelected(@NonNull MenuItem item) {
 		final int id = item.getItemId();
 		if( id == R.id.menu_wifionoff) {
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) { // Inline Settings with Android 10+
-				startActivity(new Intent(Settings.Panel.ACTION_WIFI));
-			} else {
+			try {
 				startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS));
+			} catch(ActivityNotFoundException e) {
+				startActivity(new Intent(Settings.Panel.ACTION_WIFI));
 			}
 			return true;
 		} else if (id == R.id.menu_settings) {
@@ -754,71 +933,78 @@ public class MainActivity extends AppCompatActivity {
 		} else if (id == R.id.menu_about) {
 			showAbout();
 			return true;
-		} else if (id == R.id.menu_wifi_suggestions) {
-			showSuggestions();
-			return true;
 		} else if (id == R.id.menu_wifi_reset) {
 			removeAllSuggestions();
 			return true;
-		} else if (id == R.id.menu_wifi_save) {
-			saveSuggestions();
+		} else if (id == R.id.menu_manualmode) {
+			toggleManualMode();
+			updateManualModeUI();
+			findViewById(R.id.mainFragment).post(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						listNetworks();
+					} catch (SecurityException e) {
+						// ignore
+					}
+				}
+			});
 			return true;
 		} else if (id == R.id.menu_info) {
 			showContact();
 			return true;
+		} else if (item.getItemId() == R.id.menu_privacy_options) {
+			adMobUtils.showPrivacyOptions();
+		} else if (item.getItemId() == R.id.menu_dataprotection) {
+			openDataProtection();
 		}
 		return super.onOptionsItemSelected(item);
 	}
 
-	private void saveSuggestions() {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-			final List<WifiNetworkSuggestion> suggestionList = new ArrayList<>();
-			for(AccessPointEntry entry : this.listNetworks) {
-				if(entry.selected) {
-					final WifiNetworkSuggestion.Builder builder=
-						new WifiNetworkSuggestion.Builder().
-								setBssid(MacAddress.fromString(entry.bssid)).
-								setSsid(normalizeSSID(entry.name)).
-								setPriority(1);
-					suggestionList.add(builder.build());
-					if(!normalizeSSID(entry.name).equals(entry.name)) {
-						builder.setSsid(entry.name);
-						suggestionList.add(builder.build()); // and add without normalized SSID
-					}
-				}
-			}
-			new MaterialAlertDialogBuilder(this)
-					.setTitle(getString(R.string.text_save_suggestions))
-					.setNegativeButton(R.string.text_cancel, new DialogInterface.OnClickListener() {
-						@Override
-						public void onClick(DialogInterface dialog, int which) {
-							dialog.cancel();
-						}
-					})
-					.setPositiveButton(R.string.text_ok, new DialogInterface.OnClickListener() {
-						@Override
-						public void onClick(DialogInterface dialog, int which) {
-							dialog.dismiss();
-							WifiChangeService.provideSuggestions(MainActivity.this, suggestionList);
-							showMessage(R.string.text_suggestions_saved);
-							if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && isAggressive() && !suggestionList.isEmpty()) {
-								WifiChangeService.aggressiveNetworkChange(MainActivity.this, suggestionList.get(0));
-							} else {
-								// Here we try to force a re-connect of the Wifi via Internet connectivity
-								try {
-									startActivity(WifiChangeService.getWifiIntent(getApplicationContext()));
-								} catch (ActivityNotFoundException e) {
-									Log.w(AppInfo.APP_NAME, e);
-								}
-							}
-						}
-					})
-					.setMessage(Html.fromHtml(getString(R.string.message_save_suggestions), Html.FROM_HTML_MODE_COMPACT))
-					.show();
-		} else {
-			showError(R.string.error_save_suggestions);
-		}
+	private void openDataProtection() {
+		Intent i = new Intent(Intent.ACTION_VIEW);
+		i.setData(Uri.parse(getString(R.string.dataprotection_url)));
+		if (i.resolveActivity(getPackageManager()) != null)
+			startActivity(i);
+		else
+			showError(getString(R.string.error_no_browser));
+	}
 
+	private void saveSuggestions() {
+		final List<WifiNetworkSuggestion> suggestionList = new ArrayList<>();
+		int priority = this.preferredNetworks.size();
+		for(AccessPointEntry entry : this.preferredNetworks) {
+			final WifiNetworkSuggestion.Builder builder=
+				new WifiNetworkSuggestion.Builder().
+						setBssid(MacAddress.fromString(entry.bssid)).
+						setPriority(priority--);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && entry.wifiSsid != null) {
+				builder.setWifiSsid(entry.wifiSsid);
+				suggestionList.add(builder.build());
+            } else {
+				builder.setSsid(entry.name);
+				suggestionList.add(builder.build());
+			}
+		}
+		// and now provide suggestions
+		WifiChangeService.provideSuggestions(MainActivity.this, suggestionList);
+		showMessage(R.string.text_suggestions_saved);
+
+		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && isAggressive() && !suggestionList.isEmpty()) {
+			WifiChangeService.aggressiveNetworkChange(MainActivity.this, suggestionList.get(0));
+		} else {
+			// Here we try to force a re-connect of the Wifi via Internet connectivity
+			try {
+				startActivity(WifiChangeService.getWifiIntent(getApplicationContext()));
+			} catch (ActivityNotFoundException e) {
+				Log.w(AppInfo.APP_NAME, e);
+			}
+		}
+		try {
+			MainActivity.this.listNetworks(); // and update UI
+		} catch (SecurityException e) {
+			// ignore, something very wrong
+		}
 	}
 
 	private void removeAllSuggestions() {
@@ -836,35 +1022,15 @@ public class MainActivity extends AppCompatActivity {
 						dialog.dismiss();
 						WifiChangeService.removeSuggestions(getApplicationContext());
 						Snackbar.make(MainActivity.this.findViewById(R.id.mainFragment), R.string.message_remove_suggestions, Snackbar.LENGTH_LONG).setTextMaxLines(3).show();
+						try {
+							MainActivity.this.listNetworks(); // and update UI
+						} catch(SecurityException e) {
+							// ignore, something very wrong
+						}
 					}
 				})
 				.setMessage(Html.fromHtml(getString(R.string.message_reset_suggestions), Html.FROM_HTML_MODE_COMPACT))
 				.show();
-	}
-	private void showSuggestions() {
-		final WifiManager wifiManager = getSystemService(WifiManager.class);
-		if(wifiManager != null) {
-			List<WifiNetworkSuggestion> list = WifiChangeService.getActualSuggestions(wifiManager);
-			StringBuilder builder = new StringBuilder();
-			if( list != null && !list.isEmpty() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-				builder.append("<ol>");
-				for(WifiNetworkSuggestion s : list) {
-						builder.append("<li> Prio ").append(s.getPriority()).append(": ").append(s.getSsid()).append(" [").append(s.getBssid()).append("]").append("</li>");
-				}
-				builder.append("</ol>");
-			} else {
-				builder.append(getString(R.string.text_nowifirecommended));
-			}
-			new MaterialAlertDialogBuilder(this)
-					.setTitle(getString(R.string.text_listsuggestions))
-					.setPositiveButton(getString(R.string.text_continue), new DialogInterface.OnClickListener() {
-						@Override
-						public void onClick(DialogInterface dialog, int which) {
-							dialog.cancel();
-						}
-					})
-					.setMessage(Html.fromHtml(builder.toString(), Html.FROM_HTML_MODE_COMPACT)).show();
-		}
 	}
 
 	public void onActivityResult(int requestCode, int resultCode, Intent resultIntent) {
@@ -884,31 +1050,59 @@ public class MainActivity extends AppCompatActivity {
 	/**
 	 * Show a list of all detected network with provide both: 2.4 and 5 GHz.
 	 */
-	@RequiresPermission(allOf = {ACCESS_WIFI_STATE, ACCESS_FINE_LOCATION})
+	@SuppressLint("DefaultLocale")
+    @RequiresPermission(allOf = {ACCESS_WIFI_STATE, ACCESS_FINE_LOCATION})
 	void listNetworks() {
 		WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
 		List<ScanResult> scanResults = wifiManager.getScanResults();
 		WifiInfo activeNetwork = wifiManager.getConnectionInfo();
-		// set active and connected wifis
+		final boolean manualMode = isManualMode();
+
+		// display active wifi
 		final boolean activeWifi = (activeNetwork != null && wifiManager.isWifiEnabled() && activeNetwork.getSSID() != null);
-		//((TextView) findViewById(R.id.actualwifitextview)).setText(activeWifi
-		//		? (activeNetwork.getSSID() + " - " + activeNetwork.getBSSID() + " at " + activeNetwork.getFrequency() + " MHz") : getString(R.string.text_nowifi));
-		// only with Android 11+ we get a list of all suggestions
-		final List<WifiNetworkSuggestion> suggestionList = new ArrayList<>();
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-			try {
-				suggestionList.addAll(wifiManager.getNetworkSuggestions());
-			} catch (BadParcelableException e) { // on OnePlus...
-				Log.e(AppInfo.APP_NAME, "Error on getNetworkSuggestions", e);
-			}
+		if(activeWifi) {
+			if(activeNetwork.getBSSID() == null)
+				((TextView)findViewById(R.id.activatedWifi)).setText(getString(R.string.text_connecting));
+			else
+				((TextView)findViewById(R.id.activatedWifi)).setText(
+						String.format("%s - %s at %d MHz",
+								WifiUtils.unquoteSSid(activeNetwork.getSSID()),
+								activeNetwork.getBSSID(),
+								activeNetwork.getFrequency()));
+		} else {
+			((TextView)findViewById(R.id.activatedWifi)).setText(getString(R.string.text_nowifi));
 		}
+
+		// We retrieve a list of all suggestions - and display them
+		preferredNetworks.clear();
+		try {
+			final List<WifiNetworkSuggestion> suggestionList = new ArrayList<>(wifiManager.getNetworkSuggestions());
+			suggestionList.sort(Comparator.comparingInt(WifiNetworkSuggestion::getPriority));
+			for(WifiNetworkSuggestion suggestion : suggestionList) {
+				preferredNetworks.add(new AccessPointEntry(
+						WifiUtils.getSsid(suggestion),
+						WifiUtils.getWifiSsid(suggestion),
+						WifiUtils.getBssid(suggestion),
+						null,
+						-1, true));
+			}
+		} catch (BadParcelableException e) { // on OnePlus...
+			Log.e(AppInfo.APP_NAME, "Error on getNetworkSuggestions", e);
+		}
+		final RecyclerView preferredListview = findViewById(R.id.wifiListPreferred);
+		final CustomWifiListAdapter preferredAdapter = new CustomWifiListAdapter(preferredNetworks, wifiManager);
+		preferredListview.setAdapter(preferredAdapter);
+		preferredListview.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
+		preferredListview.addItemDecoration(new MaterialDividerItemDecoration(this, MaterialDividerItemDecoration.VERTICAL));
+		preferredListview.setOnDragListener(new ListDragListener(preferredAdapter));
+
 		// build up list with all SSID supporting 2.4 and 5 GHz
 		// we also always add the connected network (even if only on one frequency) to display completeness to user
 		listNetworks.clear();
 		Map<String, NetworkEntry> map245Ghz = new HashMap<>();
 		for (ScanResult result : scanResults) {
 			if (result.SSID != null && !result.SSID.isEmpty() && result.BSSID != null) {
-				boolean connected = activeNetwork != null && normalizeSSID(result.SSID).equals(normalizeSSID(activeNetwork.getSSID()));
+				boolean connected = activeNetwork != null && WifiUtils.isSameSSID(result, activeNetwork);
 				NetworkEntry isThere = map245Ghz.get(result.SSID);
 				if (isThere == null)
 					map245Ghz.put(result.SSID, isThere = new NetworkEntry(result.SSID, connected));
@@ -918,72 +1112,68 @@ public class MainActivity extends AppCompatActivity {
 					isThere.is5ghz = true;
 				if (result.frequency >= 6000 && result.frequency <= 6999)
 					isThere.is6ghz = true;
-				final boolean suggested = isInSuggestedWifis(result, suggestionList);
 				isThere.addAccessPoint(
 						new AccessPointEntry(
-								result.SSID, result.BSSID,
+								result.SSID,
+								WifiUtils.getWifiSsid(result),
+								result.BSSID,
 								new AccessPointFrequencies(result.frequency, result.centerFreq0, result.centerFreq1, result.channelWidth),
-								result.level,
-								connected && result.BSSID.equals(activeNetwork.getBSSID()),
-								suggested));
+								result.level, false));
 			}
 		}
+
 		// filter out all networks that are qualified for switch (ALL if in manual mode)
-		final boolean manualMode = isManualMode();
 		for (NetworkEntry entry : map245Ghz.values()) {
 			if ((entry.is24ghz && (entry.is5ghz || entry.is6ghz))
-					|| entry.connected || entry.isSuggested() || manualMode) {
+					|| entry.connected || manualMode) {
 				listNetworks.addAll(entry.accessPoints);
 			}
 		}
+
 		// for testing on Emulator
-		if(BuildConfig.DEBUG) {
+		if(WifiUtils.isEmulator()) {
 			for(int i =1;i<=20;i++) {
-				listNetworks.add(new AccessPointEntry("SSID "+i, "BSSID"+i,
-						new AccessPointFrequencies(999, 999,999,ScanResult.CHANNEL_WIDTH_20MHZ), 50, false, false));
+				listNetworks.add(new AccessPointEntry("SSID "+i, null,"BSSID"+i,
+						new AccessPointFrequencies(999, 999,999,ScanResult.CHANNEL_WIDTH_20MHZ), 50, false));
 			}
 		}
 
 		final RecyclerView listView = findViewById(R.id.listview);
 		final boolean isOnWantedFreq = activeNetwork != null && WifiUtils.isWantedFrequency(this, activeNetwork.getFrequency());
-		listView.setAdapter(new CustomWifiListAdapter(listNetworks, wifiManager, isManualMode(), isOnWantedFreq));
+		final CustomWifiListAdapter listAdapter = new CustomWifiListAdapter(listNetworks, wifiManager);
+		listView.setAdapter(listAdapter);
 		listView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
 		listView.addItemDecoration(new MaterialDividerItemDecoration(this, MaterialDividerItemDecoration.VERTICAL));
 		listView.setHasFixedSize(true);
+		listView.setOnDragListener(new ListDragListener(listAdapter));
+
+		// and display the message box
+
 		if (!listNetworks.isEmpty()) {
 			((MaterialCardView)findViewById(R.id.nowificardview)).setCardBackgroundColor(getResources().getColor(android.R.color.holo_green_dark, getTheme()));
+			findViewById(R.id.nowificardview).setVisibility(VISIBLE);
 			final TextView noWifiTextview = findViewById(R.id.nowifitextview);
 			if(isManualMode()) {
 				noWifiTextview.setText(R.string.text_wifimanualmode);
 			} else {
 				if(isOnWantedFreq) {
 					noWifiTextview.setText(R.string.text_wififrequencyok);
-				} else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-					noWifiTextview.setText(R.string.error_not_android10);
 				} else {
 					noWifiTextview.setText(R.string.text_wififound);
 				}
 			}
+			findViewById(R.id.cardSwitchManualModeBtn).setVisibility(GONE);
 		} else {
 			// we did not get a result: probably permission missing?
 			if (checkSelfPermission(ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 				showPermissionsError();
 			} else { // otherwise: we found networks, but not the appropriate (2.4/5)
 				((MaterialCardView)findViewById(R.id.nowificardview)).setCardBackgroundColor(getResources().getColor(R.color.design_default_color_primary_dark, getTheme()));
+				findViewById(R.id.nowificardview).setVisibility(VISIBLE);
 				((TextView) findViewById(R.id.nowifitextview)).setText(R.string.text_nowififound);
+				findViewById(R.id.cardSwitchManualModeBtn).setVisibility(manualMode ? GONE : VISIBLE);
 			}
 		}
-	}
-
-	private boolean isInSuggestedWifis(@NonNull ScanResult result, @NonNull List<WifiNetworkSuggestion> suggestionList) {
-		final String ssid = normalizeSSID(result.SSID);
-		for (WifiNetworkSuggestion suggestion : suggestionList) {
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-				if (ssid.equals(normalizeSSID(suggestion.getSsid())) && result.BSSID.equals(String.valueOf(suggestion.getBssid()))) // TODO: stimmt das Format immer ueberein?
-					return true;
-			}
-		}
-		return false;
 	}
 
 	void showMessage(@StringRes int id) {
@@ -994,37 +1184,6 @@ public class MainActivity extends AppCompatActivity {
 		Snackbar.make(MainActivity.this.findViewById(R.id.mainFragment), msg, Snackbar.LENGTH_LONG).setTextMaxLines(3).show(); // otherwise use Toast
 	}
 
-	/**
-	 * Show recommendations, this actually works due to API restrictions only on latest versions
-	 * <p>On OnePlus/Realme we get a strange BadParcelableException/ClassNotFoundException from WifiNetworkSuggestion$1.createFromParcel (com.android.server.wifi.OplusWifiConfiguration)
-	 * I cannot determinate a real reason behind it, maybe Chinese changes to the Android standard frameworks?</p>
-	 *
-	 * @param suggestionList
-	 * @param activeWifi
-	 * @deprecated remove soon
-	 */
-	@Deprecated
-	private void showCurrentSuggestions(List<WifiNetworkSuggestion> suggestionList, boolean activeWifi) {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-			//final TextView recommendationView = ((TextView) findViewById(R.id.recommandedwifitextview));
-			try {
-				if (!suggestionList.isEmpty()) {
-					StringBuilder builder = new StringBuilder();
-					for (WifiNetworkSuggestion suggestion : suggestionList) {
-						builder.append(suggestion.getSsid()).append(" - ").append(suggestion.getBssid()).append(" recommended at prio ").append(suggestion.getPriority()).append("<br/>");
-					}
-					builder.delete(builder.length() - 5, builder.length()); // br am Ende entfernen
-					showMessage(builder.toString());
-					//recommendationView.setText(Html.fromHtml(builder.toString(), Html.FROM_HTML_MODE_COMPACT));
-				} else {
-					// omit the message "text_nowifirecommended" as this would result into a loop
-				}
-			} catch (BadParcelableException e) { // on OnePlus...
-				Log.e(AppInfo.APP_NAME, "Error on getNetworkSuggestions", e);
-				showError(R.string.error_cannot_display_recommended_wifi);
-			}
-		}
-	}
 	public static boolean isLocationServicesEnabled(@NonNull Context context) {
 		LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 		return LocationManagerCompat.isLocationEnabled(locationManager);
@@ -1035,7 +1194,9 @@ public class MainActivity extends AppCompatActivity {
 	 */
 	private void showPermissionsError() {
 		((MaterialCardView)findViewById(R.id.nowificardview)).setCardBackgroundColor(getResources().getColor(android.R.color.holo_red_dark, getTheme()));
+		findViewById(R.id.nowificardview).setVisibility(View.VISIBLE);
 		((TextView) findViewById(R.id.nowifitextview)).setText(R.string.error_no_permissions_provived);
+		findViewById(R.id.cardSwitchManualModeBtn).setVisibility(GONE);
 	}
 
 	private void showAbout() {
@@ -1216,12 +1377,18 @@ public class MainActivity extends AppCompatActivity {
 	 * Check if manual network suggestion mode is a) enabled and b) supported by Android version
 	 * @return true if manual mode
 	 */
-	private boolean isManualMode() {
-		return !PreferenceManager.getDefaultSharedPreferences(this).getBoolean(getString(R.string.prefs_activation), false)
-				&& (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q);
+	boolean isManualMode() {
+		return !PreferenceManager.getDefaultSharedPreferences(this).getBoolean(getString(R.string.prefs_activation), false);
+	}
+	boolean toggleManualMode() {
+		final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+		final String key = getString(R.string.prefs_activation);
+		boolean mode = !prefs.getBoolean(key, false);
+		prefs.edit().putBoolean(key, mode).apply();
+		return mode;
 	}
 
-	private boolean isCrashlyticsEnabled() {
+	boolean isCrashlyticsEnabled() {
 		return PreferenceManager.getDefaultSharedPreferences(this).getBoolean(getString(R.string.prefs_crashlytics), true);
 	}
 }

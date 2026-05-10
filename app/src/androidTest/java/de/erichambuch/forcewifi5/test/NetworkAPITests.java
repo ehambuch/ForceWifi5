@@ -51,9 +51,9 @@ public class NetworkAPITests {
 
     @Test
     public void testWifiNormalizer() {
-        Assert.assertEquals("WLAN-TEST", WifiUtils.normalizeSSID("WLAN-TEST"));
-        Assert.assertEquals("WLAN-TEST", WifiUtils.normalizeSSID("\"WLAN-TEST\""));
-        Assert.assertFalse(WifiUtils.hasNormalizedSSID("WLAN-TEST"));
-        Assert.assertTrue(WifiUtils.hasNormalizedSSID("\"WLAN-TEST\""));
+        Assert.assertEquals("\"WLAN-TEST\"", WifiUtils.getQuotationalSSID("WLAN-TEST"));
+        Assert.assertEquals("\"WLAN-TEST\"", WifiUtils.getQuotationalSSID("\"WLAN-TEST\""));
+        Assert.assertEquals("WLAN-TEST", WifiUtils.unquoteSSid("\"WLAN-TEST\""));
+        Assert.assertEquals("WLAN-TEST", WifiUtils.unquoteSSid("WLAN-TEST"));
     }
 }

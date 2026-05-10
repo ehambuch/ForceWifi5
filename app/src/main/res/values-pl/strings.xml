@@ -118,4 +118,13 @@
     <string name="title_selectpreferredchannels">Select Preferred Wifi Channels</string>
     <string name="summary_selectpreferredchannels">Select dedicated channels set to optimize the scan and connection (may not work on all devices)</string>
     <string name="text_wififrequencyok">Twoje połączenie działa obecnie na preferowanej częstotliwości. Poniżej znajduje się lista wszystkich dostępnych sieci Wi-Fi.</string>
+    <string name="error_constent">Error retrieving consent form</string>
+    <string name="action_privacyoptions">Opcje prywatności</string>
+    <string name="error_no_browser">Nie znaleziono przeglądarki na urządzeniu z systemem Android!</string>
+    <string name="action_data_protection">Polityka prywatności</string>
+    <string name="text_available_wifis">Dostępne sieci Wi-Fi</string>
+    <string name="action_save">Ratować</string>
+    <string name="action_manualmode">Tryb ręczny</string>
+    <string name="text_active_wifi">Aktywne Wi-Fi</string>
+    <string name="text_wifi_change_accepted">System Android zaakceptował zmianę Wi-Fi na %s.</string>
 </resources>

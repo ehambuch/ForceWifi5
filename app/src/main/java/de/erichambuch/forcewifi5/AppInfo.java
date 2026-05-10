@@ -61,6 +61,7 @@ package de.erichambuch.forcewifi5;
  *     <li>V1.27.0(64/65 (02.07.2025) - Update Android 15, Bugfix Overview Wifi List to handle multiple access points</li>
  *     <li>V1.28.0 (68) (29.12.2025) - Update Android 16</li>
  *     <li>V1.29.1 (69) (20.02.2026) - Update Firebase Key, Libs, Fixes WorkManager Initialization</li>
+ *     <li>V2.0.0 (70) (09.05.2026) - Revised App UI, reactived AdMob, Android 11 minimum requirement</li>
  * </ul>
  * Open Issues to be fixed:
  * <ul>

@@ -13,6 +13,7 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID"/>
     <!-- due to policy in Android Play Market -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" android:maxSdkVersion="33"
         tools:ignore="ForegroundServicesPolicy" />
@@ -151,16 +152,18 @@
             </intent-filter>
         </receiver>
 
-        <meta-data
-            android:name="firebase_crashlytics_collection_enabled"
-            android:value="false" />
-        <meta-data
-            android:name="firebase_analytics_collection_deactivated"
-            android:value="true" />
-        <!-- not necessary yet, maybe in future releases
-        <property android:name="android.net.PROPERTY_SELF_CERTIFIED_NETWORK_CAPABILITIES"
-            android:resource="@xml/networkcapas"/>
-            -->
+        <meta-data android:name="com.google.android.gms.ads.DELAY_APP_MEASUREMENT_INIT" android:value="true"/>
+        <!--  erst mit Datensammlung starten, wenn zulaessig  -->
+        <meta-data android:name="firebase_crashlytics_collection_enabled" android:value="false"/>
+        <meta-data android:name="firebase_analytics_collection_enabled" android:value="false"/>
+        <meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version"/>
+        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-6851248802879048~9497007640"/>
+        <meta-data android:name="com.google.mlkit.vision.DEPENDENCIES" android:value="barcode,barcode_ui"/>
+        <meta-data android:name="google_analytics_default_allow_analytics_storage" android:value="false"/>
+        <meta-data android:name="google_analytics_default_allow_ad_storage" android:value="false"/>
+        <meta-data android:name="google_analytics_default_allow_ad_user_data" android:value="false"/>
+        <meta-data android:name="google_analytics_default_allow_ad_personalization_signals" android:value="false"/>
+
     </application>
 
 </manifest>

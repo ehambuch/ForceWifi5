@@ -1,11 +1,10 @@
 package de.erichambuch.forcewifi5;
 
-import android.graphics.drawable.AnimationDrawable;
+import android.content.ClipData;
 import android.net.wifi.WifiManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -22,18 +21,14 @@ public class CustomWifiListAdapter extends RecyclerView.Adapter<CustomWifiListAd
     public static class ViewHolder extends RecyclerView.ViewHolder {
         private final TextView textViewName;
         private final TextView textViewBSSID;
-        private final ImageView image1;
-        private final ImageView image2;
 
-        private final CheckBox checkbox;
+        private final ImageView networkImage;
 
         public ViewHolder(@NonNull View view) {
             super(view);
             textViewName = (TextView) view.findViewById(R.id.networktextviewName);
             textViewBSSID = (TextView) view.findViewById(R.id.networktextviewBSSID);
-            image1 = view.findViewById(R.id.networkimage1);
-            image2 = view.findViewById(R.id.networkimage2);
-            checkbox = view.findViewById(R.id.networkcheckbox);
+            networkImage = (ImageView) view.findViewById(R.id.networkimage1);
         }
 
         @NonNull
@@ -46,50 +41,30 @@ public class CustomWifiListAdapter extends RecyclerView.Adapter<CustomWifiListAd
             return textViewBSSID;
         }
 
-        public void setConnected(boolean connected) {
-            image1.setVisibility(connected ? View.VISIBLE : View.GONE);
-        }
+        @NonNull
+        public ImageView getNetworkImage() { return networkImage; }
+    }
 
+    /**
+     * This class is used as LocalState to pass information for Drag&Drop.
+     */
+    static class WifiLocalState {
+        MainActivity.AccessPointEntry accessPointEntry;
+        View listView;
 
-        public void setRecommended(boolean i) {
-            image2.setVisibility(i ? View.VISIBLE : View.GONE);
-            final boolean connected = image1.getVisibility() == View.VISIBLE;
-            if(connected) {
-                image2.setBackgroundResource(R.drawable.baseline_high_priority_24);
-            } else if (i) { // if recommended, but not connected yet -> flash red/green to indicate open change of network
-                image2.setBackgroundResource(R.drawable.animated_priority);
-                ((AnimationDrawable) image2.getBackground()).start();
-            }
-        }
-
-        public void setSelectable(boolean s) {
-            checkbox.setVisibility(s ? View.VISIBLE : View.INVISIBLE);
-        }
-
-        public void setSelected(boolean selected) {
-            checkbox.setSelected(selected);
-        }
-
-        public boolean isSelected() {
-            return checkbox.isSelected();
-        }
-
-        public void connectWithEntry(final @NonNull MainActivity.AccessPointEntry entry) {
-            checkbox.setOnCheckedChangeListener((buttonView, isChecked) -> entry.setSelected(isChecked));
+        WifiLocalState(View v, MainActivity.AccessPointEntry entry) {
+            this.listView = v;
+            this.accessPointEntry = entry;
         }
     }
 
     private final List<MainActivity.AccessPointEntry> networkEntries;
     private final WifiManager wifiManager;
 
-    private final boolean selectionMode;
-    private final boolean isOnWantedFrequency;
-
-    public CustomWifiListAdapter(@NonNull List<MainActivity.AccessPointEntry> networkEntries, @NonNull WifiManager wifiManager, boolean selectionMode, boolean isOnWantedFreq) {
+    public CustomWifiListAdapter(@NonNull List<MainActivity.AccessPointEntry> networkEntries,
+                                 @NonNull WifiManager wifiManager) {
         this.networkEntries = networkEntries;
         this.wifiManager = wifiManager;
-        this.selectionMode = selectionMode;
-        this.isOnWantedFrequency = isOnWantedFreq;
     }
 
     // Create new views (invoked by the layout manager)
@@ -106,21 +81,41 @@ public class CustomWifiListAdapter extends RecyclerView.Adapter<CustomWifiListAd
     @Override
     public void onBindViewHolder(@NonNull ViewHolder viewHolder, final int position) {
         MainActivity.AccessPointEntry entry = networkEntries.get(position);
-        viewHolder.getTextViewName().setText(entry.name+" - "+entry.bssid);
+        viewHolder.getTextViewName().setText(String.format("%s - %s", WifiUtils.unquoteSSid(entry.name), entry.bssid));
         final StringBuilder text = new StringBuilder(32);
-        text.append(entry.frequencies);
-        text.append(" - ").append(WifiUtils.calculateWifiLevel(wifiManager, entry.signalLevel)).append(" %");
+        if(entry.frequencies != null)
+            text.append(entry.frequencies);
+        if(entry.signalLevel >= 0)
+            text.append(" - ").append(WifiUtils.calculateWifiLevel(wifiManager, entry.signalLevel)).append(" %");
         viewHolder.getTextViewInformation().setText(text);
-        viewHolder.setConnected(entry.connected);
-        viewHolder.setRecommended(!isOnWantedFrequency && entry.recommended); // only show SWITCH symbol if we are on wrong Wifi
-        viewHolder.setSelectable(this.selectionMode);
-        viewHolder.setSelected(entry.selected);
-        viewHolder.connectWithEntry(entry);
+        viewHolder.getNetworkImage().setImageResource(entry.recommended ? R.drawable.baseline_high_priority_24 : R.drawable.baseline_wifi_24);
+        viewHolder.itemView.setTag(entry);
+        // for drag & drop
+        viewHolder.itemView.setOnLongClickListener(v -> {
+            View.DragShadowBuilder myShadow = new View.DragShadowBuilder(v);
+            // we pass the AccessPointEntry object directly with drag&drop as LocalState
+            v.startDragAndDrop(ClipData.newPlainText(entry.name,""), myShadow,
+                    new WifiLocalState(v, (MainActivity.AccessPointEntry) v.getTag()), 0);
+            return true;
+        });
     }
 
     // Return the size of your dataset (invoked by the layout manager)
     @Override
     public int getItemCount() {
         return networkEntries.size();
+    }
+
+    void removeItem(MainActivity.AccessPointEntry item) {
+        int position = networkEntries.indexOf(item);
+        if (position != -1) {
+            networkEntries.remove(position);
+            notifyItemRemoved(position);
+        }
+    }
+
+    void addItem(MainActivity.AccessPointEntry item) {
+        networkEntries.add(item);
+        notifyItemInserted(networkEntries.size() - 1);
     }
 }

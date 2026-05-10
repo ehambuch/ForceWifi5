@@ -7,10 +7,12 @@ import static android.Manifest.permission.NEARBY_WIFI_DEVICES;
 import static android.Manifest.permission.POST_NOTIFICATIONS;
 
 import android.content.Context;
+import android.net.wifi.ScanResult;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.net.wifi.WifiNetworkSuggestion;
+import android.net.wifi.WifiSsid;
 import android.os.Build;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -22,25 +24,39 @@ import java.util.Set;
 public class WifiUtils {
 
     /**
-     * Normalizes the SSID (remote quotation marks)
+     * Normalizes the SSID (remote quotation marks).
+     * <p>Note: some Wifi operations require the quotation marks, otherweise they think is binary.</p>
      *
      * @param ssid SSID
      * @return normaoized SSID
      * @see WifiInfo#getSSID()
      */
     @NonNull
-    public static String normalizeSSID(@Nullable String ssid) {
+    public static String unquoteSSid(@Nullable String ssid) {
         if (ssid == null )
             return "";
         if (ssid.startsWith("\"") && ssid.endsWith("\"")) {
-            Log.d(AppInfo.APP_NAME, "Normlized SSID "+ssid);
             return ssid.substring(1, ssid.length()-1);
         } else
             return ssid;
     }
 
-    public static boolean hasNormalizedSSID(@Nullable String ssid) {
+    public static boolean hasQuotedSSID(@Nullable String ssid) {
         return (ssid != null && ssid.startsWith("\"") && ssid.endsWith("\""));
+    }
+
+    /**
+     * Ensures that SSID contains quotes for UTF-8 characters.
+     * @param ssid original SSID (with or without quotes).
+     * @return the quoted SSID
+     */
+    public static String getQuotationalSSID(@Nullable String ssid) { // TODO: does not support binary SSID
+        if(ssid == null)
+            return "";
+        if(!ssid.startsWith("\"")) {
+            return "\"" + ssid + "\"";
+        } else
+            return ssid;
     }
 
     /**
@@ -49,7 +65,7 @@ public class WifiUtils {
      * @return 0 to 100
      */
     public static int calculateWifiLevel(@NonNull WifiManager manager, int signalRssi) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && manager.getMaxSignalLevel() > 0) {
+        if (manager.getMaxSignalLevel() > 0) {
             return manager.calculateSignalLevel(signalRssi) * 100 / manager.getMaxSignalLevel();
         } else {
             if(signalRssi <= -100)
@@ -125,6 +141,82 @@ public class WifiUtils {
             return new String[]{
                     ACCESS_WIFI_STATE, CHANGE_NETWORK_STATE, ACCESS_FINE_LOCATION
             };
+        }
+    }
+
+    public static String getSsid(WifiNetworkSuggestion suggestion) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            return returnNotNull(suggestion.getWifiSsid());
+        } else {
+            return returnNotNull(suggestion.getSsid());
+        }
+    }
+
+    /**
+     * Compactibility method for retrieving SSID.
+     * @param suggestion
+     * @return may be null or new SSID
+     */
+    @Nullable
+    public static WifiSsid getWifiSsid(@NonNull WifiNetworkSuggestion suggestion) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            return suggestion.getWifiSsid();
+        } else {
+           return null;
+        }
+    }
+
+    /**
+     * Compactibility method for retrieving SSID.
+     * @param result
+     * @return may be null or new SSID
+     */
+    @Nullable
+    public static WifiSsid getWifiSsid(@NonNull ScanResult result) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            return result.getWifiSsid();
+        } else {
+            return null;
+        }
+    }
+
+    public static String getBssid(WifiNetworkSuggestion suggestion) {
+        return returnNotNull(suggestion.getBssid());
+    }
+
+    private static String returnNotNull(String s) {
+        return s != null ? s : "";
+    }
+
+    private static String returnNotNull(Object s) {
+        return s != null ? s.toString() : "";
+    }
+
+    public static boolean isEmulator() {
+        return (Build.BRAND.startsWith("generic") && Build.DEVICE.startsWith("generic"))
+                || Build.FINGERPRINT.startsWith("generic")
+                || Build.FINGERPRINT.startsWith("unknown")
+                || Build.HARDWARE.contains("goldfish")
+                || Build.HARDWARE.contains("ranchu")
+                || Build.MODEL.contains("google_sdk")
+                || Build.MODEL.contains("Emulator")
+                || Build.MODEL.contains("Android SDK built for x86")
+                || Build.MANUFACTURER.contains("Genymotion")
+                || Build.PRODUCT.contains("sdk_google")
+                || Build.PRODUCT.contains("google_sdk")
+                || Build.PRODUCT.contains("sdk")
+                || Build.PRODUCT.contains("sdk_x86")
+                || Build.PRODUCT.contains("vbox86p")
+                || Build.PRODUCT.contains("emulator")
+                || Build.PRODUCT.contains("simulator");
+    }
+
+    public static boolean isSameSSID(ScanResult result, WifiInfo activeWifi) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            final String wifissid = result.getWifiSsid() != null ? result.getWifiSsid().toString() : "";
+            return (wifissid.equals(activeWifi.getSSID()) || wifissid.equals(getQuotationalSSID(activeWifi.getSSID())));
+        } else {
+            return (getQuotationalSSID(result.SSID).equals(getQuotationalSSID(activeWifi.getSSID())));
         }
     }
 }
