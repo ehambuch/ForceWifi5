@@ -9,6 +9,7 @@
     <string name="info_5ghz_active">Wifi ist bereits auf gewünschtem Frequenzband</string>
     <string name="text_listnetworks">Verfügbare Netzwerke mit beiden Frequenzbändern 2.4/5 GHz:</string>
     <string name="title_activation">Force Wifi aktiviert</string>
+    <string name="text_activation_automatic_manuel">Automatischer Modus aktiviert. Wechseln Sie in den Einstellungen in den manuellen Modus, um Ihre bevorzugten WLANs manuell festzulegen.</string>
     <string name="error_5ghz_not_configured">Bitte aktivieren Sie im Router das 5 GHz Netzwerkband mit gleicher SSID…</string>
     <string name="error_scan_failed_throttle">Wifi Scan fehlgeschlagen - Drosselung aktiv</string>
     <string name="error_scan_failed_wifi">Wifi Scan fehlgeschlagen - nicht aktiv</string>
@@ -127,4 +128,21 @@
     <string name="action_data_protection">Datenschutzerklärung</string>
     <string name="text_active_wifi">Aktives Wifi</string>
     <string name="text_wifi_change_accepted">Android hat Änderung des Wifis auf %s akzeptiert.</string>
+    <string name="text_next">Weiter</string>
+    <string name="text_previous">Zurück</string>
+    <string name="setup_title_1">Willkommen in Force Wifi 5!</string>
+    <string name="setup_text_1"><![CDATA[<p>Diese App hält das WLAN Ihres Smartphones auf den gewünschten Kanälen. Sie können automatisch auf das weniger frequentierte 5-GHz- oder – sofern unterstützt – sogar auf das 6-GHz-Band wechseln. Zudem können Sie manuell bestimmte WLAN-Netzwerke als bevorzugt festlegen. Es kann einen Moment dauern oder ein kurzes Aus- und Wiedereinschalten des WLANs erfordern, bis die Änderungen wirksam werden – bitte haben Sie daher etwas Geduld.</p><br/> <p>Jegliches Feedback ist willkommen – schreiben Sie mir einfach eine E-Mail.</p><br/>Nun beginnen wir mit dem Einrichtungsprozess und der Erteilung der erforderlichen Berechtigungen…]]></string>
+    <string name="text_finish">Fertig</string>
+    <string name="setup_title_2">Location Permission</string>
+    <string name="setup_text_2"><![CDATA[<p>Um alle WLANs in der Nähe abrufen zu können, benötigt Android die Berechtigung <em>LOCATION</em> und/oder <em>NEARBY</em>.</p><p>Bitte erteilen Sie diese im folgenden Dialog.</p><br/><p>Ohne diese Berechtigung funktioniert die App überhaupt nicht.</p>]]></string>
+    <string name="setup_title_3">Notification Permission</string>
+    <string name="setup_text_3"><![CDATA[<p>ForceWifi5 sendet Ihnen mehrere Benachrichtigungen – beispielsweise, wenn ein WLAN-Kanal gewechselt wurde oder ein Kanalwechsel nicht möglich war.</p><br/><p>Bitte erteilen Sie die angeforderte Berechtigung und aktivieren Sie zudem die Benachrichtigungen in den App-Einstellungen.</p>]]></string>
+    <string name="setup_title_4">Battery Optimizations</string>
+    <string name="setup_text_4"><![CDATA[<p>Ab Android 12 müssen Sie die <em>Akku-Optimierungen</em> für diese App deaktivieren.</p><br/><p>Bitte öffnen Sie die Einstellungen und gewähren Sie dieser App eine Ausnahme, indem Sie die App auswählen, die Option <em>Nicht optimieren</em> wählen und zudem sämtliche <em>Hintergrundbeschränkungen</em> entfernen.</p><p>Eine Nicht-Deaktivierung der Akku-Optimierungen kann dazu führen, dass Android diese App zwangsweise beendet.</p>]]></string>
+    <string name="setup_title_5">Und zuletzt für den Autor</string>
+    <string name="setup_text_5"><![CDATA[Abschließend werden Sie gebeten, Werbung zuzulassen. Die wenigen Cents pro Anzeige unterstützen den Autor dabei, weitere nützliche Apps zu entwickeln und Support bereitzustellen.  <p>Die App nutzt <a href="https://https://firebase.google.com/support/privacy">Firebase Crashlytics</a>, um Fehler während der Nutzung der App zu erkennen. Sie können die Datenübertragung in den <em>Einstellungen</em> aktivieren oder deaktivieren. Für weitere Details lesen Sie bitte die <a href="https://https://sites.google.com/site/erichambuch/dataprotection">Datenschutzhinweise</a>.</p>]]></string>
+    <string name="text_setup">Setup</string>
+    <string name="description_setup">Setup starten</string>
+    <string name="text_not_working"><![CDATA[<p>Einige Gründe, warum die App bei Ihnen möglicherweise nicht ordnungsgemäß funktioniert:</p><br/><p><ol><li><em>Das Android-System berücksichtigt Ihren Wunsch nach einem bestimmten WLAN-Kanal nicht – z. B. aufgrund eines schwachen Signals.</li><li>Ihr Router hält Ihr Gerät auf einem bestimmten Kanal fest.</li></ol></p><br/><p>Was kann ich tun?</p><p><ol><li>Deaktivieren Sie zunächst bitte das WLAN auf Ihrem Smartphone und verbinden Sie es nach einer kurzen Wartezeit erneut.</li><li>Überprüfen Sie anschließend die verschiedenen Einstellungen, um mögliche Verbesserungen vorzunehmen.</li></ol><p>]]></string>
+    <string name="action_notworking">Funktioniert nicht?</string>
 </resources>

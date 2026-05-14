@@ -1,12 +1,9 @@
 package de.erichambuch.forcewifi5;
 
-import static android.Manifest.permission.ACCESS_FINE_LOCATION;
-import static android.Manifest.permission.ACCESS_WIFI_STATE;
-import static android.Manifest.permission.CHANGE_NETWORK_STATE;
-import static android.Manifest.permission.NEARBY_WIFI_DEVICES;
-import static android.Manifest.permission.POST_NOTIFICATIONS;
-
 import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
@@ -22,6 +19,19 @@ import java.util.Collections;
 import java.util.Set;
 
 public class WifiUtils {
+
+    public static boolean isWifiConnected(Context context) {
+        ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE); if (cm == null) return false;
+        Network activeNetwork = cm.getActiveNetwork();
+        if (activeNetwork == null) return false;
+
+        NetworkCapabilities capabilities = cm.getNetworkCapabilities(activeNetwork);
+        return capabilities != null && capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI);
+    }
+    public static boolean isWifiEnabled(Context context) {
+        WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        return wifiManager != null && wifiManager.isWifiEnabled();
+    }
 
     /**
      * Normalizes the SSID (remote quotation marks).
@@ -126,22 +136,6 @@ public class WifiUtils {
             }
         }
         return new int[0];
-    }
-    /**
-     * Get list of required Wifi permissions for app.
-     * @return the list of required permissions
-     * @see <a href="https://developer.android.com/develop/connectivity/wifi/wifi-permissions?hl=de">...</a>
-     */
-    public static @NonNull String[] getRequiredAppPermissions() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            return new String[]{
-                    ACCESS_WIFI_STATE, CHANGE_NETWORK_STATE, NEARBY_WIFI_DEVICES, ACCESS_FINE_LOCATION, POST_NOTIFICATIONS
-            };
-        } else {
-            return new String[]{
-                    ACCESS_WIFI_STATE, CHANGE_NETWORK_STATE, ACCESS_FINE_LOCATION
-            };
-        }
     }
 
     public static String getSsid(WifiNetworkSuggestion suggestion) {

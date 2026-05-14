@@ -179,8 +179,9 @@ public class AdMobUtils {
      * @return size
      */
     AdSize getAdSize() {
-        AdSize adSize =  AdSize.getLargeAnchoredAdaptiveBannerAdSize(mainActivity, 360);
-        return (adSize == null || adSize == AdSize.INVALID) ? AdSize.BANNER : adSize;
+        return AdSize.BANNER;
+        // AdSize adSize =  AdSize.getLargeAnchoredAdaptiveBannerAdSize(mainActivity, 360);
+        // return (adSize == null || adSize == AdSize.INVALID) ? AdSize.BANNER : adSize;
     }
 
     void showError(@StringRes int stringId) {

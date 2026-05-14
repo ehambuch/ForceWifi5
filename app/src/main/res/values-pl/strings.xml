@@ -10,6 +10,7 @@
     <string name="info_5ghz_active">WiFi jest już połączone z preferowaną częstotliwością</string>
     <string name="text_listnetworks">Dostępne sieci z obydwoma 2.4/5 GHz:</string>
     <string name="title_activation">Wymuś włączenie częstotliwości WiFi</string>
+    <string name="text_activation_automatic_manuel">Aktywowano tryb automatyczny. Przełącz na tryb ręczny w Ustawieniach, aby ręcznie zdefiniować preferowane sieci Wi-Fi.</string>
     <string name="error_5ghz_not_configured">Spróbuj skonfigurować sieć 5 GHz z aktualnym SSID…</string>
     <string name="error_scan_failed_throttle">Skanowanie WiFi nie powiodło się – za dużo skanowań</string>
     <string name="error_scan_failed_wifi">Skanowanie WiFi nie powiodło się – WiFi jest niedostępne</string>
@@ -127,4 +128,21 @@
     <string name="action_manualmode">Tryb ręczny</string>
     <string name="text_active_wifi">Aktywne Wi-Fi</string>
     <string name="text_wifi_change_accepted">System Android zaakceptował zmianę Wi-Fi na %s.</string>
+    <string name="text_next">Następny</string>
+    <string name="text_previous">Poprzedni</string>
+    <string name="setup_title_1">Witamy w Force Wifi 5!</string>
+    <string name="setup_text_1"><![CDATA[<p>Ta aplikacja utrzymuje Wi-Fi Twojego telefonu na wybranych kanałach. Możesz automatycznie preferować mniej obciążone pasmo 5 GHz, a nawet 6 GHz – o ile jest ono obsługiwane. Możesz również ręcznie wskazać preferowane sieci Wi-Fi. Wprowadzenie zmian w życie może zająć chwilę lub wymagać przełączenia Wi-Fi (wyłączenia i ponownego włączenia), dlatego prosimy o cierpliwość.</p><br/> <p>Wszelkie uwagi i opinie są mile widziane – wystarczy, że wyślesz do mnie wiadomość e-mail.</p><br/>Przejdźmy teraz do procesu konfiguracji i udzielenia niezbędnych uprawnień…]]></string>
+    <string name="text_finish">Skończyć</string>
+    <string name="setup_title_2">Location Permission</string>
+    <string name="setup_text_2"><![CDATA[<p>Aby wykryć wszystkie pobliskie sieci Wi-Fi, system Android wymaga uprawnienia <em>LOCATION</em> i/lub <em>NEARBY</em>.</p><p>Proszę je przyznać w wyświetlonym oknie dialogowym.</p><br/><p>Bez tego uprawnienia aplikacja w ogóle nie będzie działać.</p>]]></string>
+    <string name="setup_title_3">Notification Permission</string>
+    <string name="setup_text_3"><![CDATA[<p>ForceWifi5 będzie wysyłać do Ciebie powiadomienia – na przykład w przypadku zmiany kanału Wi-Fi lub gdy przełączenie kanału nie będzie możliwe.</p><br/><p>Prosimy o udzielenie wymaganych uprawnień, a także o włączenie powiadomień w ustawieniach aplikacji.</p>]]></string>
+    <string name="setup_title_4">Battery Optimizations</string>
+    <string name="setup_text_4"><![CDATA[<p>Począwszy od systemu Android 12, konieczne będzie wyłączenie <em>optymalizacji baterii</em> dla tej aplikacji.</p><br/><p>Proszę otworzyć Ustawienia i dodać tę aplikację do wyjątków, wybierając ją z listy, a następnie opcję <em>Nie optymalizuj</em> oraz usuwając wszelkie <em>ograniczenia działania w tle</em>.</p><p>Niewyłączenie optymalizacji baterii może skutkować wymuszonym zatrzymaniem działania aplikacji przez system Android.</p>]]></string>
+    <string name="setup_title_5">Finally Support the Author</string>
+    <string name="setup_text_5"><![CDATA[Na koniec prosimy o wyrażenie zgody na wyświetlanie reklam. Kilka centów uzyskiwanych z każdej reklamy wesprze Autora w tworzeniu kolejnych przydatnych aplikacji oraz w świadczeniu wsparcia technicznego.  <p>Aplikacja korzysta z <a href="https://https://firebase.google.com/support/privacy">Firebase Crashlytics</a> w celu identyfikacji błędów i awarii występujących podczas jej użytkowania. Przesyłanie danych można włączyć lub wyłączyć w sekcji <em>Ustawienia</em>. Aby uzyskać więcej szczegółów, prosimy zapoznać się z <a href="https://https://sites.google.com/site/erichambuch/dataprotection">Informacjami o ochronie prywatności</a>.</p>]]></string>
+    <string name="text_setup">Setup</string>
+    <string name="description_setup">Uruchom instalator</string>
+    <string name="text_not_working"><![CDATA[<p>Oto kilka powodów, dla których aplikacja może nie działać u Ciebie poprawnie:</p><br/><p><ol><li><em>System Android nie uwzględnia Twojej prośby o wybór konkretnego kanału Wi-Fi – np. z powodu słabego sygnału.</li><li>Twój router wymusza na urządzeniu korzystanie z określonego kanału.</li></ol></p><br/><p>Co mogę zrobić?</p><p><ol><li>Po pierwsze, wyłącz Wi-Fi w telefonie, a po chwili włącz je ponownie.</li><li>Po drugie, sprawdź różne ustawienia, aby spróbować poprawić działanie aplikacji.</li></ol><p>]]></string>
+    <string name="action_notworking">Nie działa?</string>
 </resources>

@@ -412,8 +412,9 @@ public class WifiChangeService extends Service {
 				final WifiNetworkSpecifier.Builder specificerBuild = new WifiNetworkSpecifier.Builder();
 				if(suggestion.getBssid() != null) // only one setter is allowed for WifiSpecifier
 					specificerBuild.setBssid(suggestion.getBssid());
-				else
+				else {
 					specificerBuild.setSsid(suggestion.getSsid());
+				}
 				specificerBuild.setBand(getBand(context)); // this is required to avoid a copying of the request wher only the band is transferred internally
 				// experimental feature to define dedicated channels, not available on all devices
 				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
@@ -435,8 +436,7 @@ public class WifiChangeService extends Service {
 	}
 	@RequiresPermission(ACCESS_WIFI_STATE)
 	static List<WifiNetworkSuggestion> getActualSuggestions(WifiManager wifiManager) {
-		return (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) ?
-				wifiManager.getNetworkSuggestions() : Collections.emptyList();
+		return wifiManager.getNetworkSuggestions();
 	}
 
 	private String suggestionToString(WifiNetworkSuggestion suggestion) {

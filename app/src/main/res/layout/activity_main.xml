@@ -87,7 +87,7 @@
             android:id="@+id/activatedWifi"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Test Wifi"
+            android:text="No Wifi"
             android:background="?attr/colorSurfaceContainerHigh"
             android:textAppearance="@style/TextAppearance.Material3.LabelSmall.Emphasized"
             android:padding="8dp"/>
@@ -99,16 +99,31 @@
             android:textAppearance="@style/TextAppearance.Material3.HeadlineSmall"
             />
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/wifiListPreferred"
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="0.3"
-            android:background="?attr/colorSurfaceContainerLow"
-            android:layout_marginBottom="8dp"
-            android:dividerHeight="2dp"
-            android:orientation="vertical"
-            android:scrollbars="vertical"/>
+            android:layout_marginBottom="8dp">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/wifiListPreferred"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="?attr/colorSurfaceContainerLow"
+                android:dividerHeight="2dp"
+                android:orientation="vertical"
+                android:scrollbars="vertical"/>
+
+            <TextView
+                android:id="@+id/wifiListPreferredOverlay"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="@string/text_activation_automatic_manuel"
+                android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+                android:textColor="?android:attr/textColorSecondary"
+                android:visibility="gone" />
+        </FrameLayout>
 
         <TextView
             android:layout_width="match_parent"

@@ -122,6 +122,13 @@
                 android:targetClass="de.erichambuch.forcewifi5.SettingsActivity" />
         </Preference>
         <Preference
+            app:title="@string/text_setup"
+            app:summary="@string/description_setup">
+            <intent
+                android:targetPackage="de.erichambuch.forcewifi5"
+                android:targetClass="de.erichambuch.forcewifi5.SetupActivity" />
+        </Preference>
+        <Preference
             app:title="@string/title_device_overlay"
             app:summary="@string/description_device_overlay">
             <intent

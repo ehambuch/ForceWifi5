@@ -61,12 +61,11 @@ package de.erichambuch.forcewifi5;
  *     <li>V1.27.0(64/65 (02.07.2025) - Update Android 15, Bugfix Overview Wifi List to handle multiple access points</li>
  *     <li>V1.28.0 (68) (29.12.2025) - Update Android 16</li>
  *     <li>V1.29.1 (69) (20.02.2026) - Update Firebase Key, Libs, Fixes WorkManager Initialization</li>
- *     <li>V2.0.0 (70) (09.05.2026) - Revised App UI, reactived AdMob, Android 11 minimum requirement</li>
+ *     <li>V2.0.0 (71) (09.05.2026) - Revised App UI, reactived AdMob, Android 11 minimum requirement</li>
  * </ul>
  * Open Issues to be fixed:
  * <ul>
  *     <li>TODO: disconnect does not work anymore: <a href="https://issuetracker.google.com/issues/128554616">Issue 128554616</a></li>
- *     <li>TODO: make a guided setup process for all the settings</li>
  *     <li><a href="https://developer.android.com/training/location/permissions#background">Problems with Foreground/Background</a></li>
  *     <li><a href="https://issuetracker.google.com/issues/192032398?pli=1#comment6">Issue 192032398</a></li>
  *     <li><a href="https://stackoverflow.com/questions/44425584/context-startforegroundservice-did-not-then-call-service-startforeground/46449975#46449975">Stackoverflow</a></li>

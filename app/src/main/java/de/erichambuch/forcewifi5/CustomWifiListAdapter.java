@@ -49,8 +49,8 @@ public class CustomWifiListAdapter extends RecyclerView.Adapter<CustomWifiListAd
      * This class is used as LocalState to pass information for Drag&Drop.
      */
     static class WifiLocalState {
-        MainActivity.AccessPointEntry accessPointEntry;
-        View listView;
+        final MainActivity.AccessPointEntry accessPointEntry;
+        final View listView;
 
         WifiLocalState(View v, MainActivity.AccessPointEntry entry) {
             this.listView = v;

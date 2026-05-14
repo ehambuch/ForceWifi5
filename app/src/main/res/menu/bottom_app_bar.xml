@@ -10,39 +10,6 @@
         app:showAsAction="always"/>
 
     <item
-        android:id="@+id/menu_wifi_reset"
-        android:icon="@drawable/baseline_delete_24"
-        android:title="@string/text_reset_suggestions"
-        android:contentDescription="@string/text_reset_suggestions"
-        android:tooltipText="@string/text_reset_suggestions"
-        app:showAsAction="ifRoom"/>
-
-    <item
-        android:id="@+id/menu_about"
-        app:showAsAction="never"
-        android:contentDescription="@string/action_about"
-        android:title="@string/action_about"/>
-
-    <item
-        android:id="@+id/menu_info"
-        app:showAsAction="never"
-        android:contentDescription="@string/action_contact"
-        android:title="@string/action_contact"/>
-
-    <item
-        android:id="@+id/menu_privacy_options"
-        app:showAsAction="never"
-        android:contentDescription="@string/action_privacyoptions"
-        android:title="@string/action_privacyoptions"/>
-
-    <item
-        android:id="@+id/menu_dataprotection"
-        app:showAsAction="never"
-        android:contentDescription="@string/action_data_protection"
-        android:title="@string/action_data_protection"/>
-
-
-    <item
         android:id="@+id/menu_wifionoff"
         android:icon="@drawable/wifi_24px"
         android:title="@string/text_wifi"
@@ -62,5 +29,50 @@
         android:icon="@drawable/baseline_autorenew_24"
         android:contentDescription="@string/action_reload"
         android:title="@string/action_reload"/>
+
+    <item
+        android:id="@+id/menu_not_working"
+        app:showAsAction="ifRoom"
+        android:icon="@drawable/help_24px"
+        android:contentDescription="@string/action_notworking"
+        android:title="@string/action_notworking"/>
+
+    <item
+        android:id="@+id/menu_wifi_reset"
+        android:icon="@drawable/baseline_delete_24"
+        android:title="@string/text_reset_suggestions"
+        android:contentDescription="@string/text_reset_suggestions"
+        android:tooltipText="@string/text_reset_suggestions"
+        app:showAsAction="ifRoom"/>
+
+    <item
+        android:id="@+id/menu_about"
+        app:showAsAction="never"
+        android:contentDescription="@string/action_about"
+        android:title="@string/action_about"/>
+
+    <item
+        android:id="@+id/menu_setup"
+        app:showAsAction="never"
+        android:contentDescription="@string/text_setup"
+        android:title="@string/text_setup"/>
+
+    <item
+        android:id="@+id/menu_info"
+        app:showAsAction="never"
+        android:contentDescription="@string/action_contact"
+        android:title="@string/action_contact"/>
+
+    <item
+        android:id="@+id/menu_privacy_options"
+        app:showAsAction="never"
+        android:contentDescription="@string/action_privacyoptions"
+        android:title="@string/action_privacyoptions"/>
+
+    <item
+        android:id="@+id/menu_dataprotection"
+        app:showAsAction="never"
+        android:contentDescription="@string/action_data_protection"
+        android:title="@string/action_data_protection"/>
 
 </menu>

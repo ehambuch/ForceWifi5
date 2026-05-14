@@ -10,6 +10,7 @@
     <string name="info_5ghz_active">Wifi already connected with preferred frequency</string>
     <string name="text_listnetworks">Available networks with both 2.4/5 GHz:</string>
     <string name="title_activation">Automatic Force Wifi activated</string>
+    <string name="text_activation_automatic_manuel">Automatic Mode activated. Switch to Manual Mode in Settings to define your preferred Wifis manually.</string>
     <string name="error_5ghz_not_configured">Please try to configure 5 GHz network with current SSID…</string>
     <string name="error_scan_failed_throttle">Wifi scan failed - throttling too many scans</string>
     <string name="error_scan_failed_wifi">Wifi scan failed - Wifi not available</string>
@@ -156,7 +157,28 @@
     <string name="action_privacyoptions">Privacy options</string>
     <string name="error_no_browser">No browser found on Android device!</string>
     <string name="dataprotection_url" translatable="false">https://sites.google.com/site/erichambuch/dataprotection</string>
-    <string name="action_data_protection" translatable="false">Privacy Statement</string>
+    <string name="action_data_protection">Privacy Statement</string>
     <string name="text_wifi_change_accepted">Android has accepted Wifi change to %s</string>
     <string name="text_connecting" translatable="false">Connecting…</string>
+    <string name="text_next">Next</string>
+    <string name="text_previous">Previous</string>
+    <string name="setup_title_1">Welcome to Force Wifi 5!</string>
+    <string name="setup_text_1"><![CDATA[<p>This App keeps your Phone\'s Wifi on the desired Channels. You may automatically stick to the lesser used 5 GHz or even 6 GHz band if supported. You may also manually set some preferred Wifis. Changes may take some time or on/off switched to take effect, so please be patient.</p><br/>
+    <p>Any Feedback is welcome - just drop me an email.</p><br/>Now let\'s start with the Setup Process and granting some Permissions…]]></string>
+    <string name="text_finish">Finish</string>
+    <string name="setup_title_2">Location Permission</string>
+    <string name="setup_text_2"><![CDATA[<p>In order to retrieve all Wifis nearby, Android requires the <em>LOCATION</em> and/or <em>NEARBY</em> permission.</p><p>Please grant it in the upcoming Dialog.</p><br/><p>Without this Permission the App will not work at all.</p>]]></string>
+    <string name="setup_title_3">Notification Permission</string>
+    <string name="setup_text_3"><![CDATA[<p>ForceWifi5 will send several Notifications to you, e.g. if a Wifi Channel has been changed or switching channels hasn\'t been possible.</p><br/><p>Please grant the requested Permission and also enable Notifications in the App Settings.</p>]]></string>
+    <string name="setup_title_4">Location Services</string>
+    <string name="setup_text_4"><![CDATA[<p>This app requires access to all wireless networks nearby. Therefore <em>Location Services</em> must be enabled in order to retrieve a list of all Wifis. This is a requirement enforced by Android.<br/>Without the app WILL NOT work.<br/><p>The app will never try to locate your position or similar.</p>]]></string>
+    <string name="setup_title_5">Finally Support the Author</string>
+    <string name="setup_text_5"><![CDATA[Finally, you are asked to accept Ads. The few Cents for each ad will support the Author in writing further useful Apps and providing Support.
+    <p>The App makes use of <a href="https://https://firebase.google.com/support/privacy">Firebase Crashlytics</a> to identify Failures while using the App. You may enable or disable the Data Transfer in the <em>Settings</em>. For more Details please refer to the <a href="https://https://sites.google.com/site/erichambuch/dataprotection">Data Privacy Details</a>.</p>]]></string>
+    <string name="text_setup">Setup</string>
+    <string name="prefs_setup" translatable="false">prefs_showsetup</string>
+    <string name="description_setup">Run Setup again</string>
+    <string name="text_not_working"><![CDATA[<p>Some reasons why the app may not work properly for you:</p><br/><p><ol><li><em>Android system does not accept your wish for a specific Wifi channel, e.g. due to weak signal.</li><li>Your router keeps your device stick to a specific channel.</li></ol></p><br/><p>What can I do?</p><p><ol><li>First, please disconnect your phone\'s Wifi and re-connect it after some time again.</li><li>Secondly, please check out the different Settings for improvement.</li></ol><p>]]></string>
+    <string name="action_notworking">Not Working?</string>
 </resources>
+

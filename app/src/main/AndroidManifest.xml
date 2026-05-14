@@ -89,6 +89,11 @@
             android:exported="false"
             android:label="@string/add_widget" />
         <activity
+            android:name=".SetupActivity"
+            android:exported="false"
+            android:label="@string/text_setup"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
             android:name=".SettingsActivity"
             android:exported="false"
             android:label="@string/action_settings"

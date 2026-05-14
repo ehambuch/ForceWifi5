@@ -11,6 +11,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textIsSelectable="false"
+        android:layout_marginTop="0dp"
         android:layout_marginBottom="0dp"
         android:textAppearance="@style/TextAppearance.Material3.LabelSmall.Emphasized"
         android:text="Dies ist ein Test WIFI"/>
@@ -19,6 +20,7 @@
         android:layout_height="wrap_content"
         android:textIsSelectable="false"
         android:layout_below="@id/networktextviewName"
+        android:layout_marginBottom="0dp"
         android:textAppearance="@style/TextAppearance.Material3.LabelSmall"
         android:text="Mit SSID und BSSI und Signal"/>
     <ImageView
@@ -27,6 +29,8 @@
         android:layout_height="24dp"
         android:layout_alignParentEnd="true"
         android:layout_centerVertical="true"
+        android:layout_marginBottom="0dp"
+        android:layout_marginTop="0dp"
         android:gravity="center_vertical"
         android:src="@drawable/baseline_wifi_24"
         android:contentDescription="wifiactive"
