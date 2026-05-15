@@ -721,7 +721,8 @@ public class MainActivity extends AppCompatActivity {
 				.show();
 	}
 
-	@RequiresPermission(allOf = {ACCESS_WIFI_STATE, ACCESS_FINE_LOCATION})
+	@SuppressLint("UnspecifiedRegisterReceiverFlag")
+    @RequiresPermission(allOf = {ACCESS_WIFI_STATE, ACCESS_FINE_LOCATION})
 	private void doStart() {
 		// check prerequisites on every start and inform the user
 		if (!isLocationServicesEnabled(this)) {
@@ -1063,7 +1064,7 @@ public class MainActivity extends AppCompatActivity {
 						dialog.cancel();
 					}
 				})
-				.setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+				.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int which) { // deactive Crashlytics
 						PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().
@@ -1116,13 +1117,11 @@ public class MainActivity extends AppCompatActivity {
 						}
 					}
 				})
-				.setPositiveButton(R.string.text_settings, new DialogInterface.OnClickListener() {
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						dialog.cancel();
-						startActivity(new Intent(getApplicationContext(), SettingsActivity.class));
-					}
-				})
+				.setNeutralButton(R.string.text_settings, (dialog, which) -> {
+                    dialog.cancel();
+                    startActivity(new Intent(getApplicationContext(), SettingsActivity.class));
+                })
+				.setPositiveButton(android.R.string.ok, (dialog, which) -> {dialog.cancel();})
 				.setMessage(Html.fromHtml(getString(R.string.text_not_working), Html.FROM_HTML_MODE_COMPACT));
 		final AlertDialog dialog = dialogBuilder.create();
 		TextView view = (TextView) dialog.findViewById(android.R.id.message);

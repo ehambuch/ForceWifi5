@@ -93,7 +93,7 @@
     <string name="title_batt_optimization_settings">Battery optimization settings</string>
     <string name="summary_batt_optimization_settings">Open battery optimization settings to disable all optimizations for this app. This is required for Android 12 and above.</string>
     <string name="title_developer_settings">Developer Settings</string>
-    <string name="description_developer_settings">You can switch off the Wifi scanning Throttling in the Developer Options (if activated on your device).</string>
+    <string name="description_developer_settings">You can switch off the Wifi scanning Throttling in the Developer Options &gt; Networking &gt; Wi-Fi scan throttling</string>
     <string name="message_forcewifi14_activated">Force Wifi 5 activated. Please open to switch to a specific Wifi access point.</string>
     <string name="prefs_notification_settings" translatable="false">prefs_notification_settings</string>
     <string name="title_notification_settings">Notifications</string>
