@@ -20,6 +20,7 @@ import android.os.Bundle;
 import android.os.PowerManager;
 import android.provider.Settings;
 import android.text.Html;
+import android.text.method.ScrollingMovementMethod;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -62,6 +63,7 @@ public class SetupActivity extends AppCompatActivity implements ActivityCompat.O
         iconLogo = findViewById(R.id.setup_logo);
         titleTextView = findViewById(R.id.setup_title);
         descriptionTextView = findViewById(R.id.setup_description);
+        descriptionTextView.setMovementMethod(new ScrollingMovementMethod());
         btnPrevious = findViewById(R.id.btn_previous);
         btnNext = findViewById(R.id.btn_next);
 
@@ -173,8 +175,8 @@ public class SetupActivity extends AppCompatActivity implements ActivityCompat.O
     }
 
     protected void moveBackward() {
-        if (currentStep > 0) {
-            currentStep--;
+        if (currentStep >= 2) {
+            currentStep -=2;
             updateUI();
         }
     }

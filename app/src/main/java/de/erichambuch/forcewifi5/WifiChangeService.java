@@ -2,13 +2,10 @@ package de.erichambuch.forcewifi5;
 
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.Manifest.permission.ACCESS_WIFI_STATE;
-import static android.Manifest.permission.CHANGE_NETWORK_STATE;
 import static android.Manifest.permission.CHANGE_WIFI_STATE;
 import static android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION;
 import static de.erichambuch.forcewifi5.WifiUtils.getPreferredNetworkFrequencies;
-import static de.erichambuch.forcewifi5.WifiUtils.getQuotationalSSID;
 import static de.erichambuch.forcewifi5.WifiUtils.is5GHzPreferred;
-import static de.erichambuch.forcewifi5.WifiUtils.unquoteSSid;
 
 import android.app.Notification;
 import android.app.PendingIntent;
@@ -18,14 +15,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
-import android.net.MacAddress;
 import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.net.NetworkRequest;
-import android.net.Uri;
 import android.net.wifi.ScanResult;
-import android.net.wifi.WifiConfiguration;
-import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiNetworkSpecifier;
 import android.net.wifi.WifiNetworkSuggestion;
@@ -48,7 +41,6 @@ import androidx.core.app.NotificationManagerCompat;
 import androidx.core.app.ServiceCompat;
 import androidx.preference.PreferenceManager;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -77,44 +69,40 @@ public class WifiChangeService extends Service {
 			final WifiChangeService myService = binder.getService();
 			myService.connection = this;
 
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-				NotificationCompat.Builder builder =
-						new NotificationCompat.Builder(context, MainActivity.CHANNEL_ID)
-								.setContentTitle(context.getText(R.string.app_name))
-								.setContentText(context.getText(R.string.title_activation))
-								.setSmallIcon(R.mipmap.ic_launcher)
-								.setAutoCancel(false)
-								.setSilent(true)
-								.setContentIntent(PendingIntent.getActivity(context, 0,
-										new Intent(Intent.ACTION_VIEW, null, context.getApplicationContext(), MainActivity.class),
-										PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_IMMUTABLE))
-								.setCategory(Notification.CATEGORY_SERVICE)
-								.setTicker(context.getText(R.string.title_activation));
-				try {
-					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-						// with Android 14 we cannot start a Foreground Service anymore
-						myService.startService(new Intent(myService.getApplicationContext(), WifiChangeService14.class));
-						if (NotificationManagerCompat.from(context).areNotificationsEnabled())
-							if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-								showError(this.context, R.string.error_no_permissions_notification);
-							} else
-								NotificationManagerCompat.from(context).notify(ONGOING_NOTIFICATION_ID, builder.build());
-					} else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-						// With Android 12+ we could get an android.app.ForegroundServiceStartNotAllowedException due to new restrictions
-						builder.setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE);
-						builder.setOngoing(true);
-						ServiceCompat.startForeground(myService, ONGOING_NOTIFICATION_ID, builder.build(), FOREGROUND_SERVICE_TYPE_LOCATION);
-					} else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-						ServiceCompat.startForeground(myService, ONGOING_NOTIFICATION_ID, builder.build(), FOREGROUND_SERVICE_TYPE_LOCATION);
-					} else {
-						myService.startForeground(ONGOING_NOTIFICATION_ID, builder.build());
-					}
-					// Release the connection to prevent leaks. => may be skipped
-					context.unbindService(this);
-				} catch (Exception e) {
-					Log.i(AppInfo.APP_NAME, "startForeground or unBind failed.", e);
-					Crashlytics.recordException(e);
+			// do not show anything in manual mode
+			if(!isAutomaticMode(context))
+				return;
+
+			NotificationCompat.Builder builder =
+					new NotificationCompat.Builder(context, MainActivity.CHANNEL_ID)
+							.setContentTitle(context.getText(R.string.app_name))
+							.setContentText(context.getText(R.string.title_activation))
+							.setSmallIcon(R.mipmap.ic_launcher)
+							.setAutoCancel(false)
+							.setSilent(true)
+							.setContentIntent(PendingIntent.getActivity(context, 0,
+									new Intent(Intent.ACTION_VIEW, null, context.getApplicationContext(), MainActivity.class),
+									PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_IMMUTABLE))
+							.setCategory(Notification.CATEGORY_SERVICE)
+							.setTicker(context.getText(R.string.title_activation));
+			try {
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+					// with Android 14 we cannot start a Foreground Service anymore
+					myService.startService(new Intent(myService.getApplicationContext(), WifiChangeService.class));
+					if (NotificationManagerCompat.from(context).areNotificationsEnabled())
+						if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+							showError(this.context, R.string.error_no_permissions_notification);
+						} else
+							NotificationManagerCompat.from(context).notify(ONGOING_NOTIFICATION_ID, builder.build());
+				} else {
+					builder.setOngoing(true);
+					ServiceCompat.startForeground(myService, ONGOING_NOTIFICATION_ID, builder.build(), FOREGROUND_SERVICE_TYPE_LOCATION);
 				}
+				// Release the connection to prevent leaks. => may be skipped
+				context.unbindService(this);
+			} catch (Exception e) {
+				Log.i(AppInfo.APP_NAME, "startForeground or unBind failed.", e);
+				Crashlytics.recordException(e);
 			}
 		}
 
@@ -143,11 +131,17 @@ public class WifiChangeService extends Service {
 		@Override
 		public void onAvailable(@NonNull Network network) {
 			Log.i(AppInfo.APP_NAME, "Available requested network: "+network);
+			// do not show anything in manual mode
+			if(!isAutomaticMode(ctx))
+				return;
 			showNotificationMessage(ctx, ctx.getString(R.string.text_wifichange_successful));
 		}
 		@Override
 		public void onUnavailable() {
 			Log.w(AppInfo.APP_NAME, "Unavailabled requested network");
+			// do not show anything in manual mode
+			if(!isAutomaticMode(ctx))
+				return;
 			showNotificationMessage(ctx, ctx.getString(R.string.error_suggestion_not_taken));
 		}
 	}
@@ -174,11 +168,6 @@ public class WifiChangeService extends Service {
 		super();
 	}
 
-	/**
-	 * Solution for ANR problem according to {@see https://stackoverflow.com/questions/44425584/context-startforegroundservice-did-not-then-call-service-startforeground}
-	 * @param intent
-	 * @return the service instance
-	 */
 	@Nullable
 	@Override
 	public IBinder onBind(Intent intent) {
@@ -209,7 +198,8 @@ public class WifiChangeService extends Service {
 					this.getForegroundServiceType() != FOREGROUND_SERVICE_TYPE_LOCATION) {
 				startForeground(ONGOING_NOTIFICATION_ID, createMessageNotification(this, R.string.title_activation), FOREGROUND_SERVICE_TYPE_LOCATION);
 			}
-			if (isActivated()) {
+			WifiController controller = new WifiController(this);
+			if (controller.isActivated()) {
 				if (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
 						&& ActivityCompat.checkSelfPermission(this, CHANGE_WIFI_STATE) == PackageManager.PERMISSION_GRANTED
 						&& ActivityCompat.checkSelfPermission(this, ACCESS_WIFI_STATE) == PackageManager.PERMISSION_GRANTED) {
@@ -217,188 +207,24 @@ public class WifiChangeService extends Service {
 						// Android 9 and above forces handling of foreground services, esp. if using location services
 						// we create the foreground service during ServiceConnection creating due to scheduling bugs in Android
 						// Workaround from Stackoverflow https://stackoverflow.com/questions/44425584/context-startforegroundservice-did-not-then-call-service-startforegrounds
-						updateNetworks();
+						controller.updateNetworks();
 					} catch (Exception e) {
 						Log.e(AppInfo.APP_NAME, "updateNetworks", e);
 						Crashlytics.recordException(e);
-						showPermissionError();
+						controller.showPermissionError();
 					} finally {
 						if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
 							stopForeground(true);  // Notification and Service ended
 					}
 				} else {
 					Log.e(AppInfo.APP_NAME, "Permissions missing");
-					showPermissionError();
+					controller.showPermissionError();
 				}
 			}
 		} catch(Exception e) {
 			Crashlytics.recordException(e);
 		}
 		return START_NOT_STICKY;
-	}
-
-	/**
-	 * Switch Wifi network: if connected to 2.4 and another with same SSID is available
-	 * on 5 Ghz, then try to re-connect. Another option is to switch completely as long as
-	 * @throws SecurityException on errors
-	 */
-	@RequiresPermission(allOf = {ACCESS_FINE_LOCATION, CHANGE_WIFI_STATE, ACCESS_WIFI_STATE, CHANGE_NETWORK_STATE})
-	protected void updateNetworks() throws SecurityException {
-		Log.d(AppInfo.APP_NAME, "Started updateNetworks...");
-		final WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
-		if (isActivated() && wifiManager.isWifiEnabled()) {
-			final WifiInfo activeWifi = wifiManager.getConnectionInfo();
-			if (activeWifi != null && WifiUtils.isWrongFrequency(this, activeWifi.getFrequency())) {
-				// at latest here we need enabled location services to get proper results of Wifi data.
-				// otherwise getScanResults() and WifiInfo would not contain the sufficient information
-				if (!checkLocationServices())
-					return;
-
-				boolean reconnected = false;
-				List<ScanResult> scanResults = wifiManager.getScanResults();
-				int minimumSignalLevel = -1;
-				int priority = 1;
-				int networkId = -1;
-				final boolean switchToOtherSSID = isSwitchToOtherSSID();
-				final List<WifiNetworkSuggestion> suggestions = new ArrayList<>(5);
-				final StringBuilder suggestionsString = new StringBuilder(256); // wir müssen parallel noch das als String mitführen
-				for (ScanResult result : scanResults) {
-					final int signalLevel = WifiUtils.calculateWifiLevel(wifiManager, result.level);
-					if (WifiUtils.isWantedFrequency(this, result.frequency)
-							&& (switchToOtherSSID || WifiUtils.isSameSSID(result, activeWifi))
-							&& signalLevel >= getMinimumLevel()
-							&& signalLevel > minimumSignalLevel) {
-						// found Wifi -> try to connect to it
-						if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-							final WifiNetworkSuggestion.Builder suggestionBuilder = new WifiNetworkSuggestion.Builder();
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && result.getWifiSsid() != null) {
-                                suggestionBuilder.setWifiSsid(result.getWifiSsid());
-                            } else {
-								suggestionBuilder.setSsid(getQuotationalSSID(result.SSID));
-							}
-                            suggestionsString.append(unquoteSSid(result.SSID)).append(" - ");
-							if (result.BSSID != null) {
-								suggestionBuilder.setBssid(MacAddress.fromString(result.BSSID));
-								suggestionsString.append(result.BSSID);
-							}
-
-							suggestionsString.append(" recommended at prio ").append(priority).append(". Please disable and re-enable your Wifi.");
-							suggestionBuilder.setPriority(priority++);
-							suggestions.add(suggestionBuilder.build());
-							minimumSignalLevel = signalLevel;
-							reconnected = true;
-							// for Repeaters with different access points - we try to find a stronger signal, so don't break: continue;
-						} else {
-							// geht nur < Android 10: Vorsicht: die BSSID kann NULL sein und wir bekommen in der Liste der Netzwerke
-							// nur die SSIDs, nicht zwigend die verschiedenen BSSIDs, so dass wir diese unterscheiden können.
-							List<WifiConfiguration> configs = wifiManager.getConfiguredNetworks();
-							for (WifiConfiguration config : configs) {
-								if (getQuotationalSSID(config.SSID).equals(getQuotationalSSID(result.SSID)) && (config.BSSID == null || config.BSSID.equals(result.BSSID))) {
-									// assume: thats the 5GHz point - we cannot be sure, but give a try; some Android versions keep the same Network 2/5 GhZ
-									// under the same networkId, so we don't have a chance to distinguish them
-									reconnected = true;
-									minimumSignalLevel = signalLevel;
-									networkId = config.networkId;
-
-									suggestionsString.append(result.SSID).append(" - ").append(result.BSSID).append(" recommended with ID ").append(config.networkId);
-									break;
-								}
-							}
-
-						}
-					}
-				}
-				if (reconnected) {
-					Log.d(AppInfo.APP_NAME, "Try to reconnect");
-					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && !suggestions.isEmpty()) {
-						// show suggestion in Notification
-						showNotificationMessage(getApplicationContext(), this.getText(R.string.info_switch_wifi_5ghz) + " " + suggestionToString(suggestions.get(0)));
-						// Starting with API 33, Android allows to use setWifiEnabled in certain cases (device owner, etc.), so we give a try
-						// disconnect geht nicht mehr: https://issuetracker.google.com/issues/128554616
-						if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ) {
-							try {
-								wifiManager.setWifiEnabled(false);
-							} catch (Exception e) {
-								Log.w(AppInfo.APP_NAME, "Wifi disabling/enabled failed", e);
-							}
-						}
-
-						final List<WifiNetworkSuggestion> actualSuggestions = getActualSuggestions(wifiManager);
-						if (actualSuggestions.equals(suggestions)) {
-							Log.i(AppInfo.APP_NAME, "Suggestions already given: " + actualSuggestions);
-							showError(R.string.error_suggestion_not_taken);
-							// suggestions have already been set - no change to change anything
-							return;
-						} else {
-							int returnCode = wifiManager.removeNetworkSuggestions(actualSuggestions);
-							Log.i(AppInfo.APP_NAME, "removeNetworks, RC=" + returnCode);
-						}
-						final int returnCode = wifiManager.addNetworkSuggestions(suggestions);
-						Log.i(AppInfo.APP_NAME, "Switch to Wifis: " + suggestions + " rc=" + returnCode);
-						switch (returnCode) {
-							case WifiManager.STATUS_NETWORK_SUGGESTIONS_ERROR_ADD_DUPLICATE:
-								showError(R.string.error_permission_duplicate);
-								break;
-							case WifiManager.STATUS_NETWORK_SUGGESTIONS_SUCCESS:
-								showError(R.string.info_switch_wifi_5ghz_android10);
-								// Starting with API 33, Android allows to use setWifiEnabled in certain cases (device owner, etc.), so we give a try
-								// disconnect geht nicht mehr: https://issuetracker.google.com/issues/128554616
-								if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ) {
-									boolean changed = false;
-									try {
-										changed = wifiManager.setWifiEnabled(true);
-									} catch (Exception e) {
-										Log.w(AppInfo.APP_NAME, "Wifi disabling/enabled failed", e);
-									} finally {
-										// try another way, for Android Q+ the flag changed is always "false" as per spec
-										if(!changed && !isAggressive()) {
-											try {
-												startActivity(getWifiIntent(getApplicationContext()));
-											} catch(Exception e2) {
-												Crashlytics.recordException(e2);
-											}
-										}
-									}
-								}
-								break;
-							case WifiManager.STATUS_NETWORK_SUGGESTIONS_ERROR_APP_DISALLOWED:
-								showError(R.string.error_permission_missing);
-								break;
-							case WifiManager.STATUS_NETWORK_SUGGESTIONS_ERROR_ADD_EXCEEDS_MAX_PER_APP:
-							case WifiManager.STATUS_NETWORK_SUGGESTIONS_ERROR_ADD_INVALID:
-							case WifiManager.STATUS_NETWORK_SUGGESTIONS_ERROR_ADD_NOT_ALLOWED:
-							case WifiManager.STATUS_NETWORK_SUGGESTIONS_ERROR_INTERNAL:
-							case WifiManager.STATUS_NETWORK_SUGGESTIONS_ERROR_REMOVE_INVALID:
-							case WifiManager.STATUS_NETWORK_SUGGESTIONS_ERROR_RESTRICTED_BY_ADMIN:
-							default:
-								showError(R.string.error_switch_wifi_android10);
-								break;
-						}
-						// Aggressive request of a specific network (from Android 12)
-						if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && isAggressive() && !suggestions.isEmpty()) {
-							aggressiveNetworkChange(this, suggestions.get(0));
-						}
-					} else if (networkId >= 0) {
-						// Check auf networkId != activeWifi.getNetworkId() bringt nichts, weil Android unter derselben networkId
-						// ein und dasselbe Netzwerk mit 2/5 GHz führt, dass kann zu nervigen Endlosschleifen führen
-						wifiManager.disconnect(); // kein disable, sonst geht evtl. gar nichts mehr
-						wifiManager.enableNetwork(networkId, true); // lt. Javadoc geht das mit TargetAPI = 29 nicht mehr
-						Log.i(AppInfo.APP_NAME, "Switch to Wifi: " + networkId);
-						showError(R.string.info_switch_wifi_5ghz);
-					}
-
-					// and display by sending a broadcast to MainActivity
-					final Intent intent = new Intent(MainActivity.INTENT_WIFICHANGETEXT);
-					intent.setPackage(getPackageName());
-					intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY | Intent.FLAG_FROM_BACKGROUND);
-					intent.putExtra(MainActivity.EXTRA_WIFICHANGETEXT, suggestionsString.toString());
-					getApplicationContext().sendBroadcast(intent);
-				} else
-					showError(R.string.error_5ghz_not_configured);
-			} else {
-				showError(R.string.info_5ghz_active);
-			}
-		}
 	}
 
 	/**
@@ -415,13 +241,17 @@ public class WifiChangeService extends Service {
 				else {
 					specificerBuild.setSsid(suggestion.getSsid());
 				}
-				specificerBuild.setBand(getBand(context)); // this is required to avoid a copying of the request wher only the band is transferred internally
+				// this is required to avoid a copying of the request where only the band is transferred internally
 				// experimental feature to define dedicated channels, not available on all devices
+				// WARNING: setting Band AND Channels togehter results in an IllegalStateException!
 				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
 					int[] freqs = getPreferredNetworkFrequencies(context);
 					if(freqs.length > 0)
 						specificerBuild.setPreferredChannelsFrequenciesMhz(freqs);
-				}
+					else
+						specificerBuild.setBand(getBand(context));
+				} else
+					specificerBuild.setBand(getBand(context));
 				final NetworkRequest request = new NetworkRequest.Builder().
 						addTransportType(NetworkCapabilities.TRANSPORT_WIFI).
 						setIncludeOtherUidNetworks(true).  // we also want the system Wifis
@@ -434,11 +264,6 @@ public class WifiChangeService extends Service {
 			}
 		}
 	}
-	@RequiresPermission(ACCESS_WIFI_STATE)
-	static List<WifiNetworkSuggestion> getActualSuggestions(WifiManager wifiManager) {
-		return wifiManager.getNetworkSuggestions();
-	}
-
 	private String suggestionToString(WifiNetworkSuggestion suggestion) {
 		StringBuilder builder = new StringBuilder(32);
 		builder.append(suggestion.getSsid()).append(" [").append(suggestion.getBssid()).append("]");
@@ -464,9 +289,6 @@ public class WifiChangeService extends Service {
 		return rc;
 	}
 
-	private void showError(int stringId) {
-		showError(getApplicationContext(), stringId, false);
-	}
 	static void showError(Context context, int stringId) {
 		showError(context, stringId, false);
 	}
@@ -487,64 +309,6 @@ public class WifiChangeService extends Service {
 					Toast.makeText(context, stringId, Toast.LENGTH_LONG).show();
 				}
 			});
-		}
-	}
-
-	/**
-	 * Check if Location Services are enabled. If not, raise a notification to the user.
-	 * @return <var>true</var> if enabled
-	 */
-	private boolean checkLocationServices() {
-		if (!MainActivity.isLocationServicesEnabled(this)) {
-			// show notification that location services must be enabled to get list of scanned wifis
-			Intent locationIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-			locationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-			PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, locationIntent, PendingIntent.FLAG_IMMUTABLE);
-			NotificationCompat.Builder builder = new NotificationCompat.Builder(this, MainActivity.CHANNEL_ID)
-					.setSmallIcon(R.mipmap.ic_launcher)
-					.setContentTitle(getString(R.string.app_name))
-					.setContentText(getString(R.string.error_no_location_enabled))
-					.setPriority(NotificationCompat.PRIORITY_DEFAULT)
-					.setAutoCancel(true)
-					.setContentIntent(pendingIntent);
-			if (NotificationManagerCompat.from(this).areNotificationsEnabled()) {
-				try {
-					NotificationManagerCompat.from(this).notify(ONGOING_NOTIFICATION_ID, builder.build());
-				} catch(SecurityException e) {
-					showError(R.string.error_no_permissions_notification);
-				}
-			} else {
-				showError(R.string.error_no_location_enabled);
-			}
-			return false;
-		}
-		return true;
-	}
-
-	/**
-	 * Show notification to user if permissions are missing.
-	 */
-	protected void showPermissionError() {
-		Intent locationIntent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-		locationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-		locationIntent.setData(Uri.fromParts("package", getPackageName(), null));
-		PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, locationIntent, PendingIntent.FLAG_IMMUTABLE);
-		NotificationCompat.Builder builder = new NotificationCompat.Builder(this, MainActivity.CHANNEL_ID)
-				.setSmallIcon(R.mipmap.ic_launcher)
-				.setContentTitle(getString(R.string.app_name))
-				.setContentText(getString(R.string.error_permission_missing))
-				.setPriority(NotificationCompat.PRIORITY_DEFAULT)
-				.setCategory(Notification.CATEGORY_ERROR)
-				.setAutoCancel(true)
-				.setContentIntent(pendingIntent);
-		if(NotificationManagerCompat.from(this).areNotificationsEnabled()) {
-			try {
-				NotificationManagerCompat.from(this).notify(ONGOING_NOTIFICATION_ID, builder.build());
-			} catch(SecurityException e) {
-				showError(R.string.error_no_permissions_notification);
-			}
-		} else {
-			showError(R.string.error_permission_missing);
 		}
 	}
 
@@ -608,14 +372,6 @@ public class WifiChangeService extends Service {
 		}
 	}
 
-	protected boolean isActivated() {
-		return PreferenceManager.getDefaultSharedPreferences(this).getBoolean(getString(R.string.prefs_activation), true);
-	}
-
-	private boolean isAggressive() {
-		return PreferenceManager.getDefaultSharedPreferences(this).getBoolean(getString(R.string.prefs_aggressive_change), true);
-	}
-
 	@RequiresApi(api = Build.VERSION_CODES.S)
 	public static int getBand(@NonNull Context context) {
 		if(WifiUtils.is60GHzPreferred(context))
@@ -626,18 +382,6 @@ public class WifiChangeService extends Service {
 			return ScanResult.WIFI_BAND_5_GHZ;
 		else
 			return ScanResult.WIFI_BAND_24_GHZ;
-	}
-
-	/**
-	 * Minimales Signallevel, damit Wechsel iniitiert wird.
-	 * @return min (0-100)
-	 */
-	private int getMinimumLevel() {
-		return PreferenceManager.getDefaultSharedPreferences(this).getInt(getString(R.string.prefs_signallevel), 30);
-	}
-
-	private boolean isSwitchToOtherSSID() {
-		return PreferenceManager.getDefaultSharedPreferences(this).getBoolean(getString(R.string.prefs_switchnetwork), false);
 	}
 
 	/**
@@ -658,5 +402,9 @@ public class WifiChangeService extends Service {
 		if(intent.resolveActivity(context.getPackageManager()) != null)
 			return intent;
 		return new Intent(Settings.ACTION_WIFI_SETTINGS).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+	}
+
+	static boolean isAutomaticMode(Context context) {
+		return PreferenceManager.getDefaultSharedPreferences(context).getBoolean(context.getString(R.string.prefs_activation), false);
 	}
 }

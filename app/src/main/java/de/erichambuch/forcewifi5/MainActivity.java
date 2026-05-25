@@ -5,7 +5,6 @@ import static android.Manifest.permission.ACCESS_WIFI_STATE;
 import static android.text.Html.FROM_HTML_MODE_LEGACY;
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
-import static de.erichambuch.forcewifi5.WifiChangeService.ONGOING_NOTIFICATION_ID;
 import static de.erichambuch.forcewifi5.WifiChangeService.showNotificationMessage;
 
 import android.annotation.SuppressLint;
@@ -24,12 +23,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
-import android.net.ConnectivityManager;
 import android.net.MacAddress;
-import android.net.Network;
-import android.net.NetworkCapabilities;
-import android.net.NetworkInfo;
-import android.net.NetworkRequest;
 import android.net.Uri;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiInfo;
@@ -60,8 +54,6 @@ import androidx.annotation.RequiresPermission;
 import androidx.annotation.StringRes;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.app.NotificationManagerCompat;
 import androidx.core.location.LocationManagerCompat;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -87,7 +79,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Main activity für die App.
@@ -101,12 +92,6 @@ public class MainActivity extends AppCompatActivity {
 	public static final String EXTRA_WIFICHANGETEXT = "de.erichambuch.forcewifi5.recommendation";
 
 	private static final int REQUEST_CODE_LOCATION_SERVICES = 4567;
-
-	/**
-	 * Circuit breaker - shared by different listeners.
-	 */
-	@NonNull
-	protected static final AtomicLong lastNetworkCallback = new AtomicLong(0);
 
 	/**
 	 * List of all available Wifi networks.
@@ -126,145 +111,6 @@ public class MainActivity extends AppCompatActivity {
 	protected volatile boolean checkForNotificationsEnabled = true;
 
 	protected AdMobUtils adMobUtils;
-
-	/**
-	 * Broadcast receiver for WifiManager.NETWORK_STATE_CHANGED_ACTION.
-	 * <p>This works due to Android background restrictions only up to Android 9. Above we won't receive any events.</p>
-	 */
-	static class NetworkStateChangedReceiver extends BroadcastReceiver {
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			Log.d(AppInfo.APP_NAME, "NetworkStateChangedReceiver called");
-			final long lastTimestamp = System.currentTimeMillis();
-			if (lastTimestamp > lastNetworkCallback.get() + (30 * 1000)) { // Circuit breaker
-				lastNetworkCallback.set(lastTimestamp);
-				final NetworkInfo networkInfo = (NetworkInfo) intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
-				if (networkInfo == null || (networkInfo.isConnectedOrConnecting() && networkInfo.getType() == ConnectivityManager.TYPE_WIFI))
-					startWifiService(context.getApplicationContext());
-			} else
-				Log.d(AppInfo.APP_NAME, "Skipped NetworkCallBack");
-
-			updateWidget(context.getApplicationContext());
-		}
-
-		private void updateWidget(Context context) {
-			// and update widget if any
-			final AppWidgetManager appWidgetManager = (AppWidgetManager) context.getSystemService(APPWIDGET_SERVICE);
-			final int[] widgetIds = appWidgetManager.getAppWidgetIds(new ComponentName(context, ForceWifiAppWidget.class.getName()));
-			if (widgetIds.length > 0) {
-				final Intent widgetIntent = new Intent(context.getApplicationContext(), ForceWifiAppWidget.class);
-				widgetIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
-				widgetIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, widgetIds);
-				context.sendBroadcast(widgetIntent);
-			}
-		}
-	}
-
-	/**
-	 * Network callback: We use this on enabling of a network to initiate a change of the network if required.
-	 */
-	static class NetworkCallback extends ConnectivityManager.NetworkCallback {
-
-		private final Context myContext;
-
-		NetworkCallback(Context context) {
-			myContext = context;
-		}
-
-		@Override
-		public void onAvailable(@NonNull Network network) {
-			Log.d(AppInfo.APP_NAME, "Networkcallback onAvailable");
-			// small circuit breaker: if we are called twice within 60 seconds  - then ignore the call
-			// so we break up an endless loop of connection failures
-			final long lastTimestamp = System.currentTimeMillis();
-			if (lastTimestamp > lastNetworkCallback.get() + (60 * 1000)) {
-				lastNetworkCallback.set(lastTimestamp);
-				// On Android 14+ we cannot start a foreground service anymore, so only send a notification
-				if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-					if (ActivityCompat.checkSelfPermission(myContext, android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
-						NotificationManagerCompat.from(myContext).notify(ONGOING_NOTIFICATION_ID,
-								WifiChangeService.createMessageNotification(myContext, R.string.message_forcewifi14_activated));
-					}
-				} else {
-					startWifiService(myContext);
-				}
-			} else
-				Log.d(AppInfo.APP_NAME, "Skipped NetworkCallBack");
-
-			updateWidget();
-		}
-
-		@Override
-		public void onLost(@NonNull Network network) {
-			Log.d(AppInfo.APP_NAME, "Networkcallback onLost");
-			updateWidget();
-			try {
-				NotificationManagerCompat.from(myContext).cancel(ONGOING_NOTIFICATION_ID);
-			} catch (Exception e) {
-				Log.w(AppInfo.APP_NAME, e);
-			}
-		}
-
-		@Override
-		public void onCapabilitiesChanged(@NonNull Network network, @NonNull NetworkCapabilities networkCapabilities) {
-			WifiInfo wifiInfo = (WifiInfo) networkCapabilities.getTransportInfo();
-			Log.d(AppInfo.APP_NAME, "Networkcallback onLinkPropertiesChanged");
-			// small circuit breaker: if we are called twice within 60 seconds  - then ignore the call
-			// so we break up an endless loop of connection failures
-			final long lastTimestamp = System.currentTimeMillis();
-			if (lastTimestamp > lastNetworkCallback.get() + (60 * 1000)) {
-				lastNetworkCallback.set(lastTimestamp);
-				// On Android 14+ we cannot start a foreground service anymore, so only send a notification
-				if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-					if (ActivityCompat.checkSelfPermission(myContext, android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
-						NotificationManagerCompat.from(myContext).notify(ONGOING_NOTIFICATION_ID,
-								WifiChangeService.createMessageNotification(myContext, R.string.message_forcewifi14_activated));
-					}
-				} else {
-					startWifiService(myContext);
-				}
-			} else
-				Log.d(AppInfo.APP_NAME, "Skipped NetworkCallBack");
-
-			updateWidget();
-		}
-
-		@Override
-		public void onLinkPropertiesChanged(@NonNull android.net.Network network,
-											@NonNull android.net.LinkProperties linkProperties) {
-			Log.d(AppInfo.APP_NAME, "Networkcallback onLinkPropertiesChanged");
-			// small circuit breaker: if we are called twice within 60 seconds  - then ignore the call
-			// so we break up an endless loop of connection failures
-			final long lastTimestamp = System.currentTimeMillis();
-			if (lastTimestamp > lastNetworkCallback.get() + (60 * 1000)) {
-				lastNetworkCallback.set(lastTimestamp);
-				// On Android 14+ we cannot start a foreground service anymore, so only send a notification
-				if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-					if (ActivityCompat.checkSelfPermission(myContext, android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
-						NotificationManagerCompat.from(myContext).notify(ONGOING_NOTIFICATION_ID,
-								WifiChangeService.createMessageNotification(myContext, R.string.message_forcewifi14_activated));
-					}
-				} else {
-					startWifiService(myContext);
-				}
-			} else
-				Log.d(AppInfo.APP_NAME, "Skipped NetworkCallBack");
-
-			updateWidget();
-		}
-
-		private void updateWidget() {
-			// and update widget if any
-			final AppWidgetManager appWidgetManager = (AppWidgetManager) myContext.getSystemService(APPWIDGET_SERVICE);
-			final int[] widgetIds = appWidgetManager.getAppWidgetIds(new ComponentName(myContext, ForceWifiAppWidget.class.getName()));
-			if (widgetIds.length > 0) {
-				final Intent widgetIntent = new Intent(myContext.getApplicationContext(), ForceWifiAppWidget.class);
-				widgetIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
-				widgetIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, widgetIds);
-				myContext.sendBroadcast(widgetIntent);
-			}
-		}
-	}
 
 	/**
 	 * Receiver to check if Android has accepted our WifiSuggestions.
@@ -565,8 +411,6 @@ public class MainActivity extends AppCompatActivity {
 
 	private final WifiSuggestionReceiver suggestionReceiver = new WifiSuggestionReceiver();
 
-	private NetworkCallback networkCallback;
-
 	private Menu menuBar;
 
 	@SuppressLint("MissingPermission")
@@ -594,12 +438,6 @@ public class MainActivity extends AppCompatActivity {
 		findViewById(R.id.closeCardBtn).setOnClickListener(v -> {
 			findViewById(R.id.nowificardview).setVisibility(View.GONE);
 		});
-
-		// register a listener to network changes (this may occure twice if already done in StartOnBootReceiver!)
-		ConnectivityManager connManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-		connManager.registerNetworkCallback(
-				new NetworkRequest.Builder().addTransportType(NetworkCapabilities.TRANSPORT_WIFI).build(),
-				networkCallback = new NetworkCallback(getApplicationContext()));
 
 		// register a listener that gives a feedback if Android has accepted change
 		registerReceiver(suggestionReceiver,
@@ -662,6 +500,7 @@ public class MainActivity extends AppCompatActivity {
 
 	@Override
 	public void onResume() {
+
 		if (adMobUtils.getAdMobView() != null) {
 			try {
 				adMobUtils.getAdMobView().resume();
@@ -678,8 +517,6 @@ public class MainActivity extends AppCompatActivity {
 
 	// Block for AdMob and Consent Handling
 
-
-
 	/**
 	 * Update the whole UI for Manual or Automatic mode.
 	 */
@@ -693,7 +530,8 @@ public class MainActivity extends AppCompatActivity {
 			manualItem.setIcon(manualMode ? R.drawable.autostop_24px : R.drawable.autoplay_24px);
 		}
 		findViewById(R.id.floatingButtonSave).setVisibility(manualMode ? VISIBLE : GONE);
-		findViewById(R.id.wifiListPreferredOverlay).setVisibility(manualMode ? GONE : VISIBLE);
+		//TODO: rework the logic - this clashes with the list of preferred wifis, even in automatic mode
+		//findViewById(R.id.wifiListPreferredOverlay).setVisibility(manualMode ? GONE : VISIBLE);
 	}
 
 	protected void showLocationServicesDialog() {
@@ -991,10 +829,22 @@ public class MainActivity extends AppCompatActivity {
 		}
 
 		// for testing on Emulator
-		if(WifiUtils.isEmulator()) {
-			for(int i =1;i<=20;i++) {
-				listNetworks.add(new AccessPointEntry("SSID "+i, null,"BSSID"+i,
-						new AccessPointFrequencies(999, 999,999,ScanResult.CHANNEL_WIDTH_20MHZ), 50, false));
+		if(BuildConfig.DEBUG && WifiUtils.isEmulator()) {
+			final String[] typicalWifiNames = {
+					"NETGEAR68",
+					"TP-Link_92A4",
+					"Home_WiFi",
+					"Guest_Network",
+					"Coffee_Shop_Free",
+					"MyNetwork_5GHz",
+					"Office_WLAN_Primary",
+					"The_Bat_Cave",
+					"FBI_Surveillance_Van",
+					"Linksys_Smart_Wi-Fi"
+			};
+			for(int i =0;i<10;i++) {
+				listNetworks.add(new AccessPointEntry(typicalWifiNames[i], null,"00:11:22:33:44:"+(50+i),
+						new AccessPointFrequencies(2412+i*5, 999,999,ScanResult.CHANNEL_WIDTH_20MHZ), 50, false));
 			}
 		}
 
@@ -1202,46 +1052,33 @@ public class MainActivity extends AppCompatActivity {
 	static void startWifiService(Context context) {
 		Log.i(AppInfo.APP_NAME, "startWifiService");
 		if (PreferenceManager.getDefaultSharedPreferences(context).getBoolean(context.getString(R.string.prefs_activation), true)) {
-			final Intent intent = Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE ?
-					new Intent(context.getApplicationContext(), WifiChangeService14.class) : new Intent(context.getApplicationContext(), WifiChangeService.class);
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-				// Android 14 forbids all foreground Work Requests - so we try to start the service and hope that our activity is still in foregroud...
-				try {
-					context.startService(new Intent(context.getApplicationContext(), WifiChangeService14.class));
-				} catch (SecurityException | IllegalStateException e) {
-					Log.w(AppInfo.APP_NAME, "Error starting WifiChangeService on Android14+");
-					Crashlytics.recordException(e);
-					// we send a notification
-					NotificationManagerCompat.from(context).notify(ONGOING_NOTIFICATION_ID,
-							WifiChangeService.createMessageNotification(context, R.string.message_forcewifi14_activated));
-				}
-			} else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-				// With Android 12 we cannot start a Foreground service anymore, so we have to use a WorkManager
+			final Context appContext = context.getApplicationContext();
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+				// With Android 12 we cannot start a Foreground service from background, so we have to use a WorkManager
 				Constraints constraints = new Constraints.Builder() // requires INTERNET permission
 						.setRequiredNetworkType(NetworkType.CONNECTED).build();
 				WorkRequest wifiWorkRequest =
 						new OneTimeWorkRequest.Builder(WifiChangeWorker.class).
-								setConstraints(constraints).
 								setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST).
+								setConstraints(constraints).
 								addTag(AppInfo.APP_NAME).
 								build();
-				WorkManager.getInstance(context).enqueue(wifiWorkRequest);
-				Log.i(AppInfo.APP_NAME, "Scheduled WorkManager for Android 12+");
-			}
-			else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-				Log.i(AppInfo.APP_NAME, "Start Service for Android 9+");
+				WorkManager.getInstance(appContext).enqueue(wifiWorkRequest);
+				Log.i(AppInfo.APP_NAME, "Scheduled WorkManager for modern Android");
+			} else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+				Log.i(AppInfo.APP_NAME, "Start Service for Android 8-11");
+				final Intent intent = new Intent(appContext, WifiChangeService.class); // special service runs in foreground
 				try {
-					context.getApplicationContext().bindService(intent, new WifiChangeService.WifiServiceConnection(context.getApplicationContext()),
+					// Keep workaround for startForeground timeout
+					appContext.bindService(intent, new WifiChangeService.WifiServiceConnection(appContext),
 							Context.BIND_AUTO_CREATE);
-					context.getApplicationContext().startForegroundService(intent);
-					// Due to necessary workaround: Replacement for
-					// context.startForegroundService(new Intent(context.getApplicationContext(), WifiChangeService.class));
-				} catch (RuntimeException e) {
+					appContext.startForegroundService(intent);
+				} catch (Exception e) {
 					// If call comes from a BroadcastReceiver (see Javadoc of Bindservice), e.g StartOnBootReiver: try again without bind()
-					context.getApplicationContext().startForegroundService(intent);
+					appContext.startForegroundService(intent);
 				}
 			} else {
-				context.startService(intent); // on Android 8 and below
+				appContext.startService(new Intent(appContext, WifiChangeService.class));
 			}
 		}
 	}
@@ -1249,8 +1086,7 @@ public class MainActivity extends AppCompatActivity {
 	static void stopWifiService(Context context) {
 		Log.i(AppInfo.APP_NAME, "stopWifiService");
 		if(!PreferenceManager.getDefaultSharedPreferences(context).getBoolean(context.getString(R.string.prefs_activation), true)) {
-			final Intent intent = Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE ?
-					new Intent(context.getApplicationContext(), WifiChangeService14.class) : new Intent(context.getApplicationContext(), WifiChangeService.class);
+			final Intent intent = new Intent(context.getApplicationContext(), WifiChangeService.class);
 			context.getApplicationContext().stopService(intent);
 			WorkManager.getInstance(context).cancelAllWorkByTag(AppInfo.APP_NAME);
 		}

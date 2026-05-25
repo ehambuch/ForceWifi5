@@ -5,9 +5,6 @@ import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
 import android.content.Context;
 import android.content.Intent;
-import android.net.ConnectivityManager;
-import android.net.NetworkCapabilities;
-import android.net.NetworkRequest;
 import android.net.wifi.WifiManager;
 import android.util.Log;
 import android.widget.RemoteViews;
@@ -22,22 +19,17 @@ import java.math.RoundingMode;
  */
 public class ForceWifiAppWidget extends AppWidgetProvider {
 
-    private volatile ConnectivityManager.NetworkCallback networkCallback = null;
-
     public void onEnabled(Context context) {
         super.onEnabled(context);
         // here we have a change to register a network listener with Android >9
-        ConnectivityManager connManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        connManager.registerNetworkCallback(
-                new NetworkRequest.Builder().addTransportType(NetworkCapabilities.TRANSPORT_WIFI).build(),
-                networkCallback = new MainActivity.NetworkCallback(context.getApplicationContext()));
+
+        ForceApplication forceApp = (ForceApplication) context.getApplicationContext();
+        if(forceApp != null)
+            forceApp.registerGlobalNetworkCallback();
     }
 
     public void onDisabled(Context context) {
-        if(networkCallback != null) {
-            ConnectivityManager connManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-            connManager.unregisterNetworkCallback(networkCallback);
-        }
+        super.onDisabled(context);
     }
 
     public void updateAppWidget(@NonNull Context context, @NonNull AppWidgetManager appWidgetManager,

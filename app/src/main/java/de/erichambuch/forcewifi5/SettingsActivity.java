@@ -237,8 +237,8 @@ public class SettingsActivity extends AppCompatActivity {
 	 */
 	@RequiresPermission(value = "android.permission.NEARBY_WIFI_DEVICES")
 	protected void setListOfAvailableChannels() {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-			final MultiSelectListPreference multiSelectListPreference = settingsFragment.findPreference(getString(R.string.prefs_selectchannels));
+		final MultiSelectListPreference multiSelectListPreference = settingsFragment.findPreference(getString(R.string.prefs_selectchannels));
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && multiSelectListPreference.isEnabled()) {
 			try {
 				final WifiManager wifiManager = getSystemService(WifiManager.class);
 				int freqSelector = 0;
