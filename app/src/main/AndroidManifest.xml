@@ -135,13 +135,6 @@
             android:exported="false" />
         <!-- foregroundServiceType removed -->
 
-        <!-- works only up to Android 9 -->
-        <receiver android:name=".MainActivity$NetworkStateChangedReceiver" android:enabled="true" android:exported="true">
-            <intent-filter>
-                <action android:name="android.net.wifi.NETWORK_STATE_CHANGED_ACTION"/>
-            </intent-filter>
-        </receiver>
-
         <receiver
             android:name=".StartOnBootReceiver"
             android:enabled="true"

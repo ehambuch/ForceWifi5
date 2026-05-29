@@ -133,12 +133,9 @@ public class ForceApplication extends Application {
             Activity activity = ((ForceApplication) myContext.getApplicationContext()).getCurrentActivity();
             if (activity instanceof MainActivity) {
                 try {
-                    activity.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            ((MainActivity) activity).listNetworks();
-                        }
-                    });
+                    if(!activity.isFinishing() && !activity.isDestroyed()) {
+                        activity.runOnUiThread(() -> ((MainActivity) activity).listNetworks());
+                    }
                 } catch (SecurityException e) {
                     Log.w(AppInfo.APP_NAME, e);
                 }
@@ -160,11 +157,12 @@ public class ForceApplication extends Application {
             public void onActivityStarted(@NonNull Activity activity) {}
             @Override
             public void onActivityResumed(@NonNull Activity activity) {
-                currentActivity = new WeakReference<>(activity);
+                if(activity instanceof MainActivity )
+                    currentActivity = new WeakReference<>(activity);
             }
             @Override
             public void onActivityPaused(@NonNull Activity activity) {
-                if (activity == currentActivity.get()) {
+                if (activity instanceof MainActivity) {
                     currentActivity.clear();
                 }
             }
@@ -185,10 +183,13 @@ public class ForceApplication extends Application {
 
     @Override
     public void onTerminate() {
-        super.onTerminate();
-        if(networkCallback != null) {
-            ConnectivityManager connManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-            connManager.unregisterNetworkCallback(networkCallback);
+        try {
+            if (networkCallback != null) {
+                ConnectivityManager connManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+                connManager.unregisterNetworkCallback(networkCallback);
+            }
+        } finally {
+            super.onTerminate();
         }
     }
 

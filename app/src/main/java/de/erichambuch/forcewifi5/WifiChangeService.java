@@ -41,6 +41,7 @@ import androidx.core.app.NotificationManagerCompat;
 import androidx.core.app.ServiceCompat;
 import androidx.preference.PreferenceManager;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -281,9 +282,18 @@ public class WifiChangeService extends Service {
 	}
 
 	@RequiresPermission(value = "android.permission.CHANGE_WIFI_STATE")
-	public static int provideSuggestions(@NonNull Context context, @NonNull List<WifiNetworkSuggestion> suggestionList) {
+	public static int provideSuggestions(@NonNull Context context, @NonNull final List<WifiNetworkSuggestion> suggestionList) {
 		WifiManager wifiManager = (WifiManager) context.getSystemService(WIFI_SERVICE);
-		wifiManager.removeNetworkSuggestions(Collections.emptyList());
+		// we have to be more careful, we should not remove a suggestion that we are connected right now.
+		List<WifiNetworkSuggestion> suggestionsToRemove = new ArrayList<>(wifiManager.getNetworkSuggestions());
+		if(!suggestionsToRemove.isEmpty()) {
+			suggestionsToRemove.removeAll(suggestionList);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                wifiManager.removeNetworkSuggestions(suggestionsToRemove, WifiManager.ACTION_REMOVE_SUGGESTION_LINGER);
+            } else {
+				wifiManager.removeNetworkSuggestions(suggestionsToRemove);
+			}
+        }
 		int rc = wifiManager.addNetworkSuggestions(suggestionList);
 		Log.i(AppInfo.APP_NAME, "Provided new network suggestings from app: " + rc);
 		return rc;

@@ -105,6 +105,19 @@ public class MainActivity extends AppCompatActivity {
 	@NonNull
 	protected final List<AccessPointEntry> preferredNetworks = Collections.synchronizedList(new ArrayList<>());
 
+	// UI elements
+	@NonNull
+	private RecyclerView preferredListview;
+	@NonNull
+	private CustomWifiListAdapter preferredAdapter;
+
+	@NonNull
+	private RecyclerView allWifiListView;
+
+	@NonNull
+	private CustomWifiListAdapter allWifiListAdapter;
+
+
 	/**
 	 * Flag whether to check for notification enabling or the user dismissed that check.
 	 */
@@ -443,6 +456,23 @@ public class MainActivity extends AppCompatActivity {
 		registerReceiver(suggestionReceiver,
 				new IntentFilter(WifiManager.ACTION_WIFI_NETWORK_SUGGESTION_POST_CONNECTION));
 
+		final WifiManager wifiManager = getSystemService(WifiManager.class);
+
+		preferredListview = findViewById(R.id.wifiListPreferred);
+		preferredAdapter = new CustomWifiListAdapter(preferredNetworks, wifiManager);
+		preferredListview.setAdapter(preferredAdapter);
+		preferredListview.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
+		preferredListview.addItemDecoration(new MaterialDividerItemDecoration(this, MaterialDividerItemDecoration.VERTICAL));
+		preferredListview.setOnDragListener(new ListDragListener(preferredAdapter));
+
+		allWifiListView = findViewById(R.id.listview);
+		allWifiListAdapter = new CustomWifiListAdapter(listNetworks, wifiManager);
+		allWifiListView.setAdapter(allWifiListAdapter);
+		allWifiListView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
+		allWifiListView.addItemDecoration(new MaterialDividerItemDecoration(this, MaterialDividerItemDecoration.VERTICAL));
+		allWifiListView.setHasFixedSize(true);
+		allWifiListView.setOnDragListener(new ListDragListener(allWifiListAdapter));
+
         if (Intent.ACTION_MAIN.equals(getIntent().getAction()) &&
 				PreferenceManager.getDefaultSharedPreferences(this).getBoolean(getString(R.string.prefs_setup), true)) // show info dialog only on first start
 		{
@@ -775,7 +805,7 @@ public class MainActivity extends AppCompatActivity {
 		preferredNetworks.clear();
 		try {
 			final List<WifiNetworkSuggestion> suggestionList = new ArrayList<>(wifiManager.getNetworkSuggestions());
-			suggestionList.sort(Comparator.comparingInt(WifiNetworkSuggestion::getPriority));
+			suggestionList.sort(Comparator.comparingInt(WifiNetworkSuggestion::getPriority).reversed());
 			for(WifiNetworkSuggestion suggestion : suggestionList) {
 				preferredNetworks.add(new AccessPointEntry(
 						WifiUtils.getSsid(suggestion),
@@ -787,12 +817,6 @@ public class MainActivity extends AppCompatActivity {
 		} catch (BadParcelableException e) { // on OnePlus...
 			Log.e(AppInfo.APP_NAME, "Error on getNetworkSuggestions", e);
 		}
-		final RecyclerView preferredListview = findViewById(R.id.wifiListPreferred);
-		final CustomWifiListAdapter preferredAdapter = new CustomWifiListAdapter(preferredNetworks, wifiManager);
-		preferredListview.setAdapter(preferredAdapter);
-		preferredListview.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
-		preferredListview.addItemDecoration(new MaterialDividerItemDecoration(this, MaterialDividerItemDecoration.VERTICAL));
-		preferredListview.setOnDragListener(new ListDragListener(preferredAdapter));
 
 		// build up list with all SSID supporting 2.4 and 5 GHz
 		// we also always add the connected network (even if only on one frequency) to display completeness to user
@@ -848,14 +872,11 @@ public class MainActivity extends AppCompatActivity {
 			}
 		}
 
-		final RecyclerView listView = findViewById(R.id.listview);
+		// notify ListViewAdapters about changed list
+		allWifiListAdapter.notifyDataSetChanged();
+		preferredAdapter.notifyDataSetChanged();
+
 		final boolean isOnWantedFreq = activeNetwork != null && WifiUtils.isWantedFrequency(this, activeNetwork.getFrequency());
-		final CustomWifiListAdapter listAdapter = new CustomWifiListAdapter(listNetworks, wifiManager);
-		listView.setAdapter(listAdapter);
-		listView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
-		listView.addItemDecoration(new MaterialDividerItemDecoration(this, MaterialDividerItemDecoration.VERTICAL));
-		listView.setHasFixedSize(true);
-		listView.setOnDragListener(new ListDragListener(listAdapter));
 
 		// and display the message box
 		if (checkSelfPermission(ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -1066,8 +1087,9 @@ public class MainActivity extends AppCompatActivity {
 				WorkManager.getInstance(appContext).enqueue(wifiWorkRequest);
 				Log.i(AppInfo.APP_NAME, "Scheduled WorkManager for modern Android");
 			} else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+
 				Log.i(AppInfo.APP_NAME, "Start Service for Android 8-11");
-				final Intent intent = new Intent(appContext, WifiChangeService.class); // special service runs in foreground
+				final Intent intent = new Intent(appContext, WifiChangeService11.class); // special service runs in foreground
 				try {
 					// Keep workaround for startForeground timeout
 					appContext.bindService(intent, new WifiChangeService.WifiServiceConnection(appContext),
@@ -1078,7 +1100,7 @@ public class MainActivity extends AppCompatActivity {
 					appContext.startForegroundService(intent);
 				}
 			} else {
-				appContext.startService(new Intent(appContext, WifiChangeService.class));
+				appContext.startService(new Intent(appContext, WifiChangeService11.class));
 			}
 		}
 	}
