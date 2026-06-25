@@ -88,7 +88,21 @@ public class CustomWifiListAdapter extends RecyclerView.Adapter<CustomWifiListAd
         if(entry.signalLevel >= 0)
             text.append(" - ").append(WifiUtils.calculateWifiLevel(wifiManager, entry.signalLevel)).append(" %");
         viewHolder.getTextViewInformation().setText(text);
-        viewHolder.getNetworkImage().setImageResource(entry.recommended ? R.drawable.baseline_high_priority_24 : R.drawable.baseline_wifi_24);
+        int imageRes = R.drawable.android_wifi_3_bar_off_24px;
+        if(entry.recommended) {
+            imageRes = R.drawable.baseline_high_priority_24;
+        } else {
+            if (entry.signalLevel >= -50) {
+                imageRes = R.drawable.android_wifi_4_bar_24px;
+            } else if (entry.signalLevel >= -70) {
+                imageRes = R.drawable.android_wifi_3_bar_24px;
+            } else if (entry.signalLevel >= -80) {
+                imageRes = R.drawable.wifi_2_bar_24px;
+            } else if (entry.signalLevel >= -100) {
+                imageRes = R.drawable.wifi_1_bar_24px;
+            }
+        }
+        viewHolder.getNetworkImage().setImageResource(imageRes);
         viewHolder.itemView.setTag(entry);
         // for drag & drop
         viewHolder.itemView.setOnLongClickListener(v -> {

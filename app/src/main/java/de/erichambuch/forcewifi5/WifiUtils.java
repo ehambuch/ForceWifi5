@@ -16,6 +16,8 @@ import androidx.annotation.Nullable;
 import androidx.preference.PreferenceManager;
 
 import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 public class WifiUtils {
@@ -45,7 +47,7 @@ public class WifiUtils {
     public static String unquoteSSid(@Nullable String ssid) {
         if (ssid == null )
             return "";
-        if (ssid.startsWith("\"") && ssid.endsWith("\"")) {
+        if (ssid.startsWith("\"") && ssid.endsWith("\"") && ssid.length() > 2) {
             return ssid.substring(1, ssid.length()-1);
         } else
             return ssid;
@@ -67,6 +69,16 @@ public class WifiUtils {
             return "\"" + ssid + "\"";
         } else
             return ssid;
+    }
+
+    public static boolean isPreferredWifi(WifiInfo activeWifi, List<WifiNetworkSuggestion> suggestions) {
+        if(activeWifi == null || suggestions == null)
+            return false;
+        for(WifiNetworkSuggestion suggestion : suggestions) {
+            if(isSameWifi(suggestion, activeWifi))
+                return true;
+        }
+        return false;
     }
 
     /**
@@ -212,5 +224,17 @@ public class WifiUtils {
         } else {
             return (getQuotationalSSID(result.SSID).equals(getQuotationalSSID(activeWifi.getSSID())));
         }
+    }
+
+    public static boolean isSameWifi(WifiNetworkSuggestion suggestion, WifiInfo activeWifi) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            final String wifissid = suggestion.getWifiSsid() != null ? suggestion.getWifiSsid().toString() : "";
+            if (!wifissid.equals(activeWifi.getSSID()) && !wifissid.equals(getQuotationalSSID(activeWifi.getSSID())))
+                return false;
+        } else {
+            if (!getQuotationalSSID(suggestion.getSsid()).equals(getQuotationalSSID(activeWifi.getSSID())))
+                return false;
+        }
+        return Objects.equals(getBssid(suggestion), activeWifi.getBSSID());
     }
 }

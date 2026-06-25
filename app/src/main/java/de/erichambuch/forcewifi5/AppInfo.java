@@ -63,6 +63,7 @@ package de.erichambuch.forcewifi5;
  *     <li>V1.29.1 (69) (20.02.2026) - Update Firebase Key, Libs, Fixes WorkManager Initialization</li>
  *     <li>V2.0.0 (73) (09.05.2026) - Android 17, Revised App UI, reactived AdMob, Android 11 minimum requirement</li>
  *     <li>V2.1.0 (74/75) (29.05.2026) - New Icon, fixes Crashlytics bugs and duplicate WifiChangeService-logic, Refactoring with AI, Update Logic improved</li>
+ *     <li>V2.2.0 (77) (25.06.2026) - fixed ANR, updated Wifi lists</li>
  * </ul>
  * Open Issues to be fixed:
  * <ul>

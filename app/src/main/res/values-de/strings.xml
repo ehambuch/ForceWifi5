@@ -145,4 +145,5 @@
     <string name="description_setup">Setup starten</string>
     <string name="text_not_working"><![CDATA[<p>Einige Gründe, warum die App bei Ihnen möglicherweise nicht ordnungsgemäß funktioniert:</p><br/><p><ol><li><em>Das Android-System berücksichtigt Ihren Wunsch nach einem bestimmten WLAN-Kanal nicht – z. B. aufgrund eines schwachen Signals.</li><li>Ihr Router hält Ihr Gerät auf einem bestimmten Kanal fest.</li></ol></p><br/><p>Was kann ich tun?</p><p><ol><li>Deaktivieren Sie zunächst bitte das WLAN auf Ihrem Smartphone und verbinden Sie es nach einer kurzen Wartezeit erneut.</li><li>Überprüfen Sie anschließend die verschiedenen Einstellungen, um mögliche Verbesserungen vorzunehmen.</li></ol><p>]]></string>
     <string name="action_notworking">Funktioniert nicht?</string>
+    <string name="text_wifimanual_notaccepted">Manueller Modus: Android hat das bevorzugte WLAN noch nicht akzeptiert. Entweder ist das Signal zu schwach, oder Sie müssen das WLAN nach etwa einer Minute deaktivieren und wieder aktivieren.</string>
 </resources>

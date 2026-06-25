@@ -55,5 +55,6 @@ public class NetworkAPITests {
         Assert.assertEquals("\"WLAN-TEST\"", WifiUtils.getQuotationalSSID("\"WLAN-TEST\""));
         Assert.assertEquals("WLAN-TEST", WifiUtils.unquoteSSid("\"WLAN-TEST\""));
         Assert.assertEquals("WLAN-TEST", WifiUtils.unquoteSSid("WLAN-TEST"));
+        Assert.assertEquals("\"", WifiUtils.unquoteSSid("\""));
     }
 }

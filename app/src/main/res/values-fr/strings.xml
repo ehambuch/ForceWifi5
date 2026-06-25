@@ -206,5 +206,6 @@
   <string name="description_setup">Exécuter l\'installation</string>
   <string name="text_not_working"><![CDATA[<p>Voici quelques raisons pour lesquelles l\'application pourrait ne pas fonctionner correctement pour vous :</p><br/><p><ol><li><em>Le système Android ne prend pas en compte votre demande d\'utiliser un canal Wi-Fi spécifique (par exemple, en raison d\'un signal trop faible).</li><li>Votre routeur maintient votre appareil connecté à un canal spécifique.</li></ol></p><br/><p>Que puis-je faire ?</p><p><ol><li>Tout d\'abord, veuillez désactiver le Wi-Fi de votre téléphone, puis le réactiver après quelques instants.</li><li>Ensuite, veuillez vérifier les différents paramètres disponibles afin d\'améliorer la situation.</li></ol><p>]]></string>
   <string name="action_notworking">Ne fonctionne pas ?</string>
+    <string name="text_wifimanual_notaccepted">Mode manuel : Android n\'a pas encore accepté le réseau Wi-Fi de votre choix. Soit le signal est trop faible, soit vous devrez peut-être désactiver puis réactiver le Wi-Fi après une minute environ.</string>
 
 </resources>

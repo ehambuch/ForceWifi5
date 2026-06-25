@@ -180,5 +180,6 @@
     <string name="description_setup">Run Setup again</string>
     <string name="text_not_working"><![CDATA[<p>Some reasons why the app may not work properly for you:</p><br/><p><ol><li><em>Android system does not accept your wish for a specific Wifi channel, e.g. due to weak signal.</li><li>Your router keeps your device stick to a specific channel.</li></ol></p><br/><p>What can I do?</p><p><ol><li>First, please disconnect your phone\'s Wifi and re-connect it after some time again.</li><li>Secondly, please check out the different Settings for improvement.</li></ol><p>]]></string>
     <string name="action_notworking">Not Working?</string>
+    <string name="text_wifimanual_notaccepted">Manual mode: Android hasn\'t accepted your preferred Wifi yet. Either the signal is too low or you may have to disable and re-enable your Wifi again after a minute or so.</string>
 </resources>
 

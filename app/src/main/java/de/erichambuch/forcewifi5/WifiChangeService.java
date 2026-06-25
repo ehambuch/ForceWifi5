@@ -191,13 +191,10 @@ public class WifiChangeService extends Service {
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		Log.d(AppInfo.APP_NAME, "Starting WifiChangeService");
-		// As of Android 12+ foreground service start is not possible in many cases. We try another way to display a Notification
-		// in case we are still in background. We can perform a test by using adb with:
-		// adb shell device_config put activity_manager default_fgs_starts_restriction_notification_enabled true
+		// As of Android 8.0 foreground service start must call startForeground() within 5 seconds.
 		try {
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE &&
-					this.getForegroundServiceType() != FOREGROUND_SERVICE_TYPE_LOCATION) {
-				startForeground(ONGOING_NOTIFICATION_ID, createMessageNotification(this, R.string.title_activation), FOREGROUND_SERVICE_TYPE_LOCATION);
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+				ServiceCompat.startForeground(this, ONGOING_NOTIFICATION_ID, createMessageNotification(this, R.string.title_activation), FOREGROUND_SERVICE_TYPE_LOCATION);
 			}
 			WifiController controller = new WifiController(this);
 			if (controller.isActivated()) {
@@ -237,22 +234,29 @@ public class WifiChangeService extends Service {
 		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
 			try {
 				final WifiNetworkSpecifier.Builder specificerBuild = new WifiNetworkSpecifier.Builder();
-				if(suggestion.getBssid() != null) // only one setter is allowed for WifiSpecifier
+				// only one of setSsidPattern/setSsid/setBssidPattern/setBssid/setBand should be invoked for specifier
+				boolean specifierSet = false;
+				if(suggestion.getBssid() != null) { // only one setter is allowed for WifiSpecifier
 					specificerBuild.setBssid(suggestion.getBssid());
-				else {
+					specifierSet = true;
+				} else if(suggestion.getSsid() != null) {
 					specificerBuild.setSsid(suggestion.getSsid());
+					specifierSet = true;
 				}
 				// this is required to avoid a copying of the request where only the band is transferred internally
 				// experimental feature to define dedicated channels, not available on all devices
 				// WARNING: setting Band AND Channels togehter results in an IllegalStateException!
 				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
 					int[] freqs = getPreferredNetworkFrequencies(context);
-					if(freqs.length > 0)
+					if (freqs.length > 0) {
 						specificerBuild.setPreferredChannelsFrequenciesMhz(freqs);
-					else
-						specificerBuild.setBand(getBand(context));
-				} else
+						specifierSet = true;
+					}
+				}
+				if(!specifierSet) {
 					specificerBuild.setBand(getBand(context));
+					specifierSet = true;
+				}
 				final NetworkRequest request = new NetworkRequest.Builder().
 						addTransportType(NetworkCapabilities.TRANSPORT_WIFI).
 						setIncludeOtherUidNetworks(true).  // we also want the system Wifis

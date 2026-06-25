@@ -145,4 +145,5 @@
     <string name="description_setup">Uruchom instalator</string>
     <string name="text_not_working"><![CDATA[<p>Oto kilka powodów, dla których aplikacja może nie działać u Ciebie poprawnie:</p><br/><p><ol><li><em>System Android nie uwzględnia Twojej prośby o wybór konkretnego kanału Wi-Fi – np. z powodu słabego sygnału.</li><li>Twój router wymusza na urządzeniu korzystanie z określonego kanału.</li></ol></p><br/><p>Co mogę zrobić?</p><p><ol><li>Po pierwsze, wyłącz Wi-Fi w telefonie, a po chwili włącz je ponownie.</li><li>Po drugie, sprawdź różne ustawienia, aby spróbować poprawić działanie aplikacji.</li></ol><p>]]></string>
     <string name="action_notworking">Nie działa?</string>
+    <string name="text_wifimanual_notaccepted">Tryb ręczny: System Android nie połączył się jeszcze z wybraną siecią Wi-Fi. Sygnał może być zbyt słaby; spróbuj też wyłączyć i ponownie włączyć Wi-Fi po około minucie.</string>
 </resources>

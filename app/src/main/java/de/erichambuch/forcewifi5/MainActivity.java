@@ -79,6 +79,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Main activity für die App.
@@ -245,8 +246,7 @@ public class MainActivity extends AppCompatActivity {
 
 		@NonNull
 		public String toString() {
-			final StringBuilder builder = new StringBuilder(32);
-			return builder.append(frequency).append(" MHz ").append((char)0x00B1).append(" ").append(CHANNELWIDTH.getOrDefault(channelwidth, "0")).toString();
+			return frequency + " MHz " + (char) 0x00B1 + " " + CHANNELWIDTH.getOrDefault(channelwidth, "0");
 		}
 	}
 
@@ -270,8 +270,8 @@ public class MainActivity extends AppCompatActivity {
 		final WifiSsid wifiSsid;
 
 		final String bssid;
-		final AccessPointFrequencies frequencies;
-		final int signalLevel;
+		AccessPointFrequencies frequencies;
+		int signalLevel;
 
 		final boolean recommended;
 
@@ -311,6 +311,18 @@ public class MainActivity extends AppCompatActivity {
 		public @NonNull
 		String toString() {
 			return this.bssid;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (!(o instanceof AccessPointEntry)) return false;
+			AccessPointEntry that = (AccessPointEntry) o;
+			return Objects.equals(wifiSsid, that.wifiSsid) && Objects.equals(bssid, that.bssid);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(wifiSsid, bssid);
 		}
 	}
 
@@ -769,7 +781,7 @@ public class MainActivity extends AppCompatActivity {
 	/**
 	 * Show a list of all detected network with provide both: 2.4 and 5 GHz.
 	 */
-	@SuppressLint("DefaultLocale")
+	@SuppressLint({"DefaultLocale", "NotifyDataSetChanged"})
     @RequiresPermission(allOf = {ACCESS_WIFI_STATE, ACCESS_FINE_LOCATION})
 	void listNetworks() {
 		WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
@@ -803,9 +815,9 @@ public class MainActivity extends AppCompatActivity {
 
 		// We retrieve a list of all suggestions - and display them
 		preferredNetworks.clear();
+		final List<WifiNetworkSuggestion> suggestionList = new ArrayList<>(wifiManager.getNetworkSuggestions());
+		suggestionList.sort(Comparator.comparingInt(WifiNetworkSuggestion::getPriority).reversed());
 		try {
-			final List<WifiNetworkSuggestion> suggestionList = new ArrayList<>(wifiManager.getNetworkSuggestions());
-			suggestionList.sort(Comparator.comparingInt(WifiNetworkSuggestion::getPriority).reversed());
 			for(WifiNetworkSuggestion suggestion : suggestionList) {
 				preferredNetworks.add(new AccessPointEntry(
 						WifiUtils.getSsid(suggestion),
@@ -852,6 +864,17 @@ public class MainActivity extends AppCompatActivity {
 			}
 		}
 
+		// update the recommended Wifis with more details of the available
+		for(AccessPointEntry entry : preferredNetworks) {
+			for(AccessPointEntry wifi : listNetworks) {
+				if(entry.equals(wifi)) { // same SSID, BSSID
+					entry.frequencies = wifi.frequencies;
+					entry.signalLevel = wifi.signalLevel;
+					break;
+				}
+			}
+		}
+
 		// for testing on Emulator
 		if(BuildConfig.DEBUG && WifiUtils.isEmulator()) {
 			final String[] typicalWifiNames = {
@@ -876,18 +899,34 @@ public class MainActivity extends AppCompatActivity {
 		allWifiListAdapter.notifyDataSetChanged();
 		preferredAdapter.notifyDataSetChanged();
 
-		final boolean isOnWantedFreq = activeNetwork != null && WifiUtils.isWantedFrequency(this, activeNetwork.getFrequency());
+		// either automatic mode: check frequency, otherwise check recommendations
+		final boolean isOnWantedFreq = activeNetwork != null &&
+				(manualMode ? WifiUtils.isPreferredWifi(activeNetwork, suggestionList) :
+						WifiUtils.isWantedFrequency(this, activeNetwork.getFrequency()));
 
 		// and display the message box
 		if (checkSelfPermission(ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 			showPermissionsError();
-		} else if (!listNetworks.isEmpty()) {
+		} else if (listNetworks.isEmpty()) {
+			// otherwise: we found networks, but not the appropriate (2.4/5)
+			((MaterialCardView)findViewById(R.id.nowificardview)).setCardBackgroundColor(getResources().getColor(R.color.design_default_color_primary_dark, getTheme()));
+			findViewById(R.id.nowificardview).setVisibility(VISIBLE);
+			((TextView) findViewById(R.id.nowifitextview)).setText(R.string.text_nowififound);
+			findViewById(R.id.cardSwitchManualModeBtn).setVisibility(manualMode ? GONE : VISIBLE);
+		} else {
 			((MaterialCardView)findViewById(R.id.nowificardview)).setCardBackgroundColor(getResources().getColor(android.R.color.holo_green_dark, getTheme()));
 			findViewById(R.id.nowificardview).setVisibility(VISIBLE);
 			final TextView noWifiTextview = findViewById(R.id.nowifitextview);
 			if(isManualMode()) {
-				noWifiTextview.setText(R.string.text_wifimanualmode);
-			} else {
+				if(suggestionList.isEmpty()) {
+					noWifiTextview.setText(R.string.text_wifimanualmode);
+				} else if (isOnWantedFreq) {
+					noWifiTextview.setText(R.string.text_wifichange_successful);
+				} else {
+					noWifiTextview.setText(R.string.text_wifimanual_notaccepted);
+					((MaterialCardView)findViewById(R.id.nowificardview)).setCardBackgroundColor(getResources().getColor(android.R.color.holo_orange_dark, getTheme()));
+				}
+			} else { // automatic mode
 				if(isOnWantedFreq) {
 					noWifiTextview.setText(R.string.text_wififrequencyok);
 				} else {
@@ -895,11 +934,6 @@ public class MainActivity extends AppCompatActivity {
 				}
 			}
 			findViewById(R.id.cardSwitchManualModeBtn).setVisibility(GONE);
-		} else { // otherwise: we found networks, but not the appropriate (2.4/5)
-			((MaterialCardView)findViewById(R.id.nowificardview)).setCardBackgroundColor(getResources().getColor(R.color.design_default_color_primary_dark, getTheme()));
-			findViewById(R.id.nowificardview).setVisibility(VISIBLE);
-			((TextView) findViewById(R.id.nowifitextview)).setText(R.string.text_nowififound);
-			findViewById(R.id.cardSwitchManualModeBtn).setVisibility(manualMode ? GONE : VISIBLE);
 		}
 	}
 
