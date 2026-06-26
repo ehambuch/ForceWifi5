@@ -5,7 +5,6 @@ import static android.Manifest.permission.ACCESS_WIFI_STATE;
 import static android.Manifest.permission.CHANGE_WIFI_STATE;
 import static android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION;
 import static de.erichambuch.forcewifi5.WifiUtils.getPreferredNetworkFrequencies;
-import static de.erichambuch.forcewifi5.WifiUtils.is5GHzPreferred;
 
 import android.app.Notification;
 import android.app.PendingIntent;
@@ -18,7 +17,6 @@ import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.net.NetworkRequest;
-import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiNetworkSpecifier;
 import android.net.wifi.WifiNetworkSuggestion;
@@ -33,7 +31,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 import androidx.annotation.RequiresPermission;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
@@ -229,36 +226,45 @@ public class WifiChangeService extends Service {
 	 * Force an aggressive network change by requesting a specific network.
 	 * @param context my context
 	 * @param suggestion the wifi suggestion
+	 * @param band the Wifi band the suggestion is running on (e.g. WIFI_BAND_24_GHZ), or UNSPECIFIED (-1)
 	 */
-	static void aggressiveNetworkChange(@NonNull Context context, @NonNull WifiNetworkSuggestion suggestion) {
+	static void aggressiveNetworkChange(@NonNull Context context, @NonNull WifiNetworkSuggestion suggestion, int band) {
 		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
 			try {
 				final WifiNetworkSpecifier.Builder specificerBuild = new WifiNetworkSpecifier.Builder();
-				// only one of setSsidPattern/setSsid/setBssidPattern/setBssid/setBand should be invoked for specifier
-				boolean specifierSet = false;
-				if(suggestion.getBssid() != null) { // only one setter is allowed for WifiSpecifier
+				if(suggestion.getBssid() != null) { // only one setter is allowed for WifiSpecifier, to fix the exception
 					specificerBuild.setBssid(suggestion.getBssid());
-					specifierSet = true;
-				} else if(suggestion.getSsid() != null) {
-					specificerBuild.setSsid(suggestion.getSsid());
-					specifierSet = true;
+				}
+                if(suggestion.getSsid() != null) {
+					specificerBuild.setSsid(WifiUtils.getQuotationalSSID(suggestion.getSsid()));
 				}
 				// this is required to avoid a copying of the request where only the band is transferred internally
 				// experimental feature to define dedicated channels, not available on all devices
-				// WARNING: setting Band AND Channels togehter results in an IllegalStateException!
+				// WARNING: setting Band AND Channels together results in an IllegalStateException!
 				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
 					int[] freqs = getPreferredNetworkFrequencies(context);
-					if (freqs.length > 0) {
+					// only one of setSsidPattern/setSsid/setBssidPattern/setBssid/setBand should be invoked for specifier
+					// and setPreferredChannelsFrequenciesMhz can only be used with SSID or BSSID
+					if (isSetSingleFrequencies(context) && freqs.length > 0) {
 						specificerBuild.setPreferredChannelsFrequenciesMhz(freqs);
-						specifierSet = true;
+					} else if (isAutomaticMode(context)){
+						// band and channels cannot be combined, we only know the band in automatic mode
+						specificerBuild.setBand(band);
 					}
 				}
-				if(!specifierSet) {
-					specificerBuild.setBand(getBand(context));
-					specifierSet = true;
+				// AI explanation for IllegalStateException:
+				// When you call setIncludeOtherUidNetworks(true), you are telling Android
+				// that your request can be satisfied by networks managed by other apps
+				// or the system. To protect user privacy (since knowing which Wi-Fi you
+				// are on can reveal your location), Android redacts the NetworkSpecifier
+				// in these types of requests.
+				if(band >= 0 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+					specificerBuild.setBand(band);
 				}
+
 				final NetworkRequest request = new NetworkRequest.Builder().
 						addTransportType(NetworkCapabilities.TRANSPORT_WIFI).
+						removeCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET).
 						setIncludeOtherUidNetworks(true).  // we also want the system Wifis
 						setNetworkSpecifier(specificerBuild.build()).
 						build();
@@ -386,18 +392,6 @@ public class WifiChangeService extends Service {
 		}
 	}
 
-	@RequiresApi(api = Build.VERSION_CODES.S)
-	public static int getBand(@NonNull Context context) {
-		if(WifiUtils.is60GHzPreferred(context))
-			return ScanResult.WIFI_BAND_60_GHZ;
-		else if(WifiUtils.is6GHzPreferred(context))
-			return ScanResult.WIFI_BAND_6_GHZ;
-		else if(is5GHzPreferred(context))
-			return ScanResult.WIFI_BAND_5_GHZ;
-		else
-			return ScanResult.WIFI_BAND_24_GHZ;
-	}
-
 	/**
 	 * Returns the best Intent to switch Wifis off and on again.
 	 * <p>Depending on the Android version and device different actions are supported.</p>
@@ -420,5 +414,9 @@ public class WifiChangeService extends Service {
 
 	static boolean isAutomaticMode(Context context) {
 		return PreferenceManager.getDefaultSharedPreferences(context).getBoolean(context.getString(R.string.prefs_activation), false);
+	}
+
+	static boolean isSetSingleFrequencies(Context context) {
+		return PreferenceManager.getDefaultSharedPreferences(context).getBoolean(context.getString(R.string.prefs_setsinglechannels), false);
 	}
 }

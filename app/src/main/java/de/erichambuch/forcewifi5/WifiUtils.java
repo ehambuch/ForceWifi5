@@ -13,6 +13,7 @@ import android.os.Build;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.preference.PreferenceManager;
 
 import java.util.Collections;
@@ -128,6 +129,32 @@ public class WifiUtils {
 
     public static boolean isWrongFrequency(@NonNull Context context, int freq) {
         return !isWantedFrequency(context, freq);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.S)
+    public static int getBand(@NonNull Context context) {
+        if(WifiUtils.is60GHzPreferred(context))
+            return ScanResult.WIFI_BAND_60_GHZ;
+        else if(WifiUtils.is6GHzPreferred(context))
+            return ScanResult.WIFI_BAND_6_GHZ;
+        else if(is5GHzPreferred(context))
+            return ScanResult.WIFI_BAND_5_GHZ;
+        else
+            return ScanResult.WIFI_BAND_24_GHZ;
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.S)
+    public static int getBand(int frequency) {
+        if(frequency >= 57000)
+            return ScanResult.WIFI_BAND_60_GHZ;
+        else if(frequency >= 5925 && frequency <= 6999)
+            return ScanResult.WIFI_BAND_6_GHZ;
+        else if(frequency >= 5000 && frequency <= 5920)
+            return ScanResult.WIFI_BAND_5_GHZ;
+        else if(frequency < 3000) {
+            return ScanResult.WIFI_BAND_24_GHZ;
+        } else
+            return ScanResult.UNSPECIFIED;
     }
 
     @NonNull

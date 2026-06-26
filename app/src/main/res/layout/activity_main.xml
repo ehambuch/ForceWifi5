@@ -54,7 +54,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
-                    app:layout_constraintBottom_toTopOf="@id/cardSwitchManualModeBtn"
+                    app:layout_constraintBottom_toTopOf="@id/cardActionModeBtn"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintEnd_toStartOf="@id/closeCardBtn"
                     app:layout_constraintTop_toTopOf="parent"
@@ -64,7 +64,7 @@
                     />
 
                 <com.google.android.material.button.MaterialButton
-                    android:id="@+id/cardSwitchManualModeBtn"
+                    android:id="@+id/cardActionModeBtn"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     app:layout_constraintTop_toBottomOf="@id/nowifitextview"

@@ -7,6 +7,7 @@ import static android.Manifest.permission.CHANGE_WIFI_STATE;
 import static android.content.Context.WIFI_SERVICE;
 import static de.erichambuch.forcewifi5.WifiChangeService.ONGOING_NOTIFICATION_ID;
 import static de.erichambuch.forcewifi5.WifiChangeService.showNotificationMessage;
+import static de.erichambuch.forcewifi5.WifiUtils.getBand;
 import static de.erichambuch.forcewifi5.WifiUtils.getQuotationalSSID;
 import static de.erichambuch.forcewifi5.WifiUtils.unquoteSSid;
 
@@ -118,14 +119,14 @@ public class WifiController {
             }
 
             if (reconnected) {
-                handleReconnect(wifiManager, suggestions, networkId, suggestionsString.toString());
+                handleReconnect(wifiManager, suggestions, getBand(context.getApplicationContext()), networkId, suggestionsString.toString());
             } else {
                 WifiChangeService.showError(context, R.string.error_5ghz_not_configured);
             }
         }
     }
 
-    private void handleReconnect(WifiManager wifiManager, List<WifiNetworkSuggestion> suggestions, int networkId, String logMsg) {
+    private void handleReconnect(WifiManager wifiManager, List<WifiNetworkSuggestion> suggestions, int band, int networkId, String logMsg) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && !suggestions.isEmpty()) {
             showNotificationMessage(context, context.getText(R.string.info_switch_wifi_5ghz).toString());
             wifiManager.removeNetworkSuggestions(new ArrayList<>()); // Clear old
@@ -133,7 +134,7 @@ public class WifiController {
             WifiChangeService.showError(context, R.string.info_switch_wifi_5ghz_android10);
 
             if (isAggressive() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                WifiChangeService.aggressiveNetworkChange(context, suggestions.get(0));
+                WifiChangeService.aggressiveNetworkChange(context, suggestions.get(0), band);
             }
         } else if (networkId >= 0) {
             wifiManager.disconnect();

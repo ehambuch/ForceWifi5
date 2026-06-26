@@ -56,9 +56,16 @@
     </PreferenceCategory>
     <PreferenceCategory android:title="Permissions">
         <Preference
+            app:title="@string/text_setup"
+            app:summary="@string/description_setup">
+            <intent
+                android:targetPackage="de.erichambuch.forcewifi5"
+                android:targetClass="de.erichambuch.forcewifi5.SetupActivity" />
+        </Preference>
+        <Preference
             app:key="@string/prefs_app_settings"
             app:title="@string/title_app_settings"
-            app:summary="@string/summay_app_settings">
+            app:summary="@string/summary_app_settings">
             <intent
                 android:action="android.settings.APPLICATION_DETAILS_SETTINGS"
                 android:data="package:de.erichambuch.forcewifi5" />
@@ -66,7 +73,7 @@
         <Preference
             app:key="@string/prefs_notification_settings"
             app:title="@string/title_notification_settings"
-            app:summary="@string/summay_notifications_settings">
+            app:summary="@string/summary_notifications_settings">
             <intent
                 android:action="android.settings.APPLICATION_DETAILS_SETTINGS"
                 android:data="package:de.erichambuch.forcewifi5" />
@@ -75,7 +82,7 @@
         <Preference
             app:key="@string/prefs_permission_settings"
             app:title="@string/title_permission_settings"
-            app:summary="@string/summay_permission_settings">
+            app:summary="@string/summary_permission_settings">
             <intent
                 android:action="android.settings.APPLICATION_DETAILS_SETTINGS"
                 android:data="package:de.erichambuch.forcewifi5" />
@@ -122,13 +129,6 @@
                 android:targetClass="de.erichambuch.forcewifi5.SettingsActivity" />
         </Preference>
         <Preference
-            app:title="@string/text_setup"
-            app:summary="@string/description_setup">
-            <intent
-                android:targetPackage="de.erichambuch.forcewifi5"
-                android:targetClass="de.erichambuch.forcewifi5.SetupActivity" />
-        </Preference>
-        <Preference
             app:title="@string/title_device_overlay"
             app:summary="@string/description_device_overlay">
             <intent
@@ -146,10 +146,14 @@
             app:summary="@string/summary_crashlytics"/>
     </PreferenceCategory>
     <PreferenceCategory android:title="Experimental">
+        <SwitchPreferenceCompat
+            app:key="@string/prefs_setsinglechannels"
+            app:defaultValue="false"
+            app:title="@string/title_selectpreferredchannels"/>
         <MultiSelectListPreference
             app:key="@string/prefs_selectchannels"
-            app:title="@string/title_selectpreferredchannels"
-            app:summary="@string/summary_selectpreferredchannels"
+            app:title="@string/title_preferredchannels"
+            app:summary="@string/summary_selectpreferredchannels"/>
             app:entries="@array/emptyarray" app:entryValues="@array/emptyarray"/>
     </PreferenceCategory>
     <PreferenceCategory android:title="Information">

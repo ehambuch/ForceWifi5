@@ -8,7 +8,7 @@
       
   <string name="error_no_5ghz_found">¡No se encontraron redes con ambas frecuencias y el mismo SSID!</string>
       
-  <string name="error_no_location_enabled">¡Los servicios de ubicación deben estar habilitados!</string>
+  <string name="error_no_location_enabled">Los servicios de ubicación deben estar activados para obtener todos los puntos de acceso Wi-Fi cercanos.</string>
       
   <string name="info_switch_wifi_5ghz">Intentando cambiar de frecuencia…</string>
       
@@ -75,7 +75,7 @@
       
   <string name="error_no_permissions_provived">Esta aplicación carece de los permisos necesarios para los servicios de ubicación y el acceso Wifi. Abra la Configuración y conceda los permisos necesarios.</string>
       
-  <string name="summay_permission_settings">Abra la configuración de permisos de la aplicación. Esta aplicación necesita permisos para Wifi, Ubicación y Notificaciones para poder funcionar.</string>
+  <string name="summary_permission_settings">Abra la configuración de permisos de la aplicación. Esta aplicación necesita permisos para Wifi, Ubicación y Notificaciones para poder funcionar.</string>
       
   <string name="summary_location_settings">Abra la configuración de los servicios de ubicación. Esta aplicación necesita que los servicios de ubicación estén habilitados para recuperar una lista de todos los puntos de acceso Wifi.</string>
       
@@ -85,7 +85,7 @@
       
   <string name="title_app_settings">Ajustes de Aplicacion</string>
       
-  <string name="summay_app_settings">Abra la configuración de esta aplicación. Úselo para eliminar las restricciones de fondo y corregir los permisos o la configuración de optimización de la batería.</string>
+  <string name="summary_app_settings">Abra la configuración de esta aplicación. Úselo para eliminar las restricciones de fondo y corregir los permisos o la configuración de optimización de la batería.</string>
 
   <string-array name="entries25ghz">
     <item>2.4 GHz</item>
@@ -137,7 +137,7 @@
   <string name="description_developer_settings">Puede desactivar la limitación del escaneo de Wifi en las Opciones de desarrollador (si está activada en su dispositivo).</string>
     <string name="message_forcewifi14_activated">Forzar Wifi 5 activado. Ábralo para cambiar a un punto de acceso Wifi específico.</string>
     <string name="title_notification_settings">Notificaciones</string>
-  <string name="summay_notifications_settings">Allow notifications from this app to be informed about Wifi changes.</string>
+  <string name="summary_notifications_settings">Allow notifications from this app to be informed about Wifi changes.</string>
   <string name="summary_wifichange_settings">Abra el menú \'Acceso a aplicaciones especiales\' y verifique la configuración de \'Control de Wi-Fi\' para esta aplicación</string>
   <string name="title_wifiband_settings">Selección automática de banda Wi-Fi</string>
   <string name="summary_wifiband_settings">Algunos teléfonos ya ofrecen una selección automática de banda. En la función puede reemplazar esta aplicación.</string>
@@ -204,4 +204,5 @@
   <string name="text_not_working"><![CDATA[<p>Algunas razones por las que la aplicación podría no funcionar correctamente para usted:</p><br/><p><ol><li><em>El sistema Android no acepta su solicitud de un canal Wi-Fi específico (por ejemplo, debido a una señal débil).</li><li>Su router mantiene su dispositivo anclado a un canal específico.</li></ol></p><br/><p>¿Qué puedo hacer?</p><p><ol><li>En primer lugar, por favor, desactive el Wi-Fi de su teléfono y vuelva a activarlo pasados ​​unos instantes.</li><li>En segundo lugar, por favor, revise las distintas opciones de configuración para realizar mejoras.</li></ol><p>]]></string>
   <string name="action_notworking">¿No funciona?</string>
     <string name="text_wifimanual_notaccepted">Modo manual: Android aún no ha aceptado la red Wi-Fi que prefieres. Es posible que la señal sea demasiado débil o que debas desactivar y volver a activar el Wi-Fi tras aproximadamente un minuto.</string>
+  <string name="title_preferredchannels">Preferred Channels</string>
 </resources>

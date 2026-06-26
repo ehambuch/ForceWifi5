@@ -66,6 +66,7 @@ import androidx.work.WorkManager;
 import androidx.work.WorkRequest;
 
 import com.google.android.material.bottomappbar.BottomAppBar;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.divider.MaterialDividerItemDecoration;
@@ -456,10 +457,7 @@ public class MainActivity extends AppCompatActivity {
 				MainActivity.this.saveSuggestions();
 			}
 		);
-		findViewById(R.id.cardSwitchManualModeBtn).setOnClickListener(v -> {
-			MainActivity.this.toggleManualMode();
-			updateManualModeUI();
-		});
+
 		findViewById(R.id.closeCardBtn).setOnClickListener(v -> {
 			findViewById(R.id.nowificardview).setVisibility(View.GONE);
 		});
@@ -704,16 +702,22 @@ public class MainActivity extends AppCompatActivity {
 	private void saveSuggestions() {
 		final List<WifiNetworkSuggestion> suggestionList = new ArrayList<>();
 		int priority = this.preferredNetworks.size();
+        int band = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) ? ScanResult.UNSPECIFIED : -1;
+		boolean bandset = false;
 		for(AccessPointEntry entry : this.preferredNetworks) {
 			final WifiNetworkSuggestion.Builder builder=
 				new WifiNetworkSuggestion.Builder().
 						setBssid(MacAddress.fromString(entry.bssid)).
 						setPriority(priority--);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && entry.wifiSsid != null) {
+			if (!bandset && entry.frequencies != null && (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)) {
+				band = WifiUtils.getBand(entry.frequencies.frequency);
+				bandset = true;
+			}
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && entry.wifiSsid != null) {
 				builder.setWifiSsid(entry.wifiSsid);
 				suggestionList.add(builder.build());
             } else {
-				builder.setSsid(entry.name);
+				builder.setSsid(WifiUtils.getQuotationalSSID(entry.name));
 				suggestionList.add(builder.build());
 			}
 		}
@@ -722,7 +726,7 @@ public class MainActivity extends AppCompatActivity {
 		showMessage(R.string.text_suggestions_saved);
 
 		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && isAggressive() && !suggestionList.isEmpty()) {
-			WifiChangeService.aggressiveNetworkChange(MainActivity.this, suggestionList.get(0));
+			WifiChangeService.aggressiveNetworkChange(MainActivity.this, suggestionList.get(0), band);
 		} else {
 			// Here we try to force a re-connect of the Wifi via Internet connectivity
 			try {
@@ -907,15 +911,21 @@ public class MainActivity extends AppCompatActivity {
 		// and display the message box
 		if (checkSelfPermission(ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 			showPermissionsError();
+		} else if (!isLocationServicesEnabled(this)) {
+			showLocationservicesError();
 		} else if (listNetworks.isEmpty()) {
 			// otherwise: we found networks, but not the appropriate (2.4/5)
 			((MaterialCardView)findViewById(R.id.nowificardview)).setCardBackgroundColor(getResources().getColor(R.color.design_default_color_primary_dark, getTheme()));
 			findViewById(R.id.nowificardview).setVisibility(VISIBLE);
 			((TextView) findViewById(R.id.nowifitextview)).setText(R.string.text_nowififound);
-			findViewById(R.id.cardSwitchManualModeBtn).setVisibility(manualMode ? GONE : VISIBLE);
+			setCardActionButton(R.string.action_manualmode, v -> {
+				MainActivity.this.toggleManualMode();
+				updateManualModeUI();
+			});
 		} else {
 			((MaterialCardView)findViewById(R.id.nowificardview)).setCardBackgroundColor(getResources().getColor(android.R.color.holo_green_dark, getTheme()));
 			findViewById(R.id.nowificardview).setVisibility(VISIBLE);
+			findViewById(R.id.cardActionModeBtn).setVisibility(GONE);
 			final TextView noWifiTextview = findViewById(R.id.nowifitextview);
 			if(isManualMode()) {
 				if(suggestionList.isEmpty()) {
@@ -925,6 +935,7 @@ public class MainActivity extends AppCompatActivity {
 				} else {
 					noWifiTextview.setText(R.string.text_wifimanual_notaccepted);
 					((MaterialCardView)findViewById(R.id.nowificardview)).setCardBackgroundColor(getResources().getColor(android.R.color.holo_orange_dark, getTheme()));
+					setCardActionButton(R.string.action_notworking, view -> showWhyNotWorking());
 				}
 			} else { // automatic mode
 				if(isOnWantedFreq) {
@@ -933,7 +944,6 @@ public class MainActivity extends AppCompatActivity {
 					noWifiTextview.setText(R.string.text_wififound);
 				}
 			}
-			findViewById(R.id.cardSwitchManualModeBtn).setVisibility(GONE);
 		}
 	}
 
@@ -950,6 +960,12 @@ public class MainActivity extends AppCompatActivity {
 		return LocationManagerCompat.isLocationEnabled(locationManager);
 	}
 
+	void setCardActionButton(int textId, View.OnClickListener action ) {
+		final MaterialButton actionView = findViewById(R.id.cardActionModeBtn);
+		actionView.setText(textId);
+		actionView.setOnClickListener(action);
+		actionView.setVisibility(VISIBLE);
+	}
 	/**
 	 * Show the permission error in the card on top of the main screen.
 	 */
@@ -957,7 +973,26 @@ public class MainActivity extends AppCompatActivity {
 		((MaterialCardView)findViewById(R.id.nowificardview)).setCardBackgroundColor(getResources().getColor(android.R.color.holo_red_dark, getTheme()));
 		findViewById(R.id.nowificardview).setVisibility(View.VISIBLE);
 		((TextView) findViewById(R.id.nowifitextview)).setText(R.string.error_no_permissions_provived);
-		findViewById(R.id.cardSwitchManualModeBtn).setVisibility(GONE);
+		setCardActionButton(R.string.text_settings, new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				startActivity(new Intent(getApplicationContext(), SetupActivity.class));
+			}
+		});
+	}
+
+	/**
+	 * Show the location services error in the card on top of the main screen.
+	 */
+	private void showLocationservicesError() {
+		((MaterialCardView)findViewById(R.id.nowificardview)).setCardBackgroundColor(getResources().getColor(android.R.color.holo_red_dark, getTheme()));
+		findViewById(R.id.nowificardview).setVisibility(View.VISIBLE);
+		((TextView) findViewById(R.id.nowifitextview)).setText(R.string.error_no_location_enabled);
+		setCardActionButton(R.string.text_settings, view -> {
+            Intent settingsIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+            settingsIntent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+            startActivity(settingsIntent);
+        });
 	}
 
 	private void showAbout() {
@@ -1008,7 +1043,7 @@ public class MainActivity extends AppCompatActivity {
 		dialog.show();
 	}
 
-	private void showWhyNotWorking() {
+	void showWhyNotWorking() {
 		final MaterialAlertDialogBuilder dialogBuilder = new MaterialAlertDialogBuilder(this)
 				.setTitle(getString(R.string.app_name))
 				.setNeutralButton(R.string.text_wifi, new DialogInterface.OnClickListener() {

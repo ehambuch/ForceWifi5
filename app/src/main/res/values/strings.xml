@@ -5,7 +5,7 @@
     <string name="action_info">FAQ</string>
     <string name="error_wifi_not_enabled">Wifi is not enabled!</string>
     <string name="error_no_5ghz_found">No networks with both frequencies and same SSID found!</string>
-    <string name="error_no_location_enabled">Location services must be enabled!</string>
+    <string name="error_no_location_enabled">Location services must be enabled to retrieve all Wifi Access Points around.</string>
     <string name="info_switch_wifi_5ghz">Trying to switch frequency &#8230;</string>
     <string name="info_5ghz_active">Wifi already connected with preferred frequency</string>
     <string name="text_listnetworks">Available networks with both 2.4/5 GHz:</string>
@@ -47,12 +47,12 @@
     <string name="error_permission_duplicate">Error while setting duplication suggestion for Wifi - try to start app again.</string>
     <string name="error_suggestion_not_taken">Android did not follow suggestion for Wifi - try to dis-connect, wait for at least 60 secs and reconnect manually</string>
     <string name="error_no_permissions_provived">This app lacks of the required permissions for Location Services and Wifi access. Please open the Settings and grant the necessary permissions.</string>
-    <string name="summay_permission_settings">Open permission settings of app. This app needs permissions for Wifi, Location and Notifications in order to work.</string>
+    <string name="summary_permission_settings">Open permission settings of app. This app needs permissions for Wifi, Location and Notifications in order to work.</string>
     <string name="summary_location_settings">Open location services settings. This app needs location services enabled in order to retrieve a list of all Wifi access points.</string>
     <string name="title_permission_settings">Permission settings</string>
     <string name="title_location_settings">Location settings</string>
     <string name="title_app_settings">App settings</string>
-    <string name="summay_app_settings">Open settings of this app. Use to remove Background Restrictions and fix permissions or battery optimization settings.</string>
+    <string name="summary_app_settings">Open settings of this app. Use to remove Background Restrictions and fix permissions or battery optimization settings.</string>
     <string name="prefs_location_settings" translatable="false">prefs_location_settings</string>
     <string name="prefs_permission_settings" translatable="false">prefs_permission_settings</string>
     <string name="prefs_app_settings" translatable="false">prefs_app_settings</string>
@@ -70,7 +70,6 @@
         <item>3</item>
     </string-array>
     <string-array name="emptyarray">
-        <item>none</item>
     </string-array>
     <string name="text_nowifi">No Wifi access point connected</string>
     <string name="text_nowifirecommended">No Wifi access point recommended</string>
@@ -97,7 +96,7 @@
     <string name="message_forcewifi14_activated">Force Wifi 5 activated. Please open to switch to a specific Wifi access point.</string>
     <string name="prefs_notification_settings" translatable="false">prefs_notification_settings</string>
     <string name="title_notification_settings">Notifications</string>
-    <string name="summay_notifications_settings">Allow notifications from this app to be informed about Wifi changes.</string>
+    <string name="summary_notifications_settings">Allow notifications from this app to be informed about Wifi changes.</string>
     <string name="prefs_wifichange_settings" translatable="false">prefs_wifichange_settings</string>
     <string name="title_wifichange_settings" translatable="false">Check Wi-Fi Control</string>
     <string name="summary_wifichange_settings">Open the ‘Special App access’ menu and check the ’Wi-Fi Control’ settings for this app</string>
@@ -181,5 +180,7 @@
     <string name="text_not_working"><![CDATA[<p>Some reasons why the app may not work properly for you:</p><br/><p><ol><li><em>Android system does not accept your wish for a specific Wifi channel, e.g. due to weak signal.</li><li>Your router keeps your device stick to a specific channel.</li></ol></p><br/><p>What can I do?</p><p><ol><li>First, please disconnect your phone\'s Wifi and re-connect it after some time again.</li><li>Secondly, please check out the different Settings for improvement.</li></ol><p>]]></string>
     <string name="action_notworking">Not Working?</string>
     <string name="text_wifimanual_notaccepted">Manual mode: Android hasn\'t accepted your preferred Wifi yet. Either the signal is too low or you may have to disable and re-enable your Wifi again after a minute or so.</string>
+    <string name="prefs_setsinglechannels" translatable="false">prefs_setsinglechannels</string>
+    <string name="title_preferredchannels">Preferred Channels</string>
 </resources>
 

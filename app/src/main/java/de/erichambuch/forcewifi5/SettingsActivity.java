@@ -188,11 +188,13 @@ public class SettingsActivity extends AppCompatActivity {
 
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE &&
 					ActivityCompat.checkSelfPermission(this, Manifest.permission.NEARBY_WIFI_DEVICES) == PackageManager.PERMISSION_GRANTED) {
+				settingsFragment.findPreference(getString(R.string.prefs_setsinglechannels)).setEnabled(true);
 				settingsFragment.findPreference(getString(R.string.prefs_selectchannels)).setEnabled(true);
 				setListOfAvailableChannels();
-			} else
+			} else {
+				settingsFragment.findPreference(getString(R.string.prefs_setsinglechannels)).setEnabled(false);
 				settingsFragment.findPreference(getString(R.string.prefs_selectchannels)).setEnabled(false);
-
+			}
 			final Intent devIntent = new Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS);
 			settingsFragment.findPreference(getString(R.string.prefs_developer_settings)).
 					setEnabled(devIntent.resolveActivity(getPackageManager()) != null);
@@ -235,6 +237,7 @@ public class SettingsActivity extends AppCompatActivity {
 	 * Set list of available channels (frequency) for the experimental feature.
 	 * <p>No not supported, deactivates setting.</p>
 	 */
+	// TODO: find solution for manual mode, then we dont have a preferred band
 	@RequiresPermission(value = "android.permission.NEARBY_WIFI_DEVICES")
 	protected void setListOfAvailableChannels() {
 		final MultiSelectListPreference multiSelectListPreference = settingsFragment.findPreference(getString(R.string.prefs_selectchannels));

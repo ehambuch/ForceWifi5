@@ -14,7 +14,7 @@ android {
         applicationId "de.erichambuch.forcewifi5"
         minSdk 30
         targetSdkVersion 37
-        versionCode 77
+        versionCode 78
         versionName '2.2.0'
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"

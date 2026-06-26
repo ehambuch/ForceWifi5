@@ -8,7 +8,7 @@
 
   <string name="error_no_5ghz_found">Aucun réseau avec les deuxfréquences et le même SSID trouvé!</string>
 
-  <string name="error_no_location_enabled">Les services de localisation doivent être activés!</string>
+  <string name="error_no_location_enabled">Les services de localisation doivent être activés pour récupérer tous les points d\'accès Wi-Fi environnants.</string>
 
   <string name="info_switch_wifi_5ghz">Essayer de changer de fréquence…</string>
 
@@ -77,7 +77,7 @@
 
   <string name="error_no_permissions_provived">Cette application ne dispose pas des autorisations requises pour les services de localisation et l\'accès Wifi. Veuillez ouvrir les paramètres et accorder les autorisations nécessaires.</string>
 
-  <string name="summay_permission_settings">Ouvrez les paramètres d\'autorisation de l\'application. Cette application a besoin d\'autorisations pour le Wifi, la localisation et les notifications pour fonctionner.</string>
+  <string name="summary_permission_settings">Ouvrez les paramètres d\'autorisation de l\'application. Cette application a besoin d\'autorisations pour le Wifi, la localisation et les notifications pour fonctionner.</string>
 
   <string name="summary_location_settings">Ouvrez les paramètres des services de localisation. Cette application nécessite l\'activation des services de localisation afin de récupérer une liste de tous les points d\'accès Wifi.</string>
 
@@ -87,7 +87,7 @@
 
   <string name="title_app_settings">Paramètres de l\'application</string>
 
-  <string name="summay_app_settings">Ouvrez les paramètres de cette application. Utilisez-le pour supprimer les restrictions d\'arrière-plan et corriger les autorisations ou les paramètres d\'optimisation de la batterie.</string>
+  <string name="summary_app_settings">Ouvrez les paramètres de cette application. Utilisez-le pour supprimer les restrictions d\'arrière-plan et corriger les autorisations ou les paramètres d\'optimisation de la batterie.</string>
 
   <string-array name="entries25ghz">
     <item>2.4 GHz</item>
@@ -134,13 +134,13 @@
   <string name="message_nosupport">Cette application nécessite que votre appareil Android prenne en charge le Wi-Fi multibande - donc 2,4 GHz ainsi que 5 ou 6 GHz. De toute évidence, ce n\'est pas le cas. Veuillez donc le désinstaller.</string>
 
   <string name="action_about">À propos</string>
-    <string name="title_batt_optimization_settings">Battery optimization settings</string>
-  <string name="summary_batt_optimization_settings">Open battery optimization settings to disable all optimizations for this app. This is required for Android 12 and above.</string>
+    <string name="title_batt_optimization_settings">Paramètres d’optimisation de la batterie</string>
+  <string name="summary_batt_optimization_settings">Ouvrez les paramètres d’optimisation de la batterie pour désactiver toutes les optimisations pour cette application. Ceci est requis pour Android 12 et versions ultérieures.</string>
   <string name="title_developer_settings">Paramètres du développeur</string>
   <string name="description_developer_settings">You can switch off the Wifi scanning Throttling in the Developer Options (if activated on your device).</string>
     <string name="message_forcewifi14_activated">Forcer l\'activation du Wifi 5. Veuillez l\'ouvrir pour passer à un point d\'accès Wifi spécifique.</string>
     <string name="title_notification_settings">Notifications</string>
-  <string name="summay_notifications_settings">Allow notifications from this app to be informed about Wifi changes.</string>
+  <string name="summary_notifications_settings">Autoriser les notifications de cette application pour être informé des changements Wi-Fi.</string>
   <string name="summary_wifichange_settings">Ouvrez le menu “Accès spécial à l’application” et vérifiez les paramètres “Contrôle Wi-Fi” pour cette application.</string>
   <string name="title_wifiband_settings">Sélection automatique de bande Wi-Fi</string>
   <string name="summary_wifiband_settings">Certains téléphones proposent déjà une sélection automatique de bande. Dans la fonctionnalité peut remplacer cette application.</string>
@@ -166,7 +166,7 @@
   <string name="title_admob">Activer la publicité</string>
   <string name="summary_admob">Activez ou désactivez les publicités dans l’application (nécessite un redémarrage).</string>
   <string name="action_privacy">Options de confidentialité</string>
-  <string name="error_loading_privacy">Error loading privacy forms for AdMob</string>
+  <string name="error_loading_privacy">Erreur lors du chargement des formulaires de confidentialité pour AdMob</string>
   <string name="action_contact">Contact</string>
     <string name="action_reload">Reload</string>
   <string name="text_wifimanualmode">Mode manuel: Veuillez sélectionner vos points d\’accès Wi-Fi préférés et cliquez sur Enregistrer.</string>
@@ -177,10 +177,10 @@
   <string name="summary_aggressive_change">L\'activation peut aider sur certains appareils à appliquer les recommandations</string>
   <string name="title_crashlytics">Google Crashlytics</string>
   <string name="summary_crashlytics">Envoie des données statistiques au développeur pour analyser les erreurs éventuelles dans l\'application</string>
-    <string name="title_selectpreferredchannels">Select Preferred Wifi Channels</string>
-  <string name="summary_selectpreferredchannels">Select dedicated channels set to optimize the scan and connection (may not work on all devices)</string>
+    <string name="title_selectpreferredchannels">Sélectionner les canaux Wi-Fi préférés</string>
+  <string name="summary_selectpreferredchannels">Sélectionnez des canaux dédiés pour optimiser le scan et la connexion (peut ne pas fonctionner sur tous les appareils)</string>
     <string name="text_wififrequencyok">Votre connexion est actuellement sur la fréquence préférée. Voir ci-dessous une liste de tous les réseaux WiFi disponibles.</string>
-  <string name="error_constent">Error retrieving consent form</string>
+  <string name="error_constent">Erreur lors de la récupération du formulaire de consentement</string>
   <string name="action_privacyoptions">Options de confidentialité</string>
   <string name="error_no_browser">Aucun navigateur trouvé sur l\'appareil Android !</string>
   <string name="text_available_wifis">Réseaux Wi-Fi disponibles</string>
@@ -194,9 +194,9 @@
   <string name="setup_title_1">Bienvenue sur Force Wifi 5 !</string>
   <string name="setup_text_1"><![CDATA[<p>Cette application maintient le Wi-Fi de votre téléphone sur les canaux de votre choix. Vous pouvez basculer automatiquement vers la bande des 5 GHz — moins sollicitée — ou même celle des 6 GHz, si votre appareil la prend en charge. Vous avez également la possibilité de définir manuellement certains réseaux Wi-Fi comme prioritaires. Les modifications peuvent nécessiter un certain délai ou un redémarrage du Wi-Fi (activation/désactivation) pour prendre effet ; nous vous remercions donc de faire preuve de patience.</p><br/> <p>Tout commentaire est le bienvenu : n\'hésitez pas à m\'envoyer un e-mail.</p><br/>Passons maintenant au processus de configuration et à l\'octroi des autorisations nécessaires…]]></string>
   <string name="text_finish">Finir</string>
-  <string name="setup_title_2">Location Permission</string>
+  <string name="setup_title_2">Autorisation de localisation</string>
   <string name="setup_text_2"><![CDATA[<p>Afin de détecter tous les réseaux Wi-Fi à proximité, Android requiert l\'autorisation <em>LOCALISATION</em> et/ou <em>APPAREILS À PROXIMITÉ</em>.</p><p>Veuillez l\'accorder dans la boîte de dialogue qui va s\'afficher.</p><br/><p>Sans cette autorisation, l\'application ne fonctionnera pas du tout.</p>]]></string>
-  <string name="setup_title_3">Notification Permission</string>
+  <string name="setup_title_3">Autorisation de notification</string>
   <string name="setup_text_3"><![CDATA[<p>ForceWifi5 vous enverra plusieurs notifications, par exemple si un canal Wi-Fi a été modifié ou si le changement de canal n\'a pas été possible.</p><br/><p>Veuillez accorder l\'autorisation demandée et activer les notifications dans les paramètres de l\'application.</p>]]></string>
   <string name="setup_title_4">Services de localisation</string>
   <string name="setup_text_4"><![CDATA[<p>Cette application nécessite l\'accès à tous les réseaux sans fil environnants. Par conséquent, les <em>Services de localisation</em> doivent être activés afin de récupérer la liste de tous les réseaux Wi-Fi. Il s\'agit d\'une exigence imposée par Android.<br/>Sans cela, l\'application NE FONCTIONNERA PAS.<br/><p>L\'application ne tentera jamais de déterminer votre position ni d\'effectuer des opérations similaires.</p>]]></string>
@@ -207,5 +207,6 @@
   <string name="text_not_working"><![CDATA[<p>Voici quelques raisons pour lesquelles l\'application pourrait ne pas fonctionner correctement pour vous :</p><br/><p><ol><li><em>Le système Android ne prend pas en compte votre demande d\'utiliser un canal Wi-Fi spécifique (par exemple, en raison d\'un signal trop faible).</li><li>Votre routeur maintient votre appareil connecté à un canal spécifique.</li></ol></p><br/><p>Que puis-je faire ?</p><p><ol><li>Tout d\'abord, veuillez désactiver le Wi-Fi de votre téléphone, puis le réactiver après quelques instants.</li><li>Ensuite, veuillez vérifier les différents paramètres disponibles afin d\'améliorer la situation.</li></ol><p>]]></string>
   <string name="action_notworking">Ne fonctionne pas ?</string>
     <string name="text_wifimanual_notaccepted">Mode manuel : Android n\'a pas encore accepté le réseau Wi-Fi de votre choix. Soit le signal est trop faible, soit vous devrez peut-être désactiver puis réactiver le Wi-Fi après une minute environ.</string>
+  <string name="title_preferredchannels">Preferred Channels</string>
 
 </resources>

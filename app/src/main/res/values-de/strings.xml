@@ -4,7 +4,7 @@
     <string name="action_info">FAQ</string>
     <string name="error_wifi_not_enabled">Wifi ist nicht aktiviert!</string>
     <string name="error_no_5ghz_found">Keine Netzwerke mit 2.4/5 GHz und gleicher SSID gefunden!</string>
-    <string name="error_no_location_enabled">Ortungsdienste müssen aktiviert sein!</string>
+    <string name="error_no_location_enabled">Standortdienste müssen aktiviert sein, um alle WLAN-Zugangspunkte in der Umgebung zu erfassen.</string>
     <string name="info_switch_wifi_5ghz">Versuche die Frequenz zu wechseln &#8230;</string>
     <string name="info_5ghz_active">Wifi ist bereits auf gewünschtem Frequenzband</string>
     <string name="text_listnetworks">Verfügbare Netzwerke mit beiden Frequenzbändern 2.4/5 GHz:</string>
@@ -38,12 +38,12 @@
     <string name="error_permission_duplicate">Fehler beim Setzen einer Empfehlung für ein Wifi - starten Sie die App bitte neu.</string>
     <string name="error_suggestion_not_taken">Android hat die Empfehlung für Wifi nicht angenommen - versuchen Sie ein manuelles aus- und einschalten des Wifis</string>
     <string name="error_no_permissions_provived">Diese App benötigt Berechtigungen für Ortungsdienste und Wifi-Zugriff. Öffnen Sie bitte die Einstellungen und vergeben die Berechtigungen.</string>
-    <string name="summay_permission_settings">Öffnet die Berechtigungseinstellungen der App. Die App benötigt Berechtigungen für Wifi, Ortungsdienste und Benachrichtungen, um korrekt zu funktionieren.</string>
+    <string name="summary_permission_settings">Öffnet die Berechtigungseinstellungen der App. Die App benötigt Berechtigungen für Wifi, Ortungsdienste und Benachrichtungen, um korrekt zu funktionieren.</string>
     <string name="summary_location_settings">Ortungsdienste öffnen. Diese App benötigt aktivierte Ortungsdienste, um die Liste aller Wifis in der Nähe abzurufen.</string>
     <string name="title_permission_settings">Berechtigungen</string>
     <string name="title_location_settings">Ortungsdienste</string>
     <string name="title_app_settings">App Einstellungen</string>
-    <string name="summay_app_settings">Öffnet Einstellungen der App. Kann genutzt werden, um Hintergrundbeschränkungen und Energiesparoptionen zu deaktivieren.</string>
+    <string name="summary_app_settings">Öffnet Einstellungen der App. Kann genutzt werden, um Hintergrundbeschränkungen und Energiesparoptionen zu deaktivieren.</string>
     <string-array name="entries25ghz">
         <item>2.4 GHz</item>
         <item>5 GHz</item>
@@ -79,7 +79,7 @@
     <string name="description_developer_settings">"Deaktivieren Sie die Drosselung für Wifi Scans "</string>
     <string name="message_forcewifi14_activated">ForceWifi5 aktiviert. Bitte öffnen Sie die App, um ein bestimmtes Wifi auszuwählen.</string>
     <string name="title_notification_settings">Benachrichtigungen</string>
-    <string name="summay_notifications_settings">Aktivieren Sie alle Benachrichtigungen durch die App, um über Änderungen des Wifis informiert zu werden.</string>
+    <string name="summary_notifications_settings">Aktivieren Sie alle Benachrichtigungen durch die App, um über Änderungen des Wifis informiert zu werden.</string>
     <string name="summary_wifichange_settings">Öffnen Sie das Menü „Spezieller App-Zugriff“ und überprüfen Sie die „Wi-Fi-Steuerung“-Einstellungen für diese App</string>
     <string name="title_wifiband_settings">Automatische Wi-Fi Bandauswahl</string>
     <string name="summary_wifiband_settings">Einige Geräte bieten bereits eine automatische Wi-Fi Bandauswahl an.</string>
@@ -116,8 +116,8 @@
     <string name="summary_aggressive_change">Auf einigen Geräten kann die Aktivierung hilfreich sein, um die Empfehlungen durchzusetzen</string>
     <string name="title_crashlytics">Aktiviere Google Crashlytics</string>
     <string name="summary_crashlytics">Sendet statistische Daten zur Auswertung von Fehlern an den Entwickler (Neustart erforderlich).</string>
-    <string name="title_selectpreferredchannels">Select Preferred Wifi Channels</string>
-    <string name="summary_selectpreferredchannels">Select dedicated channels set to optimize the scan and connection (may not work on all devices)</string>
+    <string name="title_selectpreferredchannels">Bevorzugte WLAN-Kanäle auswählen</string>
+    <string name="summary_selectpreferredchannels">Wählen Sie dedizierte Kanäle aus, um Scan und Verbindung zu optimieren (funktioniert möglicherweise nicht auf allen Geräten)</string>
     <string name="text_wififrequencyok">Die Wifi-Verbindung ist auf der gewünschten Frequenz. Weitere verfügbare Wifis vorhanden.</string>
     <string name="text_available_wifis">Verfügbare Wifis</string>
     <string name="action_save">Speichern</string>
@@ -146,4 +146,5 @@
     <string name="text_not_working"><![CDATA[<p>Einige Gründe, warum die App bei Ihnen möglicherweise nicht ordnungsgemäß funktioniert:</p><br/><p><ol><li><em>Das Android-System berücksichtigt Ihren Wunsch nach einem bestimmten WLAN-Kanal nicht – z. B. aufgrund eines schwachen Signals.</li><li>Ihr Router hält Ihr Gerät auf einem bestimmten Kanal fest.</li></ol></p><br/><p>Was kann ich tun?</p><p><ol><li>Deaktivieren Sie zunächst bitte das WLAN auf Ihrem Smartphone und verbinden Sie es nach einer kurzen Wartezeit erneut.</li><li>Überprüfen Sie anschließend die verschiedenen Einstellungen, um mögliche Verbesserungen vorzunehmen.</li></ol><p>]]></string>
     <string name="action_notworking">Funktioniert nicht?</string>
     <string name="text_wifimanual_notaccepted">Manueller Modus: Android hat das bevorzugte WLAN noch nicht akzeptiert. Entweder ist das Signal zu schwach, oder Sie müssen das WLAN nach etwa einer Minute deaktivieren und wieder aktivieren.</string>
+    <string name="title_preferredchannels">Preferred Channels</string>
 </resources>
